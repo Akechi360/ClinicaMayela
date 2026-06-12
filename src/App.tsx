@@ -1,20 +1,21 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
 import { WhatsappSimulator } from './components/WhatsappSimulator';
+import { PageLoadSkeleton } from './components/PageLoadSkeleton';
 
-// Vistas
-import { Dashboard } from './views/Dashboard';
-import { Patients } from './views/Patients';
-import { PatientDetail } from './views/PatientDetail';
-import { NewEntry } from './views/NewEntry';
-import { Agenda } from './views/Agenda';
-import { TreatmentsCatalog } from './views/TreatmentsCatalog';
-import { Finances } from './views/Finances';
-import { Gallery } from './views/Gallery';
-import { ClinicSettings } from './views/ClinicSettings';
+// Vistas con Lazy Loading (Named exports)
+const Dashboard = lazy(() => import('./views/Dashboard').then(m => ({ default: m.Dashboard })));
+const Patients = lazy(() => import('./views/Patients').then(m => ({ default: m.Patients })));
+const PatientDetail = lazy(() => import('./views/PatientDetail').then(m => ({ default: m.PatientDetail })));
+const NewEntry = lazy(() => import('./views/NewEntry').then(m => ({ default: m.NewEntry })));
+const Agenda = lazy(() => import('./views/Agenda').then(m => ({ default: m.Agenda })));
+const TreatmentsCatalog = lazy(() => import('./views/TreatmentsCatalog').then(m => ({ default: m.TreatmentsCatalog })));
+const Finances = lazy(() => import('./views/Finances').then(m => ({ default: m.Finances })));
+const Gallery = lazy(() => import('./views/Gallery').then(m => ({ default: m.Gallery })));
+const ClinicSettings = lazy(() => import('./views/ClinicSettings').then(m => ({ default: m.ClinicSettings })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +32,9 @@ const AppLayout: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-transparent">
+      {/* Imagen de fondo premium fixed */}
+      <div className="bg-app-image"></div>
+
       {/* Patrón de puntos de fondo */}
       <div className="bg-grid-overlay"></div>
 
@@ -44,17 +48,19 @@ const AppLayout: React.FC = () => {
 
         {/* Contenido dinámico principal (Desplazado hacia abajo por la Topbar) */}
         <main className="flex-1 pt-28 pb-16 max-w-7xl w-full mx-auto">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/pacientes" element={<Patients />} />
-            <Route path="/pacientes/:id" element={<PatientDetail />} />
-            <Route path="/nueva-entrada" element={<NewEntry />} />
-            <Route path="/agenda" element={<Agenda />} />
-            <Route path="/tratamientos" element={<TreatmentsCatalog />} />
-            <Route path="/finanzas" element={<Finances />} />
-            <Route path="/galeria" element={<Gallery />} />
-            <Route path="/ajustes" element={<ClinicSettings />} />
-          </Routes>
+          <Suspense fallback={<PageLoadSkeleton />}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/pacientes" element={<Patients />} />
+              <Route path="/pacientes/:id" element={<PatientDetail />} />
+              <Route path="/nueva-entrada" element={<NewEntry />} />
+              <Route path="/agenda" element={<Agenda />} />
+              <Route path="/tratamientos" element={<TreatmentsCatalog />} />
+              <Route path="/finanzas" element={<Finances />} />
+              <Route path="/galeria" element={<Gallery />} />
+              <Route path="/ajustes" element={<ClinicSettings />} />
+            </Routes>
+          </Suspense>
         </main>
       </div>
 

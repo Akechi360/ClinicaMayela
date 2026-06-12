@@ -23,43 +23,12 @@
 
 @layer base {
   body {
-    background: linear-gradient(135deg, #FAF7F5 0%, #E2D9D4 100%) !important;
+    background: #FAF7F5 !important;
     color: #3A434D;
     font-family: 'Inter', sans-serif;
     position: relative;
     overflow-x: hidden;
     min-height: 100vh;
-  }
-  
-  /* Orbes de luz satinados muy suaves, no chillones */
-  body::before,
-  body::after {
-    content: "";
-    position: fixed;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: -2;
-    filter: blur(150px);
-    opacity: 0.8;
-    animation: floatOrbs 30s infinite alternate ease-in-out;
-  }
-
-  body::before {
-    background: radial-gradient(circle, rgba(166, 110, 83, 0.16) 0%, rgba(166, 110, 83, 0) 70%);
-    width: 850px;
-    height: 850px;
-    top: -200px;
-    right: -100px;
-    animation-delay: 0s;
-  }
-
-  body::after {
-    background: radial-gradient(circle, rgba(58, 67, 77, 0.08) 0%, rgba(58, 67, 77, 0) 70%);
-    width: 950px;
-    height: 950px;
-    bottom: -200px;
-    left: -200px;
-    animation-delay: -6s;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -67,16 +36,20 @@
   }
 }
 
-@keyframes floatOrbs {
-  0% {
-    transform: translate(0, 0) scale(1) rotate(0deg);
-  }
-  50% {
-    transform: translate(100px, 60px) scale(1.08) rotate(180deg);
-  }
-  100% {
-    transform: translate(-30px, -100px) scale(0.95) rotate(360deg);
-  }
+
+
+/* Imagen de fondo premium acelerada por hardware */
+.bg-app-image {
+  position: fixed;
+  inset: 0;
+  background-image: url('/background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: -3;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 /* Patrón de micro-puntos de lujo para textura */
@@ -92,10 +65,12 @@
 
 /* Glassmorphism Ultra Premium altamente traslúcido y limpio */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.22) !important;
-  backdrop-filter: blur(30px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(30px) saturate(190%) !important;
+  background: rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(12px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(190%) !important;
   border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   box-shadow: 
     0 4px 30px rgba(58, 67, 77, 0.01),
     0 15px 45px -10px rgba(58, 67, 77, 0.03),
@@ -106,9 +81,11 @@
 /* Luxury Card Glow with Satin Copper Outline */
 .luxury-card-glow {
   border: 1px solid rgba(166, 110, 83, 0.12) !important;
-  background: rgba(255, 255, 255, 0.25) !important;
-  backdrop-filter: blur(30px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(30px) saturate(190%) !important;
+  background: rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(12px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(190%) !important;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   box-shadow: 
     0 20px 50px -15px rgba(58, 67, 77, 0.03),
     0 0 30px 2px rgba(166, 110, 83, 0.02),
@@ -117,10 +94,12 @@
 
 /* Cristal Oscuro Esmerilado Premium (High-Fashion) */
 .glass-panel-dark {
-  background: rgba(58, 67, 77, 0.75) !important;
-  backdrop-filter: blur(28px) saturate(160%) !important;
-  -webkit-backdrop-filter: blur(28px) saturate(160%) !important;
+  background: rgba(58, 67, 77, 0.85) !important;
+  backdrop-filter: blur(12px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
   border: 1px solid rgba(166, 110, 83, 0.25) !important;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   box-shadow: 
     0 20px 50px -10px rgba(30, 35, 41, 0.2),
     inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
@@ -177,6 +156,9 @@
 .floating-row {
   background: rgba(255, 255, 255, 0.32) !important;
   backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   border: 1px solid rgba(255, 255, 255, 0.5) !important;
   box-shadow: 0 4px 20px -5px rgba(58, 67, 77, 0.02) !important;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
