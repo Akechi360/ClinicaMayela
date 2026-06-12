@@ -1,9 +1,74 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.ico', 'logo.svg', 'models/face.obj', 'background.png'],
+      manifest: {
+        name: 'Clínica Mayela',
+        short_name: 'Mayela',
+        description: 'Aplicación clínica de medicina estética y bienestar de la Dra. Mayela Silva',
+        theme_color: '#3A434D', // Slate Dark
+        background_color: '#FAF7F5', // Rose Champagne Light
+        display: 'standalone',
+        orientation: 'portrait',
+        icons: [
+          {
+            src: 'icon-192.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: 'icon-512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          }
+        ]
+      },
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,obj}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+              }
+            }
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|obj)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'static-assets',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+              }
+            }
+          },
+          {
+            urlPattern: /.*/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'app-cache'
+            }
+          }
+        ]
+      }
+    })
+  ],
+  optimizeDeps: {
+    exclude: ['@react-pdf/renderer'],
+  },
   build: {
     rollupOptions: {
       output: {

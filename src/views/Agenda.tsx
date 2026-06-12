@@ -245,6 +245,7 @@ export const Agenda: React.FC = () => {
                         }}
                         className="text-slate-light hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-full hover:bg-red-500/10"
                         title="Eliminar cita"
+                        aria-label="Eliminar cita"
                       >
                         <Trash2 size={13} />
                       </button>
@@ -267,6 +268,7 @@ export const Agenda: React.FC = () => {
                 type="button"
                 onClick={() => setShowAddModal(false)}
                 className="text-slate-medium hover:text-slate-dark cursor-pointer"
+                aria-label="Cerrar modal"
               >
                 <X size={18} />
               </button>
@@ -275,8 +277,9 @@ export const Agenda: React.FC = () => {
             <form onSubmit={handleAddCita} className="space-y-4">
               {/* Paciente */}
               <div className="flex flex-col space-y-1">
-                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Paciente</label>
+                <label htmlFor="paciente" className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Paciente</label>
                 <select
+                  id="paciente"
                   required
                   value={pacienteId}
                   onChange={(e) => setPacienteId(e.target.value)}
@@ -291,8 +294,9 @@ export const Agenda: React.FC = () => {
 
               {/* Tratamiento */}
               <div className="flex flex-col space-y-1">
-                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Procedimiento sugerido</label>
+                <label htmlFor="tratamiento" className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Procedimiento sugerido</label>
                 <select
+                  id="tratamiento"
                   required
                   value={tratamientoId}
                   onChange={(e) => setTratamientoId(e.target.value)}
@@ -308,8 +312,9 @@ export const Agenda: React.FC = () => {
               {/* Fecha y Hora */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col space-y-1">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Fecha</label>
+                  <label htmlFor="fecha" className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Fecha</label>
                   <input
+                    id="fecha"
                     type="date"
                     required
                     value={fecha}
@@ -318,8 +323,9 @@ export const Agenda: React.FC = () => {
                   />
                 </div>
                 <div className="flex flex-col space-y-1">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Hora</label>
+                  <label htmlFor="hora" className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Hora</label>
                   <input
+                    id="hora"
                     type="time"
                     required
                     value={hora}
@@ -331,8 +337,9 @@ export const Agenda: React.FC = () => {
 
               {/* Notas */}
               <div className="flex flex-col space-y-1">
-                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Notas de la Cita</label>
+                <label htmlFor="notas" className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Notas de la Cita</label>
                 <textarea
+                  id="notas"
                   value={notas}
                   onChange={(e) => setNotas(e.target.value)}
                   placeholder="Ej. Recordar traer ficha firmada / Paciente solicita anestesia tópica"

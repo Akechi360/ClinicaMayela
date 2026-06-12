@@ -5,6 +5,7 @@ import {
   Users, 
   Calendar, 
   Sparkles, 
+  FileText,
   Image, 
   DollarSign, 
   Settings, 
@@ -24,6 +25,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNewCitaClick }) => {
     { name: 'Pacientes', path: '/pacientes', icon: <Users size={18} /> },
     { name: 'Agenda', path: '/agenda', icon: <Calendar size={18} /> },
     { name: 'Tratamientos', path: '/tratamientos', icon: <Sparkles size={18} /> },
+    { name: 'Consentimientos', path: '/consentimientos', icon: <FileText size={18} /> },
     { name: 'Galería', path: '/galeria', icon: <Image size={18} /> },
     { name: 'Finanzas', path: '/finanzas', icon: <DollarSign size={18} /> },
   ];

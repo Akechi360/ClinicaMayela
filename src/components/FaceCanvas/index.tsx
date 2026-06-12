@@ -48,8 +48,10 @@ export const FaceCanvas: React.FC<FaceCanvasProps> = ({
           canvas.getContext('experimental-webgl') ||
           canvas.getContext('webgl2'))
       );
-      setWebglAvailable(available);
-    } catch (e) {
+      Promise.resolve().then(() => {
+        setWebglAvailable(available);
+      });
+    } catch {
       setWebglAvailable(false);
     }
   }, []);

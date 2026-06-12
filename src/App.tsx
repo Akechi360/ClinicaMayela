@@ -16,6 +16,7 @@ const TreatmentsCatalog = lazy(() => import('./views/TreatmentsCatalog').then(m 
 const Finances = lazy(() => import('./views/Finances').then(m => ({ default: m.Finances })));
 const Gallery = lazy(() => import('./views/Gallery').then(m => ({ default: m.Gallery })));
 const ClinicSettings = lazy(() => import('./views/ClinicSettings').then(m => ({ default: m.ClinicSettings })));
+const Consentimientos = lazy(() => import('./views/Consentimientos').then(m => ({ default: m.Consentimientos })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -59,6 +60,7 @@ const AppLayout: React.FC = () => {
               <Route path="/finanzas" element={<Finances />} />
               <Route path="/galeria" element={<Gallery />} />
               <Route path="/ajustes" element={<ClinicSettings />} />
+              <Route path="/consentimientos" element={<Consentimientos />} />
             </Routes>
           </Suspense>
         </main>

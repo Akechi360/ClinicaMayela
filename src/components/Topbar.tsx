@@ -53,10 +53,10 @@ export const Topbar: React.FC<TopbarProps> = ({
 
         {/* Notifications and Help */}
         <div className="flex items-center gap-1 border-r border-rose-champagne/80 pr-4">
-          <button className="text-slate-medium hover:text-satin-copper p-1.5 rounded-xl hover:bg-pure-white/50 transition-colors">
+          <button aria-label="Notificaciones" className="text-slate-medium hover:text-satin-copper p-1.5 rounded-xl hover:bg-pure-white/50 transition-colors">
             <Bell size={16} />
           </button>
-          <button className="text-slate-medium hover:text-satin-copper p-1.5 rounded-xl hover:bg-pure-white/50 transition-colors">
+          <button aria-label="Ayuda" className="text-slate-medium hover:text-satin-copper p-1.5 rounded-xl hover:bg-pure-white/50 transition-colors">
             <HelpCircle size={16} />
           </button>
         </div>
