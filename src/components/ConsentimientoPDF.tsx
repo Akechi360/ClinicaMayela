@@ -176,7 +176,7 @@ export const ConsentimientoPDF: React.FC<ConsentimientoPDFProps> = ({
         {/* Firma Paciente */}
         <View style={styles.signatureBox}>
           {firmaBase64 ? (
-            <Image src={firmaBase64} style={styles.signatureImage} />
+            <Image src={firmaBase64.replace(/\s/g, '')} style={styles.signatureImage} />
           ) : (
             <View style={{ height: 60, justifyContent: 'center' }}>
               <Text style={{ color: '#BA1A1A', fontSize: 8 }}>PENDIENTE DE FIRMA</Text>
