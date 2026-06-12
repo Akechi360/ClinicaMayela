@@ -397,6 +397,33 @@ export const FaceCanvas: React.FC<FaceCanvasProps> = ({
         </div>
       </div>
 
+      {/* Accesibilidad para Lectores de Pantalla y Navegación por Teclado */}
+      <div className="sr-only">
+        <h4 id="accessible-points-title">Lista de puntos de inyección registrados</h4>
+        <ul aria-labelledby="accessible-points-title">
+          {coordinates.map((pt, idx) => (
+            <li key={idx}>
+              <button
+                type="button"
+                onClick={() => setSelectedPoint(idx)}
+                onFocus={() => setSelectedPoint(idx)}
+              >
+                Inyección {idx + 1}: {pt.producto} en zona {pt.zona}, dosis: {pt.dosis} {pt.producto.toLowerCase().includes('botox') ? 'U' : 'ml'}.
+              </button>
+              {!readOnly && (
+                <button
+                  type="button"
+                  onClick={() => handleRemovePoint(idx)}
+                  aria-label={`Eliminar inyección ${idx + 1}`}
+                >
+                  Eliminar
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+
     </div>
   );
 };

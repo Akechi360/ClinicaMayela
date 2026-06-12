@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbCitas, dbPacientes, dbTratamientos } from '../services/db';
 import { 
@@ -16,6 +16,54 @@ export const Agenda: React.FC = () => {
   const queryClient = useQueryClient();
   const [showAddModal, setShowAddModal] = useState(false);
   const [filtroEstado, setFiltroEstado] = useState<string>('todos');
+  const modalRef = useRef<HTMLDivElement | null>(null);
+
+  // Focus trap y control de teclado (Escape para cerrar, Tab circular) para el modal
+  useEffect(() => {
+    if (!showAddModal || !modalRef.current) return;
+    const modal = modalRef.current;
+    
+    const previouslyFocused = document.activeElement as HTMLElement;
+
+    const focusable = modal.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])'
+    );
+    const firstFocusable = focusable[0];
+    const lastFocusable = focusable[focusable.length - 1];
+
+    if (firstFocusable) {
+      setTimeout(() => firstFocusable.focus(), 50);
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowAddModal(false);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          lastFocusable.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          firstFocusable.focus();
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      if (previouslyFocused) {
+        previouslyFocused.focus();
+      }
+    };
+  }, [showAddModal]);
 
   // Estados del formulario de nueva cita
   const [pacienteId, setPacienteId] = useState('');
@@ -261,9 +309,15 @@ export const Agenda: React.FC = () => {
       {/* Modal para programar cita */}
       {showAddModal && (
         <div className="fixed inset-0 bg-slate-dark/45 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="glass-panel rounded-2xl shadow-2xl p-6 w-full max-w-md font-sans border border-pure-white/45">
+          <div
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            className="glass-panel rounded-2xl shadow-2xl p-6 w-full max-w-md font-sans border border-pure-white/45"
+          >
             <div className="flex justify-between items-center mb-4 border-b border-satin-copper/15 pb-3">
-              <h3 className="text-base font-medium text-slate-dark font-display">Programar Nueva Cita</h3>
+              <h3 id="modal-title" className="text-base font-medium text-slate-dark font-display">Programar Nueva Cita</h3>
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}

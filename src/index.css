@@ -199,3 +199,10 @@
   border: 3px solid #FFFFFF;
   box-shadow: 0 4px 20px rgba(58, 67, 77, 0.25);
 }
+
+/* Enfoque accesible visible (WCAG AA) */
+:focus-visible {
+  outline: 2px solid #9E5A64 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 4px rgba(158, 90, 100, 0.25) !important;
+}

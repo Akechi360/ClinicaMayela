@@ -15,6 +15,54 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const signaturePadRef = useRef<SignaturePad | null>(null);
+  const modalRef = useRef<HTMLDivElement | null>(null);
+
+  // Focus trap y control de teclado (Escape para cerrar, Tab circular)
+  useEffect(() => {
+    if (!isOpen || !modalRef.current) return;
+    const modal = modalRef.current;
+    
+    const previouslyFocused = document.activeElement as HTMLElement;
+
+    const focusable = modal.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [tabindex="0"]:not([disabled])'
+    );
+    const firstFocusable = focusable[0];
+    const lastFocusable = focusable[focusable.length - 1];
+
+    if (firstFocusable) {
+      setTimeout(() => firstFocusable.focus(), 50);
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          lastFocusable.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          firstFocusable.focus();
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      if (previouslyFocused) {
+        previouslyFocused.focus();
+      }
+    };
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     if (!isOpen || !canvasRef.current) return;
@@ -64,12 +112,19 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-slate-dark/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 select-none">
-      <div className="glass-panel w-full max-w-md rounded-2xl shadow-luxury border border-pure-white/50 overflow-hidden flex flex-col">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="signature-title"
+        className="glass-panel w-full max-w-md rounded-2xl shadow-luxury border border-pure-white/50 overflow-hidden flex flex-col"
+      >
         {/* Header */}
         <div className="px-5 py-4 border-b border-satin-copper/10 flex justify-between items-center bg-pure-white/20">
-          <h3 className="font-display font-medium text-slate-dark text-sm uppercase tracking-wider">Firma Digital del Paciente</h3>
+          <h3 id="signature-title" className="font-display font-medium text-slate-dark text-sm uppercase tracking-wider">Firma Digital del Paciente</h3>
           <button
             onClick={onClose}
+            aria-label="Cerrar firma digital"
             className="text-slate-light hover:text-slate-dark transition-colors cursor-pointer border-none bg-transparent"
           >
             <X size={16} />

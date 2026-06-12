@@ -1,7 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
 import { Search, FileText, PenTool, CheckCircle, Clock, Archive, Download, Plus, X, User } from 'lucide-react';
-import { ConsentimientoPDF } from '../components/ConsentimientoPDF';
 import { SignaturePadModal } from '../components/SignaturePadModal';
 
 // Clausulado base por tipo de tratamiento
@@ -87,12 +85,47 @@ export const Consentimientos: React.FC = () => {
   const [selectedDoc, setSelectedDoc] = useState<Consentimiento | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSignPad, setShowSignPad] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   // Formulario nuevo consentimiento
   const [nuevoPaciente, setNuevoPaciente] = useState('');
   const [nuevoDni, setNuevoDni] = useState('');
   const [nuevoTratamiento, setNuevoTratamiento] = useState('Toxina Botulínica (Botox)');
   const [nuevoDoctor, setNuevoDoctor] = useState('Dra. Mayela Silva');
+
+  const handleDownloadPdf = async (doc: Consentimiento) => {
+    setIsGeneratingPdf(true);
+    try {
+      const { pdf } = await import('@react-pdf/renderer');
+      const { ConsentimientoPDF } = await import('../components/ConsentimientoPDF');
+      
+      const blob = await pdf(
+        <ConsentimientoPDF
+          pacienteNombre={doc.pacienteNombre}
+          pacienteDni={doc.pacienteDni}
+          tratamientoNombre={doc.tratamientoNombre}
+          fecha={doc.fecha}
+          doctorNombre={doc.doctorNombre}
+          firmaBase64={doc.firmaBase64}
+          clausulas={CLAUSULAS_POR_TRATAMIENTO[doc.tratamientoNombre] || []}
+        />
+      ).toBlob();
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `consentimiento_${doc.pacienteNombre.replace(/\s+/g, '_').toLowerCase()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error al generar el PDF:', error);
+      alert('Hubo un error al generar el PDF. Por favor intente de nuevo.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   // Filtrado de documentos
   const documentosFiltrados = useMemo(() => {
@@ -346,31 +379,14 @@ export const Consentimientos: React.FC = () => {
 
               {/* Botón de Descarga PDF */}
               <div className="space-y-3">
-                <PDFDownloadLink
-                  document={
-                    <ConsentimientoPDF
-                      pacienteNombre={selectedDoc.pacienteNombre}
-                      pacienteDni={selectedDoc.pacienteDni}
-                      tratamientoNombre={selectedDoc.tratamientoNombre}
-                      fecha={selectedDoc.fecha}
-                      doctorNombre={selectedDoc.doctorNombre}
-                      firmaBase64={selectedDoc.firmaBase64}
-                      clausulas={CLAUSULAS_POR_TRATAMIENTO[selectedDoc.tratamientoNombre] || []}
-                    />
-                  }
-                  fileName={`consentimiento_${selectedDoc.pacienteNombre.replace(/\s+/g, '_').toLowerCase()}.pdf`}
-                  className="w-full text-center"
+                <button
+                  type="button"
+                  disabled={isGeneratingPdf}
+                  onClick={() => handleDownloadPdf(selectedDoc)}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 border border-satin-copper text-satin-copper rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-satin-copper/5 transition-all cursor-pointer disabled:opacity-50"
                 >
-                  {({ loading }) => (
-                    <button
-                      type="button"
-                      disabled={loading}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 border border-satin-copper text-satin-copper rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-satin-copper/5 transition-all cursor-pointer disabled:opacity-50"
-                    >
-                      <Download size={12} /> {loading ? 'Preparando PDF...' : 'Descargar Documento (PDF)'}
-                    </button>
-                  )}
-                </PDFDownloadLink>
+                  <Download size={12} /> {isGeneratingPdf ? 'Generando PDF...' : 'Descargar Documento (PDF)'}
+                </button>
 
                 {selectedDoc.estado !== 'Archivado' && (
                   <button
