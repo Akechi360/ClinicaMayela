@@ -31,8 +31,10 @@ export interface Cita {
 }
 
 export interface MapaFacialCoordenada {
-  x: number; // porcentaje (0-100) en el lienzo
-  y: number; // porcentaje (0-100) en el lienzo
+  x: number; // porcentaje (0-100) en el lienzo (o coordenada X 3D)
+  y: number; // porcentaje (0-100) en el lienzo (o coordenada Y 3D)
+  z?: number; // coordenada Z 3D
+  zona?: string; // nombre de la zona anatómica
   dosis: number;
   producto: string;
 }
