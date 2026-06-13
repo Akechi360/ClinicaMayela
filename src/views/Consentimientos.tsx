@@ -1,6 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, FileText, PenTool, CheckCircle, Clock, Archive, Download, Plus, X, User } from 'lucide-react';
 import { SignaturePadModal } from '../components/SignaturePadModal';
+import { useQuery } from '@tanstack/react-query';
+import { dbDoctor } from '../services/db';
 
 // Clausulado base por tipo de tratamiento
 const CLAUSULAS_POR_TRATAMIENTO: Record<string, string[]> = {
@@ -79,6 +81,12 @@ export const Consentimientos: React.FC = () => {
     }
   ]);
 
+  // Consultar perfil de la doctora
+  const { data: doctor } = useQuery({
+    queryKey: ['doctor'],
+    queryFn: dbDoctor.obtener
+  });
+
   // Estados de búsqueda, filtros y modales
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'Todos' | 'Activo' | 'Pendiente' | 'Archivado'>('Todos');
@@ -91,7 +99,14 @@ export const Consentimientos: React.FC = () => {
   const [nuevoPaciente, setNuevoPaciente] = useState('');
   const [nuevoDni, setNuevoDni] = useState('');
   const [nuevoTratamiento, setNuevoTratamiento] = useState('Toxina Botulínica (Botox)');
-  const [nuevoDoctor, setNuevoDoctor] = useState('Dra. Mayela Silva');
+  const [nuevoDoctor, setNuevoDoctor] = useState('');
+
+  // Sincronizar el nombre del doctor por defecto
+  useEffect(() => {
+    if (doctor && !nuevoDoctor) {
+      setNuevoDoctor(doctor.nombre);
+    }
+  }, [doctor]);
 
   const handleDownloadPdf = async (doc: Consentimiento) => {
     setIsGeneratingPdf(true);

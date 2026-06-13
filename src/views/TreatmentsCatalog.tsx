@@ -131,7 +131,7 @@ export const TreatmentsCatalog: React.FC = () => {
               {/* Price and Duration */}
               <div className="flex justify-between items-center mt-6 pt-4 border-t border-satin-copper/15 text-xs">
                 <span className="flex items-center gap-1 text-slate-medium"><Clock size={13} className="text-satin-copper-light" /> {t.duracion_minutos} min</span>
-                <span className="font-semibold text-satin-copper flex items-center"><DollarSign size={13} /> {t.precio} €</span>
+                <span className="font-semibold text-satin-copper flex items-center"><DollarSign size={13} /> {t.precio}</span>
               </div>
             </div>
           ))}
@@ -188,7 +188,7 @@ export const TreatmentsCatalog: React.FC = () => {
               {/* Precio y Duración */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col space-y-1">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Precio (€)</label>
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Precio ($)</label>
                   <input
                     type="number"
                     required

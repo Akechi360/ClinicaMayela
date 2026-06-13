@@ -1,4 +1,4 @@
-import type { Paciente, Tratamiento, Cita, HistorialClinico, Transaccion, CitaRelacional, HistorialClinicoRelacional, TransaccionRelacional } from '../types/database.types';
+import type { Paciente, Tratamiento, Cita, HistorialClinico, Transaccion, CitaRelacional, HistorialClinicoRelacional, TransaccionRelacional, DoctorProfile } from '../types/database.types';
 
 // Claves de LocalStorage
 const KEYS = {
@@ -7,6 +7,7 @@ const KEYS = {
   CITAS: 'rejuvenece_citas',
   HISTORIALES: 'rejuvenece_historiales',
   TRANSACCIONES: 'rejuvenece_transacciones',
+  DOCTOR: 'rejuvenece_doctor_profile',
 };
 
 // Delay artificial para simular asincronía de Supabase (ms)
@@ -297,6 +298,22 @@ export const inicializarDB = () => {
   if (!localStorage.getItem(KEYS.TRANSACCIONES)) {
     localStorage.setItem(KEYS.TRANSACCIONES, JSON.stringify(SEMILLA_TRANSACCIONES));
   }
+  if (!localStorage.getItem(KEYS.DOCTOR)) {
+    const semillaDoctor: DoctorProfile = {
+      id: 'doc-1',
+      nombre: 'Dra. Mayela González',
+      especialidad: 'Medicina Estética & Bienestar',
+      cedula: '12345678-A',
+      email: 'contacto@rejuvenecemayela.com',
+      telefono: '+34 600 999 888',
+      foto_perfil: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDKjS5i-riOBcVgFNnseY1IRnnqVypzEjBUkXkBg0mjrgCwcOaYqpY2n94ywToDTuGf7j9F-kBWzWB2yiJwHSpIsKiamoCVdIZM7KBz6gc4ugcQ-48g8brWW5T8TZ-Q4ogkIaKVv9CbWgYQuMLnP2WJzM1LZ1hjqVC1Q2Xh0PTGBOy5y6TQ9jNQpt_1TvBu-Ag2hUPkL9pjR3XVDZXnxF8AtZ5w9Vu2IKFWNgKD_HbqnLk6ldR45Oh1q7bKeExBlECNUL8BeqZeIJ8',
+      biografia: 'Médica especialista en medicina estética facial avanzada y rejuvenecimiento integral.',
+      horario: 'Lunes a Viernes de 9:00 a 18:30',
+      linkedin: 'https://linkedin.com',
+      instagram: 'https://instagram.com/dra.mayelagonzalez'
+    };
+    localStorage.setItem(KEYS.DOCTOR, JSON.stringify(semillaDoctor));
+  }
 };
 
 // --- MOTOR CRUD PACIENTES ---
@@ -539,5 +556,26 @@ export const dbTransacciones = {
     transacciones[index].metodo_pago = metodo_pago;
     localStorage.setItem(KEYS.TRANSACCIONES, JSON.stringify(transacciones));
     return transacciones[index];
+  }
+};
+
+// --- MOTOR CRUD DOCTOR ---
+export const dbDoctor = {
+  obtener: async (): Promise<DoctorProfile> => {
+    await sleep(API_DELAY);
+    inicializarDB();
+    const doc = localStorage.getItem(KEYS.DOCTOR);
+    if (!doc) throw new Error('Perfil del doctor no encontrado');
+    return JSON.parse(doc);
+  },
+  actualizar: async (datos: Partial<DoctorProfile>): Promise<DoctorProfile> => {
+    await sleep(API_DELAY);
+    inicializarDB();
+    const doc = localStorage.getItem(KEYS.DOCTOR);
+    if (!doc) throw new Error('Perfil del doctor no encontrado');
+    const actual: DoctorProfile = JSON.parse(doc);
+    const actualizado: DoctorProfile = { ...actual, ...datos };
+    localStorage.setItem(KEYS.DOCTOR, JSON.stringify(actualizado));
+    return actualizado;
   }
 };

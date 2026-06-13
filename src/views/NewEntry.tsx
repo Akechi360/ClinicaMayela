@@ -164,7 +164,7 @@ export const NewEntry: React.FC = () => {
               >
                 <option value="">Selecciona un tratamiento</option>
                 {tratamientos.map(t => (
-                  <option key={t.id} value={t.id}>{t.nombre} ({t.precio} €)</option>
+                  <option key={t.id} value={t.id}>{t.nombre} (${t.precio})</option>
                 ))}
               </select>
             </div>

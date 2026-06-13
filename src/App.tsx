@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Sidebar } from './components/Sidebar';
@@ -17,6 +17,7 @@ const Finances = lazy(() => import('./views/Finances').then(m => ({ default: m.F
 const Gallery = lazy(() => import('./views/Gallery').then(m => ({ default: m.Gallery })));
 const ClinicSettings = lazy(() => import('./views/ClinicSettings').then(m => ({ default: m.ClinicSettings })));
 const Consentimientos = lazy(() => import('./views/Consentimientos').then(m => ({ default: m.Consentimientos })));
+const DoctorProfile = lazy(() => import('./views/DoctorProfile').then(m => ({ default: m.DoctorProfile })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,22 +31,44 @@ const queryClient = new QueryClient({
 // Layout interno para tener acceso a `useNavigate` de React Router
 const AppLayout: React.FC = () => {
   const navigate = useNavigate();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-transparent">
+    <div className="flex min-h-screen bg-transparent relative">
       {/* Imagen de fondo premium fixed */}
       <div className="bg-app-image"></div>
 
       {/* Patrón de puntos de fondo */}
       <div className="bg-grid-overlay"></div>
 
+      {/* Backdrop para móviles */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-dark/30 backdrop-blur-xs z-40 lg:hidden cursor-pointer"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Barra de Navegación Lateral */}
-      <Sidebar onNewCitaClick={() => navigate('/nueva-entrada')} />
+      <Sidebar 
+        onNewCitaClick={() => {
+          setMobileMenuOpen(false);
+          navigate('/nueva-entrada');
+        }} 
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        mobileOpen={mobileMenuOpen}
+        onCloseMobile={() => setMobileMenuOpen(false)}
+      />
 
       {/* Área de Contenido Principal */}
-      <div className="flex-1 ml-[18rem] mr-5 flex flex-col min-h-screen">
+      <div className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-[7.25rem]' : 'lg:ml-[18.25rem]'} ml-5 mr-5 flex flex-col min-h-screen`}>
         {/* Cabecera superior */}
-        <Topbar />
+        <Topbar 
+          onToggleMobileMenu={() => setMobileMenuOpen(true)}
+          sidebarCollapsed={sidebarCollapsed}
+        />
 
         {/* Contenido dinámico principal (Desplazado hacia abajo por la Topbar) */}
         <main className="flex-1 pt-28 pb-16 max-w-7xl w-full mx-auto">
@@ -61,6 +84,7 @@ const AppLayout: React.FC = () => {
               <Route path="/galeria" element={<Gallery />} />
               <Route path="/ajustes" element={<ClinicSettings />} />
               <Route path="/consentimientos" element={<Consentimientos />} />
+              <Route path="/perfil" element={<DoctorProfile />} />
             </Routes>
           </Suspense>
         </main>

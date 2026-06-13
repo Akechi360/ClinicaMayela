@@ -3,9 +3,9 @@
 @theme {
   --color-slate-dark: #3A434D;
   --color-slate-medium: #4B5663;
-  --color-slate-light: #8E9AA6;
-  --color-satin-copper: #A66E53;
-  --color-satin-copper-hover: #8E5B43;
+  --color-slate-light: #5F6C7A;
+  --color-satin-copper: #9C6348;
+  --color-satin-copper-hover: #804F36;
   --color-satin-copper-light: #C28E75;
   --color-rose-gold: #9E5A64;
   --color-rose-champagne: #F2E7E2;
@@ -35,6 +35,11 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', serif;
   }
+
+  *:focus-visible {
+    outline: 2px solid var(--color-satin-copper) !important;
+    outline-offset: 3px !important;
+  }
 }
 
 
@@ -51,6 +56,8 @@
   pointer-events: none;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
+  opacity: 0.15; /* Muy sutil, deja que el tono arena de base domine y añade textura elegante */
+  filter: saturate(40%) contrast(95%); /* Disminuye la saturación cromática para elegancia clínica */
 }
 
 /* Patrón de micro-puntos de lujo para textura */
@@ -67,8 +74,8 @@
 /* Glassmorphism Ultra Premium altamente traslúcido y limpio */
 .glass-panel {
   background: rgba(255, 255, 255, 0.45) !important;
-  backdrop-filter: blur(12px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(190%) !important;
+  backdrop-filter: blur(12px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
   border: 1px solid rgba(255, 255, 255, 0.45) !important;
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -83,8 +90,8 @@
 .luxury-card-glow {
   border: 1px solid rgba(166, 110, 83, 0.12) !important;
   background: rgba(255, 255, 255, 0.45) !important;
-  backdrop-filter: blur(12px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(190%) !important;
+  backdrop-filter: blur(12px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
   transform: translateZ(0);
   backface-visibility: hidden;
   box-shadow: 
@@ -205,4 +212,13 @@
   outline: 2px solid #9E5A64 !important;
   outline-offset: 3px !important;
   box-shadow: 0 0 0 4px rgba(158, 90, 100, 0.25) !important;
+}
+
+/* Ocultar barra de desplazamiento manteniendo funcionalidad */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;  /* IE y Edge */
+  scrollbar-width: none !important;  /* Firefox */
 }

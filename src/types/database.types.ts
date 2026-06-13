@@ -82,3 +82,17 @@ export interface TransaccionRelacional extends Transaccion {
   paciente?: Paciente;
   cita?: CitaRelacional;
 }
+
+export interface DoctorProfile {
+  id: string;
+  nombre: string;
+  especialidad: string;
+  cedula: string;
+  email: string;
+  telefono: string;
+  foto_perfil: string; // Base64 o URL
+  biografia: string;
+  horario: string;
+  linkedin?: string;
+  instagram?: string;
+}

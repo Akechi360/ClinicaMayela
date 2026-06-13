@@ -249,7 +249,7 @@ export const Agenda: React.FC = () => {
                       <div className="space-y-1.5">
                         <p className="text-xs text-slate-medium flex items-center gap-1.5">
                           <Sparkles size={13} className="text-slate-light" />
-                          {cita.tratamiento?.nombre} ({cita.tratamiento?.precio} €)
+                          {cita.tratamiento?.nombre} (${cita.tratamiento?.precio})
                         </p>
                         {cita.notas && (
                           <p className="text-[10px] text-slate-medium italic bg-rose-champagne-light/50 p-2.5 rounded-xl border border-rose-champagne/40 leading-relaxed max-w-xs">
@@ -358,7 +358,7 @@ export const Agenda: React.FC = () => {
                 >
                   <option value="" className="bg-rose-champagne-light text-slate-dark">Selecciona un tratamiento</option>
                   {tratamientos.map(t => (
-                    <option key={t.id} value={t.id} className="bg-rose-champagne-light text-slate-dark">{t.nombre} ({t.precio} €)</option>
+                    <option key={t.id} value={t.id} className="bg-rose-champagne-light text-slate-dark">{t.nombre} (${t.precio})</option>
                   ))}
                 </select>
               </div>

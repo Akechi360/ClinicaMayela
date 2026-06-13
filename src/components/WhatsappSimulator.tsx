@@ -50,11 +50,11 @@ export const WhatsappSimulator: React.FC = () => {
     } else if (step === 'tratamiento') {
       if (msg.includes('1') || msg.includes('botox') || msg.includes('toxina')) {
         setSelectedTratamientoId('t-1'); // Botox
-        addMensaje('bot', 'Has seleccionado: Toxina Botulínica (Botox) (€ 450). Tengo los siguientes horarios libres para mañana:\n\n1. 10:00 AM\n2. 12:30 PM\n3. 4:00 PM\n\nPor favor, responde con el número de la opción que prefieras.');
+        addMensaje('bot', 'Has seleccionado: Toxina Botulínica (Botox) ($450). Tengo los siguientes horarios libres para mañana:\n\n1. 10:00 AM\n2. 12:30 PM\n3. 4:00 PM\n\nPor favor, responde con el número de la opción que prefieras.');
         setStep('fecha');
       } else if (msg.includes('2') || msg.includes('labios') || msg.includes('ácido') || msg.includes('hialur')) {
         setSelectedTratamientoId('t-2'); // Labios
-        addMensaje('bot', 'Has seleccionado: Ácido Hialurónico Labios (€ 380). Tengo los siguientes horarios libres para mañana:\n\n1. 11:30 AM\n2. 1:00 PM\n3. 5:30 PM\n\nPor favor, responde con el número de la opción.');
+        addMensaje('bot', 'Has seleccionado: Ácido Hialurónico Labios ($380). Tengo los siguientes horarios libres para mañana:\n\n1. 11:30 AM\n2. 1:00 PM\n3. 5:30 PM\n\nPor favor, responde con el número de la opción.');
         setStep('fecha');
       } else {
         addMensaje('bot', 'Por favor selecciona una opción válida:\n1. Botox\n2. Labios\n3. Marcación Mandibular');

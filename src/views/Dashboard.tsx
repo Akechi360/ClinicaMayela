@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { dbCitas, dbPacientes, dbTransacciones } from '../services/db';
+import { dbCitas, dbPacientes, dbTransacciones, dbDoctor } from '../services/db';
 import { 
   Users, 
   Calendar, 
@@ -15,6 +15,12 @@ import { Link, useNavigate } from 'react-router-dom';
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Obtener perfil de la doctora
+  const { data: doctor } = useQuery({
+    queryKey: ['doctor'],
+    queryFn: dbDoctor.obtener
+  });
 
   // Obtener citas
   const { data: citas = [], isLoading: loadingCitas } = useQuery({
@@ -57,7 +63,7 @@ export const Dashboard: React.FC = () => {
     .reduce((sum, t) => sum + t.monto, 0);
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value);
+    return new Intl.NumberFormat('es-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
   };
 
   const getEstadoBadge = (estado: string) => {
@@ -102,7 +108,7 @@ export const Dashboard: React.FC = () => {
             <span className="w-1.5 h-[1px] bg-satin-copper-light"></span> Sistema de Gestión Clínico
           </span>
           <h2 className="text-3xl md:text-5xl font-display font-light leading-tight tracking-wide">
-            Buenos días, <span className="font-normal text-rose-champagne">Dra.</span> <span className="italic font-normal text-satin-copper-light tracking-normal">Mayela González</span>
+            Buenos días, <span className="italic font-normal text-rose-champagne tracking-normal">{doctor?.nombre || 'Dra. Mayela González'}</span>
           </h2>
           <p className="text-xs text-rose-champagne/75 font-light tracking-wide font-sans">
             Resumen del día clínico — {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
