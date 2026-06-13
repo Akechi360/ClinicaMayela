@@ -10,15 +10,13 @@ export const Patients: React.FC = () => {
   const [filterVip, setFilterVip] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   
-  // Formulario de nuevo paciente
   const [nombre, setNombre] = useState('');
+  const [apellido, setApellido] = useState('');
+  const [cedula, setCedula] = useState('');
   const [telefono, setTelefono] = useState('');
-  const [email, setEmail] = useState('');
-  const [fechaNacimiento, setFechaNacimiento] = useState('');
-  const [genero, setGenero] = useState('Femenino');
-  const [antecedentes, setAntecedentes] = useState('');
-  const [alergias, setAlergias] = useState('');
-  const [esVip, setEsVip] = useState(false);
+  const [correo, setCorreo] = useState('');
+  const [fechaNac, setFechaNac] = useState('');
+  const [notas, setNotas] = useState('');
 
   // Consultar pacientes
   const { data: pacientes = [], isLoading } = useQuery({
@@ -44,26 +42,24 @@ export const Patients: React.FC = () => {
 
   const resetForm = () => {
     setNombre('');
+    setApellido('');
+    setCedula('');
     setTelefono('');
-    setEmail('');
-    setFechaNacimiento('');
-    setGenero('Femenino');
-    setAntecedentes('');
-    setAlergias('');
-    setEsVip(false);
+    setCorreo('');
+    setFechaNac('');
+    setNotas('');
   };
 
   const handleAddPaciente = (e: React.FormEvent) => {
     e.preventDefault();
     addPacienteMutation.mutate({
       nombre,
+      apellido,
+      cedula,
       telefono,
-      email,
-      fecha_nacimiento: fechaNacimiento,
-      genero,
-      antecedentes,
-      alergias,
-      es_vip: esVip
+      correo,
+      fecha_nac: fechaNac,
+      notas,
     });
   };
 
@@ -84,10 +80,13 @@ export const Patients: React.FC = () => {
   const pacientesFiltrados = pacientes.filter(p => {
     const matchesSearch = 
       p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.telefono.includes(searchQuery) ||
-      p.email.toLowerCase().includes(searchQuery.toLowerCase());
+      p.apellido.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.cedula && p.cedula.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (p.telefono && p.telefono.includes(searchQuery)) ||
+      (p.correo && p.correo.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    const matchesVip = filterVip ? p.es_vip : true;
+    // Filtro VIP removido por schema, podemos dejarlo o siempre return matchesSearch
+    return matchesSearch;
     
     return matchesSearch && matchesVip;
   });
@@ -160,19 +159,15 @@ export const Patients: React.FC = () => {
                 </div>
                 <div>
                   <Link to={`/pacientes/${paciente.id}`} className="font-display font-medium text-base text-slate-dark hover:text-satin-copper transition-colors flex items-center gap-2">
-                    {paciente.nombre}
-                    {paciente.es_vip && (
-                      <span className="text-[7px] bg-satin-copper/10 border border-satin-copper/20 text-satin-copper font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">VIP</span>
-                    )}
+                    {paciente.nombre} {paciente.apellido}
                   </Link>
-                  <p className="text-[9px] text-slate-light mt-0.5 font-bold tracking-wider uppercase">EXPEDIENTE #{paciente.id} • REGISTRADO EL {new Date(paciente.creado_en).toLocaleDateString()}</p>
+                  <p className="text-[9px] text-slate-light mt-0.5 font-bold tracking-wider uppercase">EXPEDIENTE #{paciente.id.split('-')[0]} • REGISTRADO EL {new Date(paciente.created_at || new Date()).toLocaleDateString()}</p>
                 </div>
               </div>
 
-              {/* Contact Details */}
               <div className="flex flex-col gap-0.5 text-xs text-slate-medium md:max-w-xs w-full font-sans">
-                <span className="flex items-center gap-1.5 font-semibold"><Phone size={11} className="text-satin-copper-light" /> {paciente.telefono}</span>
-                <span className="flex items-center gap-1.5 text-[11px]"><Mail size={11} className="text-satin-copper-light" /> {paciente.email}</span>
+                {paciente.telefono && <span className="flex items-center gap-1.5 font-semibold"><Phone size={11} className="text-satin-copper-light" /> {paciente.telefono}</span>}
+                {paciente.correo && <span className="flex items-center gap-1.5 text-[11px]"><Mail size={11} className="text-satin-copper-light" /> {paciente.correo}</span>}
               </div>
 
               {/* Last Visit */}
@@ -186,18 +181,13 @@ export const Patients: React.FC = () => {
 
               {/* Medical Alerts */}
               <div className="text-xs text-slate-medium max-w-xs w-full font-sans">
-                {paciente.alergias && paciente.alergias !== 'Ninguna conocida.' && paciente.alergias !== '' ? (
+                {paciente.notas ? (
                   <div>
-                    <span className="text-[8px] uppercase tracking-wider text-red-400 font-bold">Alergias</span>
-                    <p className="font-bold text-red-500/80 text-[11px] truncate">{paciente.alergias}</p>
-                  </div>
-                ) : paciente.antecedentes ? (
-                  <div>
-                    <span className="text-[8px] uppercase tracking-wider text-slate-light font-bold">Antecedentes</span>
-                    <p className="italic text-[11px] text-slate-medium truncate">{paciente.antecedentes}</p>
+                    <span className="text-[8px] uppercase tracking-wider text-slate-light font-bold">Notas</span>
+                    <p className="italic text-[11px] text-slate-medium truncate">{paciente.notas}</p>
                   </div>
                 ) : (
-                  <span className="text-[10px] text-slate-light italic">Sin alertas clínicas</span>
+                  <span className="text-[10px] text-slate-light italic">Sin notas clínicas</span>
                 )}
               </div>
 
@@ -235,13 +225,39 @@ export const Patients: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Nombre */}
                 <div className="flex flex-col space-y-1">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Nombre Completo</label>
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Nombre</label>
                   <input
                     type="text"
                     required
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
-                    placeholder="Ej. María López"
+                    placeholder="Ej. María"
+                    className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans"
+                  />
+                </div>
+
+                {/* Apellido */}
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Apellido</label>
+                  <input
+                    type="text"
+                    required
+                    value={apellido}
+                    onChange={(e) => setApellido(e.target.value)}
+                    placeholder="Ej. López"
+                    className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans"
+                  />
+                </div>
+
+                {/* Cédula */}
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Cédula</label>
+                  <input
+                    type="text"
+                    required
+                    value={cedula}
+                    onChange={(e) => setCedula(e.target.value)}
+                    placeholder="Ej. V-12345678"
                     className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans"
                   />
                 </div>
@@ -251,7 +267,6 @@ export const Patients: React.FC = () => {
                   <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Teléfono</label>
                   <input
                     type="text"
-                    required
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
                     placeholder="Ej. +34 600 000 000"
@@ -259,14 +274,13 @@ export const Patients: React.FC = () => {
                   />
                 </div>
 
-                {/* Email */}
+                {/* Correo */}
                 <div className="flex flex-col space-y-1">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Email</label>
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Correo Electrónico</label>
                   <input
                     type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={correo}
+                    onChange={(e) => setCorreo(e.target.value)}
                     placeholder="maria.lopez@example.com"
                     className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans"
                   />
@@ -277,61 +291,22 @@ export const Patients: React.FC = () => {
                   <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Fecha de Nacimiento</label>
                   <input
                     type="date"
-                    required
-                    value={fechaNacimiento}
-                    onChange={(e) => setFechaNacimiento(e.target.value)}
+                    value={fechaNac}
+                    onChange={(e) => setFechaNac(e.target.value)}
                     className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans"
                   />
-                </div>
-
-                {/* Género */}
-                <div className="flex flex-col space-y-1">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Género</label>
-                  <select
-                    value={genero}
-                    onChange={(e) => setGenero(e.target.value)}
-                    className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans"
-                  >
-                    <option value="Femenino" className="bg-rose-champagne-light text-slate-dark">Femenino</option>
-                    <option value="Masculino" className="bg-rose-champagne-light text-slate-dark">Masculino</option>
-                    <option value="Otro" className="bg-rose-champagne-light text-slate-dark">Otro</option>
-                  </select>
-                </div>
-
-                {/* Estatus VIP */}
-                <div className="flex items-center space-x-2 pt-5">
-                  <input
-                    type="checkbox"
-                    id="vipCheck"
-                    checked={esVip}
-                    onChange={(e) => setEsVip(e.target.checked)}
-                    className="rounded text-satin-copper focus:ring-satin-copper border-satin-copper/25 w-4 h-4 cursor-pointer"
-                  />
-                  <label htmlFor="vipCheck" className="text-xs text-slate-dark font-medium cursor-pointer">Paciente Estatus VIP</label>
                 </div>
               </div>
 
-              {/* Antecedentes */}
-              <div className="flex flex-col space-y-1">
-                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Antecedentes Clínicos</label>
+              {/* Notas */}
+              <div className="flex flex-col space-y-1 pt-2">
+                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Notas del Paciente</label>
                 <textarea
-                  value={antecedentes}
-                  onChange={(e) => setAntecedentes(e.target.value)}
-                  placeholder="Enfermedades crónicas, medicación diaria, cirugías previas, etc."
+                  value={notas}
+                  onChange={(e) => setNotas(e.target.value)}
+                  placeholder="Observaciones generales..."
                   rows={2}
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper resize-none placeholder:text-slate-light/60 font-sans"
-                />
-              </div>
-
-              {/* Alergias */}
-              <div className="flex flex-col space-y-1">
-                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Alergias</label>
-                <input
-                  type="text"
-                  value={alergias}
-                  onChange={(e) => setAlergias(e.target.value)}
-                  placeholder="Ej. Látex, Policarbonatos, etc. Dejar vacío si no aplica."
-                  className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans"
                 />
               </div>
 

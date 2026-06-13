@@ -1,30 +1,59 @@
-import React, { useState } from 'react';
-import { Settings, Save, Shield, Database, RefreshCw, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Settings, Save, Shield, Database, RefreshCw, MessageSquare, QrCode } from 'lucide-react';
+import { getClinicSettings, updateClinicSettings } from '../services/db';
+import type { ClinicSettings as ClinicSettingsType } from '../types/database.types';
 
 export const ClinicSettings: React.FC = () => {
-  // Ajustes de contacto
-  const [nombreClinica, setNombreClinica] = useState('Rejuvenece Dra. Mayela González');
-  const [telefonoClinica, setTelefonoClinica] = useState('+34 600 999 888');
-  const [emailClinica, setEmailClinica] = useState('contacto@rejuvenecemayela.com');
+  const queryClient = useQueryClient();
 
-  // Estados del bot simulado
-  const [botActivo, setBotActivo] = useState(true);
-  const [horasRecordatorio, setHorasRecordatorio] = useState(24);
-  const [mensajeRecordatorio, setMensajeRecordatorio] = useState(
-    'Hola {paciente}, te recordamos tu cita de {tratamiento} programada para mañana {fecha_hora}. Por favor responde CONFIRMAR para asegurar tu lugar. ¡Gracias!'
-  );
+  // Settings from Supabase
+  const { data: dbSettings, isLoading } = useQuery({
+    queryKey: ['clinicSettings'],
+    queryFn: getClinicSettings,
+    refetchInterval: 5000, // Poll every 5s to catch QR updates
+  });
+
+  const updateSettingsMutation = useMutation({
+    mutationFn: updateClinicSettings,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clinicSettings'] });
+      alert('Ajustes guardados correctamente.');
+    }
+  });
+
+  // Local form state
+  const [botActivo, setBotActivo] = useState(false);
+  const [horaRecordatorio, setHoraRecordatorio] = useState('09:00:00');
+  const [mensajeBienvenida, setMensajeBienvenida] = useState('');
+
+  // Sincronizar estado local con DB
+  useEffect(() => {
+    if (dbSettings) {
+      setBotActivo(dbSettings.bot_activo);
+      setHoraRecordatorio(dbSettings.hora_recordatorio || '09:00:00');
+      setMensajeBienvenida(dbSettings.mensaje_bienvenida || '');
+    }
+  }, [dbSettings]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Ajustes guardados correctamente en la simulación.');
+    updateSettingsMutation.mutate({
+      bot_activo: botActivo,
+      hora_recordatorio: horaRecordatorio,
+      mensaje_bienvenida: mensajeBienvenida
+    });
   };
 
   const handleClearCache = () => {
-    if (confirm('¿Deseas restaurar la base de datos a sus valores iniciales? Esto borrará tus registros actuales en localStorage.')) {
-      localStorage.clear();
-      window.location.reload();
+    if (confirm('¿Deseas restaurar la base de datos a sus valores iniciales? Esto ejecutará el script de migración en la base de datos de producción.')) {
+      alert('Esta acción ahora se gestiona directamente desde la consola o el script migrate_db.js.');
     }
   };
+
+  if (isLoading) {
+    return <div className="text-center text-xs text-slate-medium py-12">Cargando configuraciones...</div>;
+  }
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto font-sans">
@@ -37,80 +66,81 @@ export const ClinicSettings: React.FC = () => {
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-        {/* Sección 1: Datos de la Clínica */}
-        <section className="glass-panel p-6 md:p-8 rounded-3xl border border-pure-white/40 shadow-luxury space-y-6">
-          <h3 className="text-base font-display font-medium text-slate-dark border-b border-satin-copper/10 pb-3 flex items-center gap-2">
-            <Settings size={16} className="text-satin-copper" /> Información de la Clínica
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex flex-col space-y-1">
-              <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Nombre Comercial</label>
-              <input
-                type="text"
-                value={nombreClinica}
-                onChange={(e) => setNombreClinica(e.target.value)}
-                className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans"
-              />
-            </div>
-            <div className="flex flex-col space-y-1">
-              <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Teléfono de Atención</label>
-              <input
-                type="text"
-                value={telefonoClinica}
-                onChange={(e) => setTelefonoClinica(e.target.value)}
-                className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans"
-              />
-            </div>
-            <div className="flex flex-col space-y-1 md:col-span-2">
-              <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Correo de Contacto</label>
-              <input
-                type="email"
-                value={emailClinica}
-                onChange={(e) => setEmailClinica(e.target.value)}
-                className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper w-full font-sans"
-              />
-            </div>
-          </div>
-        </section>
-
         {/* Sección 2: Configuración del Bot de WhatsApp */}
         <section className="glass-panel p-6 md:p-8 rounded-3xl border border-pure-white/40 shadow-luxury space-y-6">
           <h3 className="text-base font-display font-medium text-slate-dark border-b border-satin-copper/10 pb-3 flex items-center gap-2">
             <MessageSquare size={16} className="text-satin-copper" /> Automatización de WhatsApp Bot
           </h3>
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3.5 bg-pure-white/20 rounded-xl border border-satin-copper/10">
-              <div>
-                <p className="text-xs font-semibold text-slate-dark">Activar Bot de Recordatorios</p>
-                <p className="text-[10px] text-slate-light">El bot enviará recordatorios automáticos de confirmación a los pacientes.</p>
+            
+            {/* Status y QR */}
+            <div className="flex flex-col md:flex-row gap-6 bg-pure-white/20 p-5 rounded-2xl border border-satin-copper/15">
+              <div className="flex-1 space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${dbSettings?.bot_conectado ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-dark">
+                    {dbSettings?.bot_conectado ? 'BOT EN LÍNEA' : 'BOT DESCONECTADO'}
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-medium">
+                  {dbSettings?.bot_conectado 
+                    ? 'El bot está escuchando mensajes y enviando recordatorios automáticamente.' 
+                    : 'Abre la terminal en la PC del consultorio y ejecuta "node bot.js" o el archivo .bat para conectarlo.'}
+                </p>
+
+                <div className="flex items-center justify-between p-3.5 bg-pure-white/40 rounded-xl border border-satin-copper/10 mt-2">
+                  <div>
+                    <p className="text-xs font-semibold text-slate-dark">Activar Funciones del Bot</p>
+                    <p className="text-[10px] text-slate-light">El bot responderá mensajes y enviará recordatorios si está en línea.</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={botActivo}
+                    onChange={(e) => setBotActivo(e.target.checked)}
+                    className="rounded text-satin-copper focus:ring-satin-copper border-rose-champagne w-5 h-5 cursor-pointer"
+                  />
+                </div>
               </div>
-              <input
-                type="checkbox"
-                checked={botActivo}
-                onChange={(e) => setBotActivo(e.target.checked)}
-                className="rounded text-satin-copper focus:ring-satin-copper border-rose-champagne w-5 h-5 cursor-pointer"
-              />
+
+              {/* Lector QR en tiempo real */}
+              <div className="w-full md:w-48 aspect-square bg-pure-white/40 rounded-xl border border-dashed border-satin-copper/30 flex items-center justify-center p-2">
+                {dbSettings?.bot_qr_base64 && !dbSettings?.bot_conectado ? (
+                  <div className="text-center">
+                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(dbSettings.bot_qr_base64)}`} alt="WhatsApp QR" className="w-full h-full rounded-lg" />
+                    <p className="text-[9px] text-slate-dark font-bold mt-2">Escanea para conectar</p>
+                  </div>
+                ) : dbSettings?.bot_conectado ? (
+                  <div className="text-center text-green-600">
+                    <Shield className="mx-auto mb-2 opacity-50" size={32} />
+                    <p className="text-[10px] font-bold">Conectado y Seguro</p>
+                  </div>
+                ) : (
+                  <div className="text-center text-slate-light">
+                    <QrCode className="mx-auto mb-2 opacity-30" size={32} />
+                    <p className="text-[9px]">Esperando código QR...</p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex flex-col space-y-1">
-              <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Antelación de Envío (horas)</label>
+              <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Hora de Recordatorios Diarios</label>
               <input
-                type="number"
-                value={hoursRecordatorio(horasRecordatorio)}
-                onChange={(e) => setHorasRecordatorio(parseInt(e.target.value) || 24)}
+                type="time"
+                value={horaRecordatorio}
+                onChange={(e) => setHoraRecordatorio(e.target.value)}
                 className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper w-32 font-sans"
               />
             </div>
 
             <div className="flex flex-col space-y-1">
-              <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Plantilla de Mensaje</label>
+              <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Mensaje de Bienvenida del Bot</label>
               <textarea
-                value={mensajeRecordatorio}
-                onChange={(e) => setMensajeRecordatorio(e.target.value)}
+                value={mensajeBienvenida}
+                onChange={(e) => setMensajeBienvenida(e.target.value)}
                 rows={3}
                 className="bg-pure-white/30 border border-satin-copper/15 rounded-lg p-3 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper resize-none leading-relaxed font-sans"
               />
-              <p className="text-[9px] text-slate-light italic">Variables permitidas: {"{paciente}"}, {"{tratamiento}"}, {"{fecha_hora}"}</p>
             </div>
           </div>
         </section>
@@ -148,40 +178,17 @@ export const ClinicSettings: React.FC = () => {
           </div>
         </section>
 
-        {/* Sección 4: Base de Datos y Datos Semilla */}
-        <section className="glass-panel p-6 md:p-8 rounded-3xl border border-pure-white/40 shadow-luxury space-y-4">
-          <h3 className="text-base font-display font-medium text-slate-dark border-b border-satin-copper/10 pb-3 flex items-center gap-2">
-            <Database size={16} className="text-satin-copper" /> Mantenimiento del Sistema
-          </h3>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <p className="text-xs font-semibold text-slate-dark">Restaurar Base de Datos Local</p>
-              <p className="text-[10px] text-slate-medium">Vuelve a cargar los datos semilla predeterminados de la clínica (incluidos los pacientes de prueba).</p>
-            </div>
-            <button
-              type="button"
-              onClick={handleClearCache}
-              className="bg-red-500 hover:bg-red-600 text-pure-white text-[10px] font-bold tracking-wider uppercase py-2.5 px-4.5 rounded-xl transition-colors flex items-center gap-1.5 shadow-md shadow-red-500/10 cursor-pointer"
-            >
-              <RefreshCw size={13} /> Restaurar Semilla
-            </button>
-          </div>
-        </section>
-
         {/* Save button */}
-        <div className="flex justify-end pt-4">
+        <div className="flex justify-end pt-4 pb-12">
           <button
             type="submit"
-            className="satin-button text-pure-white text-[10px] font-bold tracking-[0.15em] uppercase py-3 px-8 rounded-xl shadow-lg shadow-satin-copper/10 flex items-center gap-1.5 cursor-pointer"
+            disabled={updateSettingsMutation.isPending}
+            className="satin-button text-pure-white text-[10px] font-bold tracking-[0.15em] uppercase py-3 px-8 rounded-xl shadow-lg shadow-satin-copper/10 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
-            <Save size={14} /> Guardar Ajustes
+            <Save size={14} /> {updateSettingsMutation.isPending ? 'Guardando...' : 'Guardar Ajustes'}
           </button>
         </div>
       </form>
     </div>
   );
-
-  function hoursRecordatorio(val: number) {
-    return val;
-  }
 };

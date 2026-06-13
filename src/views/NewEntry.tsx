@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbPacientes, dbTratamientos, dbHistoriales, dbCitas, dbTransacciones } from '../services/db';
 import { FaceCanvas } from '../components/FaceCanvas';
 import type { MapaFacialCoordenada } from '../types/database.types';
-import { ArrowLeft, Save, Upload } from 'lucide-react';
+import { ArrowLeft, Save, Upload, Mic } from 'lucide-react';
 
 export const NewEntry: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -26,7 +26,45 @@ export const NewEntry: React.FC = () => {
   const [lote, setLote] = useState('');
   const [tecnica, setTecnica] = useState('');
   const [notasMedicas, setNotasMedicas] = useState('');
+  const [antecedentes, setAntecedentes] = useState('');
   const [coordinates, setCoordinates] = useState<MapaFacialCoordenada[]>([]);
+  const [isRecordingNotas, setIsRecordingNotas] = useState(false);
+  const [isRecordingAntecedentes, setIsRecordingAntecedentes] = useState(false);
+
+  // Detectar soporte ANTES de montar el componente
+  const SpeechRecognitionAPI =
+    (window as any).SpeechRecognition ||
+    (window as any).webkitSpeechRecognition ||
+    null;
+  const speechSupported = SpeechRecognitionAPI !== null;
+
+  const startDictation = (field: 'notas' | 'antecedentes') => {
+    if (!speechSupported) return;
+    const recognition = new SpeechRecognitionAPI();
+    recognition.lang = 'es-ES';
+    recognition.interimResults = false;
+    
+    recognition.onstart = () => {
+      if (field === 'notas') setIsRecordingNotas(true);
+      else setIsRecordingAntecedentes(true);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      if (field === 'notas') {
+        setNotasMedicas(prev => prev ? prev + ' ' + transcript : transcript);
+      } else {
+        setAntecedentes(prev => prev ? prev + ' ' + transcript : transcript);
+      }
+    };
+
+    recognition.onend = () => {
+      if (field === 'notas') setIsRecordingNotas(false);
+      else setIsRecordingAntecedentes(false);
+    };
+
+    recognition.start();
+  };
   
   // Fotos (Base64)
   const [fotoAntes, setFotoAntes] = useState<string>('');
@@ -70,6 +108,7 @@ export const NewEntry: React.FC = () => {
         lote,
         tecnica,
         notas_medicas: notasMedicas,
+        antecedentes,
         mapa_facial_coordenadas: coordinates,
         foto_antes: fotoAntes || undefined,
         foto_despues: fotoDespues || undefined
@@ -289,9 +328,44 @@ export const NewEntry: React.FC = () => {
           </div>
         </section>
 
-        {/* Sección 4: Notas Clínicas */}
+        {/* Sección 4: Notas Clínicas y Antecedentes */}
         <section className="glass-panel p-6 md:p-8 rounded-3xl border border-pure-white/40 shadow-luxury space-y-4">
-          <h3 className="text-base font-display font-medium text-slate-dark border-b border-satin-copper/10 pb-3">Notas Clínicas</h3>
+          <div className="flex items-center justify-between border-b border-satin-copper/10 pb-3">
+            <h3 className="text-base font-display font-medium text-slate-dark">Antecedentes</h3>
+            {speechSupported ? (
+              <button
+                type="button"
+                onClick={() => startDictation('antecedentes')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${isRecordingAntecedentes ? 'bg-red-500 text-white animate-pulse' : 'bg-satin-copper/10 text-satin-copper hover:bg-satin-copper/20'}`}
+              >
+                <Mic size={12} /> {isRecordingAntecedentes ? 'Escuchando...' : 'Dictar'}
+              </button>
+            ) : (
+              <span className="text-[10px] text-slate-medium">Dictado no disponible en este navegador</span>
+            )}
+          </div>
+          <textarea
+            value={antecedentes}
+            onChange={(e) => setAntecedentes(e.target.value)}
+            placeholder="Alergias, medicamentos actuales, condiciones previas..."
+            rows={3}
+            className="w-full bg-pure-white/30 border border-satin-copper/15 rounded-xl p-4 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper resize-none leading-relaxed font-sans"
+          />
+
+          <div className="flex items-center justify-between border-b border-satin-copper/10 pb-3 pt-4">
+            <h3 className="text-base font-display font-medium text-slate-dark">Notas Clínicas</h3>
+            {speechSupported ? (
+              <button
+                type="button"
+                onClick={() => startDictation('notas')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${isRecordingNotas ? 'bg-red-500 text-white animate-pulse' : 'bg-satin-copper/10 text-satin-copper hover:bg-satin-copper/20'}`}
+              >
+                <Mic size={12} /> {isRecordingNotas ? 'Escuchando...' : 'Dictar'}
+              </button>
+            ) : (
+              <span className="text-[10px] text-slate-medium">Dictado no disponible en este navegador</span>
+            )}
+          </div>
           <textarea
             value={notasMedicas}
             onChange={(e) => setNotasMedicas(e.target.value)}

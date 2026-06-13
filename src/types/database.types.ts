@@ -1,98 +1,77 @@
 export interface Paciente {
-  id: string;
-  nombre: string;
-  telefono: string;
-  email: string;
-  fecha_nacimiento: string;
-  genero: string;
-  antecedentes: string;
-  alergias: string;
-  es_vip: boolean;
-  creado_en: string;
-}
-
-export interface Tratamiento {
-  id: string;
-  nombre: string;
-  descripcion: string;
-  precio: number;
-  duracion_minutos: number;
-  creado_en: string;
-}
-
-export interface Cita {
-  id: string;
-  paciente_id: string;
-  tratamiento_id: string;
-  fecha_hora: string; // ISO string
-  estado: 'confirmado' | 'en_sala' | 'pendiente' | 'cancelado';
-  notas: string;
-  creado_en: string;
-}
-
-export interface MapaFacialCoordenada {
-  x: number; // porcentaje (0-100) en el lienzo (o coordenada X 3D)
-  y: number; // porcentaje (0-100) en el lienzo (o coordenada Y 3D)
-  z?: number; // coordenada Z 3D
-  zona?: string; // nombre de la zona anatómica
-  dosis: number;
-  producto: string;
+  id:          string;   // UUID
+  nombre:      string;
+  apellido:    string;
+  cedula?:     string;
+  telefono?:   string;
+  correo?:     string;
+  fecha_nac?:  string;
+  foto_perfil?: string;
+  notas?:      string;
+  created_at:  string;
 }
 
 export interface HistorialClinico {
-  id: string;
-  paciente_id: string;
-  cita_id?: string;
-  fecha: string;
-  tratamiento_id: string;
-  producto: string;
-  cantidad: string;
-  lote: string;
-  tecnica: string;
-  notas_medicas: string;
+  id:                      string;
+  paciente_id:             string;
+  fecha:                   string;
+  tratamiento:             string;
+  notas_medicas?:          string;
+  antecedentes?:           string;
+  foto_antes?:             string;
+  foto_despues?:           string;
   mapa_facial_coordenadas: MapaFacialCoordenada[];
-  foto_antes?: string; // URL o base64
-  foto_despues?: string; // URL o base64
-  creado_en: string;
+  productos_usados?:       ProductoUsado[];
+  created_at:              string;
 }
 
-export interface Transaccion {
-  id: string;
-  paciente_id: string;
-  cita_id: string;
-  fecha: string;
-  monto: number;
-  estado: 'completado' | 'pendiente' | 'reembolsado';
-  metodo_pago: 'efectivo' | 'tarjeta' | 'transferencia';
-  creado_en: string;
+export interface MapaFacialCoordenada {
+  x:        number;
+  y:        number;
+  z?:       number;
+  zona:     string;
+  producto: string;
+  dosis:    number;
 }
 
-// Representación relacional unificada para vistas complejas
-export interface CitaRelacional extends Cita {
-  paciente?: Paciente;
-  tratamiento?: Tratamiento;
+export interface ProductoUsado {
+  nombre:  string;
+  dosis:   number;
+  unidad:  string; // 'U' | 'ml'
 }
 
-export interface HistorialClinicoRelacional extends HistorialClinico {
-  paciente?: Paciente;
-  tratamiento?: Tratamiento;
-}
-
-export interface TransaccionRelacional extends Transaccion {
-  paciente?: Paciente;
-  cita?: CitaRelacional;
+export interface Cita {
+  id:          string;
+  paciente_id?: string;
+  fecha_hora:  string;
+  tipo?:       string;
+  estado:      'pendiente' | 'completada' | 'cancelada';
+  notas?:      string;
+  origen:      'manual' | 'whatsapp';
+  created_at:  string;
+  // join
+  pacientes?:  Pick<Paciente, 'nombre' | 'apellido' | 'telefono'>;
 }
 
 export interface DoctorProfile {
-  id: string;
-  nombre: string;
-  especialidad: string;
-  cedula: string;
-  email: string;
-  telefono: string;
-  foto_perfil: string; // Base64 o URL
-  biografia: string;
-  horario: string;
-  linkedin?: string;
-  instagram?: string;
+  id:           string;
+  nombre?:      string;
+  especialidad?: string;
+  cedula_prof?: string;
+  correo?:      string;
+  telefono?:    string;
+  foto?:        string;
+  biografia?:   string;
+  horario?:     Record<string, string>;
+  updated_at:   string;
+}
+
+export interface ClinicSettings {
+  id:                  string;
+  bot_activo:          boolean;
+  bot_conectado:       boolean;
+  bot_qr_base64?:      string | null;
+  hora_recordatorio?:  string;
+  mensaje_bienvenida?: string;
+  updated_at:          string;
 }

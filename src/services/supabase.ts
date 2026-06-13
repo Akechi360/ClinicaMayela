@@ -1,17 +1,13 @@
-// Cliente de Supabase listo para producción.
-// Para habilitar Supabase en producción:
-// 1. Instalar la librería del cliente de Supabase: `npm install @supabase/supabase-js`
-// 2. Descomentar el código de abajo y configurar las variables .env
-// 3. Modificar tus hooks o llamadas para importar desde este archivo en lugar de './db'
-
-/*
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '../types/supabase.types'; // Tipos generados por Supabase CLI
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl  = import.meta.env.VITE_SUPABASE_URL  as string;
+const supabaseKey  = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
-*/
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error(
+    '❌ Faltan variables de entorno VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY en el archivo .env'
+  );
+}
 
-export const isSupabaseActive = false;
+export const supabase = createClient(supabaseUrl, supabaseKey);
+export const isSupabaseActive = true;
