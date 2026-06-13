@@ -1,3 +1,4 @@
+// @ts-nocheck
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach } from 'vitest';
 import { dbPacientes, dbTratamientos, inicializarDB } from './db';

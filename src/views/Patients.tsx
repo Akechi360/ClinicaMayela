@@ -85,10 +85,8 @@ export const Patients: React.FC = () => {
       (p.telefono && p.telefono.includes(searchQuery)) ||
       (p.correo && p.correo.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    // Filtro VIP removido por schema, podemos dejarlo o siempre return matchesSearch
+    // Filtro VIP removido por schema
     return matchesSearch;
-    
-    return matchesSearch && matchesVip;
   });
 
   return (

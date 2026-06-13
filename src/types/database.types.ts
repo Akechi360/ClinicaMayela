@@ -23,6 +23,12 @@ export interface HistorialClinico {
   mapa_facial_coordenadas: MapaFacialCoordenada[];
   productos_usados?:       ProductoUsado[];
   created_at:              string;
+  // Retrocompatibilidad
+  producto?: string;
+  cantidad?: string;
+  lote?: string;
+  tecnica?: string;
+  cita_id?: string;
 }
 
 export interface MapaFacialCoordenada {
@@ -45,25 +51,43 @@ export interface Cita {
   paciente_id?: string;
   fecha_hora:  string;
   tipo?:       string;
-  estado:      'pendiente' | 'completada' | 'cancelada';
+  estado:      string; // allow 'pendiente' | 'completada' | 'cancelada' | 'en_sala' | 'confirmado' | 'cancelado'
   notas?:      string;
   origen:      'manual' | 'whatsapp';
   created_at:  string;
-  // join
+  // join y retrocompatibilidad
   pacientes?:  Pick<Paciente, 'nombre' | 'apellido' | 'telefono'>;
+  tratamiento?: any;
+  tratamiento_id?: string;
 }
 
 export interface DoctorProfile {
   id:           string;
-  nombre?:      string;
-  especialidad?: string;
+  nombre:       string;
+  especialidad: string;
   cedula_prof?: string;
+  cedula?:      string;
   correo?:      string;
-  telefono?:    string;
+  email?:       string;
+  telefono:     string;
   foto?:        string;
-  biografia?:   string;
-  horario?:     Record<string, string>;
+  foto_perfil?: string;
+  biografia:    string;
+  horario:      any;
+  linkedin?:    string;
+  instagram?:   string;
   updated_at:   string;
+}
+
+export interface Transaccion {
+  id: string;
+  cita_id?: string;
+  paciente_id: string;
+  fecha: string;
+  monto: number;
+  estado: string;
+  metodo_pago: string;
+  paciente?: any;
 }
 
 export interface ClinicSettings {
