@@ -1,13 +1,13 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbPacientes, dbTratamientos, dbHistoriales, dbConsentimientos } from '../services/db';
 import { supabase } from '../services/supabase';
 import type { Paciente, Tratamiento, Consentimiento } from '../types/database.types';
 import { FaceCanvas } from '../components/FaceCanvas';
-import { SignatureCanvas } from '../components/SignatureCanvas';
+import { SignaturePadModal } from '../components/SignaturePadModal';
 import { useToast } from '../components/Toast';
-import { Upload, Loader2, CheckCircle, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Upload, Loader2, CheckCircle, ChevronRight, ChevronLeft, PenLine } from 'lucide-react';
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -27,25 +27,26 @@ export const NewEntry: React.FC = () => {
   const [step, setStep] = useState<Step>(1);
 
   // Step 1
-  const [pacienteId, setPacienteId]     = useState(searchParams.get('pacienteId') ?? '');
-  const [tratamientoId, setTratamientoId] = useState('');
-  const [fecha, setFecha]               = useState(new Date().toISOString().split('T')[0]);
+  const [pacienteId, setPacienteId]       = useState(searchParams.get('pacienteId') ?? '');
+  const [tratamientoId, setTratamientoId]   = useState('');
+  const [fecha, setFecha]                 = useState(new Date().toISOString().split('T')[0]);
 
   // Step 2
-  const [producto, setProducto]         = useState('');
-  const [cantidad, setCantidad]         = useState('');
-  const [lote, setLote]                 = useState('');
-  const [tecnica, setTecnica]           = useState('');
-  const [notasMedicas, setNotasMedicas] = useState('');
-  const [fotoAntes, setFotoAntes]       = useState('');
-  const [fotoDespues, setFotoDespues]   = useState('');
-  const [isUploading, setIsUploading]   = useState<'antes' | 'despues' | null>(null);
+  const [producto, setProducto]           = useState('');
+  const [cantidad, setCantidad]           = useState('');
+  const [lote, setLote]                   = useState('');
+  const [tecnica, setTecnica]             = useState('');
+  const [notasMedicas, setNotasMedicas]   = useState('');
+  const [fotoAntes, setFotoAntes]         = useState('');
+  const [fotoDespues, setFotoDespues]     = useState('');
+  const [isUploading, setIsUploading]     = useState<'antes' | 'despues' | null>(null);
 
   // Step 3
-  const [mapaCoords, setMapaCoords]     = useState<object[]>([]);
+  const [mapaCoords, setMapaCoords]       = useState<object[]>([]);
 
   // Step 4
-  const sigCanvasRef = useRef<{ getBase64: () => string | null; clear: () => void } | null>(null);
+  const [firmaBase64, setFirmaBase64]     = useState<string | null>(null);
+  const [showSignModal, setShowSignModal] = useState(false);
   const [consentAccepted, setConsentAccepted] = useState(false);
 
   const { data: pacientes = [] } = useQuery<Paciente[]>({
@@ -58,14 +59,13 @@ export const NewEntry: React.FC = () => {
     queryFn: dbTratamientos.listar
   });
 
-  const selectedPaciente = pacientes.find(p => p.id === pacienteId);
+  const selectedPaciente    = pacientes.find(p => p.id === pacienteId);
   const selectedTratamiento = tratamientos.find(t => t.id === tratamientoId);
 
   const guardarMutation = useMutation<void, Error>({
     mutationFn: async () => {
       if (!pacienteId || !tratamientoId) throw new Error('Paciente y tratamiento son requeridos.');
 
-      // Guardar historial
       await dbHistoriales.insertar({
         paciente_id: pacienteId,
         tratamiento_id: tratamientoId,
@@ -75,24 +75,22 @@ export const NewEntry: React.FC = () => {
         lote,
         tecnica,
         notas_medicas: notasMedicas,
-        foto_antes: fotoAntes || null,
-        foto_despues: fotoDespues || null,
+        foto_antes:    fotoAntes    || null,
+        foto_despues:  fotoDespues  || null,
         mapa_facial_coordenadas: mapaCoords
       });
 
-      // Guardar consentimiento si fue aceptado
       if (consentAccepted && selectedPaciente && selectedTratamiento) {
-        const firmaBase64 = sigCanvasRef.current?.getBase64() ?? null;
         await dbConsentimientos.insertar({
-          paciente_id: pacienteId,
-          paciente_nombre: selectedPaciente.nombre,
-          paciente_dni: selectedPaciente.cedula ?? '',
+          paciente_id:       pacienteId,
+          paciente_nombre:   selectedPaciente.nombre,
+          paciente_dni:      selectedPaciente.cedula ?? '',
           tratamiento_nombre: selectedTratamiento.nombre,
-          doctor_nombre: 'Dra. Mayela González',
+          doctor_nombre:     'Dra. Mayela González',
           fecha,
-          firma_base64: firmaBase64,
-          estado: 'Activo',
-          clausulas: CLAUSULAS_DEFAULT
+          firma_base64:      firmaBase64,
+          estado:            'Activo',
+          clausulas:         CLAUSULAS_DEFAULT
         } as Omit<Consentimiento, 'id' | 'created_at'>);
       }
     },
@@ -172,10 +170,10 @@ export const NewEntry: React.FC = () => {
         ))}
       </div>
 
-      {/* Steps */}
+      {/* Step content */}
       <div className="glass-panel rounded-3xl p-6 md:p-8 shadow-luxury border border-pure-white/40 animate-fadeIn">
 
-        {/* Step 1: Paciente & Tratamiento */}
+        {/* Step 1 */}
         {step === 1 && (
           <div className="space-y-6">
             <h3 className="text-lg font-display font-medium text-slate-dark">Paciente y Tratamiento</h3>
@@ -205,7 +203,7 @@ export const NewEntry: React.FC = () => {
           </div>
         )}
 
-        {/* Step 2: Detalles Clínicos */}
+        {/* Step 2 */}
         {step === 2 && (
           <div className="space-y-6">
             <h3 className="text-lg font-display font-medium text-slate-dark">Detalles Clínicos</h3>
@@ -237,36 +235,30 @@ export const NewEntry: React.FC = () => {
                 placeholder="Observaciones clínicas, reacciones, plan de seguimiento..."
                 className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-xl px-3 py-2.5 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold resize-none" />
             </div>
-            {/* Fotos */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {(['antes', 'despues'] as const).map(tipo => (
                 <div key={tipo}>
                   <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1.5 font-bold">
-                    Foto {tipo === 'antes' ? 'Antes' : 'Después'} <span className="text-slate-light">(Opcional — Máx. 8MB)</span>
+                    Foto {tipo === 'antes' ? 'Antes' : 'Después'} <span className="text-slate-light">(Máx. 8MB)</span>
                   </label>
                   {(tipo === 'antes' ? fotoAntes : fotoDespues) ? (
                     <div className="relative w-full h-40 rounded-xl overflow-hidden border border-satin-copper/20">
                       <img src={tipo === 'antes' ? fotoAntes : fotoDespues} alt={`Foto ${tipo}`} className="w-full h-full object-cover" />
-                      <button
-                        type="button"
+                      <button type="button"
                         onClick={() => tipo === 'antes' ? setFotoAntes('') : setFotoDespues('')}
-                        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] cursor-pointer"
-                      >×</button>
+                        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] cursor-pointer">×</button>
                     </div>
                   ) : (
                     <label className="flex flex-col items-center justify-center h-40 border border-dashed border-satin-copper/25 rounded-xl bg-pure-white/20 hover:bg-pure-white/35 transition-all cursor-pointer group">
-                      {isUploading === tipo ? (
-                        <Loader2 size={24} className="text-satin-copper animate-spin" />
-                      ) : (
-                        <>
-                          <Upload size={24} className="text-satin-copper-light group-hover:scale-110 transition-transform mb-2" />
-                          <span className="text-[10px] text-slate-light font-semibold">Subir foto {tipo}</span>
-                        </>
-                      )}
-                      <input type="file" accept="image/*" className="hidden" onChange={e => {
-                        const file = e.target.files?.[0];
-                        if (file) handlePhotoUpload(tipo, file);
-                      }} />
+                      {isUploading === tipo
+                        ? <Loader2 size={24} className="text-satin-copper animate-spin" />
+                        : <>
+                            <Upload size={24} className="text-satin-copper-light group-hover:scale-110 transition-transform mb-2" />
+                            <span className="text-[10px] text-slate-light font-semibold">Subir foto {tipo}</span>
+                          </>
+                      }
+                      <input type="file" accept="image/*" className="hidden"
+                        onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(tipo, f); }} />
                     </label>
                   )}
                 </div>
@@ -275,7 +267,7 @@ export const NewEntry: React.FC = () => {
           </div>
         )}
 
-        {/* Step 3: Mapa Facial */}
+        {/* Step 3 */}
         {step === 3 && (
           <div className="space-y-6">
             <div>
@@ -286,7 +278,7 @@ export const NewEntry: React.FC = () => {
           </div>
         )}
 
-        {/* Step 4: Consentimiento */}
+        {/* Step 4 */}
         {step === 4 && (
           <div className="space-y-6">
             <div>
@@ -294,8 +286,7 @@ export const NewEntry: React.FC = () => {
               <p className="text-xs text-slate-medium mt-1">El paciente debe leer y firmar el consentimiento para completar el registro.</p>
             </div>
 
-            {/* Cláusulas */}
-            <div className="space-y-3 max-h-64 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-satin-copper/20">
+            <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
               {CLAUSULAS_DEFAULT.map((clausula, idx) => (
                 <div key={idx} className="bg-pure-white/20 p-4 rounded-xl border border-satin-copper/10 text-[11px] text-slate-medium leading-relaxed">
                   <span className="font-bold text-slate-dark">{idx + 1}. </span>{clausula}
@@ -306,16 +297,26 @@ export const NewEntry: React.FC = () => {
             {/* Firma */}
             <div>
               <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-2 font-bold">Firma del Paciente</label>
-              <SignatureCanvas ref={sigCanvasRef} />
+              {firmaBase64 ? (
+                <div className="relative">
+                  <img src={firmaBase64} alt="Firma" className="w-full h-32 object-contain rounded-xl border border-satin-copper/15 bg-pure-white" />
+                  <button type="button" onClick={() => setFirmaBase64(null)}
+                    className="absolute top-2 right-2 text-[9px] font-bold uppercase tracking-wider text-red-500 hover:text-red-700 cursor-pointer">
+                    Borrar firma
+                  </button>
+                </div>
+              ) : (
+                <button type="button" onClick={() => setShowSignModal(true)}
+                  className="w-full h-32 flex flex-col items-center justify-center border border-dashed border-satin-copper/25 rounded-xl bg-pure-white/20 hover:bg-pure-white/35 transition-all cursor-pointer group gap-2">
+                  <PenLine size={24} className="text-satin-copper-light group-hover:scale-110 transition-transform" />
+                  <span className="text-[10px] text-slate-light font-semibold">Toca para firmar</span>
+                </button>
+              )}
             </div>
 
             <label className="flex items-center gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={consentAccepted}
-                onChange={e => setConsentAccepted(e.target.checked)}
-                className="w-4 h-4 accent-satin-copper cursor-pointer"
-              />
+              <input type="checkbox" checked={consentAccepted} onChange={e => setConsentAccepted(e.target.checked)}
+                className="w-4 h-4 accent-satin-copper cursor-pointer" />
               <span className="text-xs text-slate-medium leading-snug group-hover:text-slate-dark transition-colors">
                 El paciente ha leído, comprende y acepta las condiciones del tratamiento.
               </span>
@@ -326,31 +327,25 @@ export const NewEntry: React.FC = () => {
 
       {/* Navigation */}
       <div className="flex justify-between items-center">
-        <button
-          type="button"
+        <button type="button"
           onClick={() => setStep(prev => (prev > 1 ? (prev - 1) as Step : prev))}
           disabled={step === 1}
-          className="flex items-center gap-2 px-5 py-2.5 border border-satin-copper/20 text-slate-medium hover:bg-pure-white/30 rounded-xl text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-30 cursor-pointer"
-        >
+          className="flex items-center gap-2 px-5 py-2.5 border border-satin-copper/20 text-slate-medium hover:bg-pure-white/30 rounded-xl text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-30 cursor-pointer">
           <ChevronLeft size={14} /> Anterior
         </button>
 
         {step < 4 ? (
-          <button
-            type="button"
+          <button type="button"
             onClick={() => { if (canGoNext()) setStep(prev => (prev + 1) as Step); }}
             disabled={!canGoNext()}
-            className="flex items-center gap-2 px-5 py-2.5 satin-button text-pure-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md transition-all disabled:opacity-40 cursor-pointer"
-          >
+            className="flex items-center gap-2 px-5 py-2.5 satin-button text-pure-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md transition-all disabled:opacity-40 cursor-pointer">
             Siguiente <ChevronRight size={14} />
           </button>
         ) : (
-          <button
-            type="button"
+          <button type="button"
             onClick={() => guardarMutation.mutate()}
             disabled={guardarMutation.isPending}
-            className="flex items-center gap-2 px-6 py-2.5 satin-button text-pure-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md transition-all disabled:opacity-50 cursor-pointer"
-          >
+            className="flex items-center gap-2 px-6 py-2.5 satin-button text-pure-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md transition-all disabled:opacity-50 cursor-pointer">
             {guardarMutation.isPending
               ? <><Loader2 size={14} className="animate-spin" /> Guardando...</>
               : <><CheckCircle size={14} /> Guardar Procedimiento</>
@@ -358,6 +353,13 @@ export const NewEntry: React.FC = () => {
           </button>
         )}
       </div>
+
+      {/* Modal firma */}
+      <SignaturePadModal
+        isOpen={showSignModal}
+        onClose={() => setShowSignModal(false)}
+        onSave={(b64) => { setFirmaBase64(b64); setShowSignModal(false); }}
+      />
     </div>
   );
 };
