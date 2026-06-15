@@ -5,17 +5,18 @@
   --font-display: 'Cormorant Garamond', serif;
   --font-sans: 'Inter', sans-serif;
 
-  --color-satin-copper: #A66E53;
-  --color-satin-copper-hover: #8A5843;
-  --color-satin-copper-light: #C48B70;
-  --color-rose-champagne: #DFC5B2;
-  --color-rose-champagne-light: #F5EDE6;
-  --color-pure-white: #FDFAF8;
-  --color-slate-dark: #1E2530;
-  --color-slate-medium: #4A5568;
-  --color-slate-light: #8E9AA6;
-  --color-muted-olive: #6B7A5E;
-  --color-bg-app: #F0EBE5;
+  /* ── Nueva paleta Rosa Pétalo ──────────────────────── */
+  --color-satin-copper:       #E0A2A2;
+  --color-satin-copper-hover: #CC8A8A;
+  --color-satin-copper-light: #EEC4C4;
+  --color-rose-champagne:     #EEC4C4;
+  --color-rose-champagne-light: #F9EDED;
+  --color-pure-white:         #FDFAF8;
+  --color-slate-dark:         #3A434D;
+  --color-slate-medium:       #4A5568;
+  --color-slate-light:        #8E9AA6;
+  --color-muted-olive:        #6B7A5E;
+  --color-bg-app:             #F7F0F0;
 }
 
 /* ── Base ────────────────────────────────────────────────────────── */
@@ -49,8 +50,8 @@ body {
   inset: 0;
   z-index: 0;
   background-image:
-    linear-gradient(rgba(166, 110, 83, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(166, 110, 83, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(224, 162, 162, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(224, 162, 162, 0.05) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
 }
@@ -63,7 +64,7 @@ body {
 }
 
 .glass-panel-dark {
-  background: rgba(30, 37, 48, 0.88);
+  background: rgba(58, 67, 77, 0.90);
   backdrop-filter: blur(18px) saturate(1.2);
   -webkit-backdrop-filter: blur(18px) saturate(1.2);
 }
@@ -78,34 +79,34 @@ body {
 .floating-row:hover {
   background: rgba(253, 250, 248, 0.75);
   transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(166, 110, 83, 0.08);
+  box-shadow: 0 6px 24px rgba(224, 162, 162, 0.10);
 }
 
 /* ── Shadows ─────────────────────────────────────────────────────── */
 .shadow-luxury {
   box-shadow:
-    0 2px 8px rgba(30, 37, 48, 0.06),
-    0 8px 32px rgba(166, 110, 83, 0.08),
+    0 2px 8px rgba(58, 67, 77, 0.06),
+    0 8px 32px rgba(224, 162, 162, 0.10),
     0 0 0 1px rgba(253, 250, 248, 0.6) inset;
 }
 
 .luxury-hover:hover {
   box-shadow:
-    0 4px 16px rgba(30, 37, 48, 0.08),
-    0 12px 40px rgba(166, 110, 83, 0.12),
+    0 4px 16px rgba(58, 67, 77, 0.08),
+    0 12px 40px rgba(224, 162, 162, 0.15),
     0 0 0 1px rgba(253, 250, 248, 0.8) inset;
   transform: translateY(-1px);
   transition: all 0.3s ease;
 }
 
-/* ── Satin Button ────────────────────────────────────────────────── */
+/* ── Satin Button (slate-dark base) ─────────────────────────────── */
 .satin-button {
-  background: linear-gradient(135deg, #A66E53 0%, #8A5843 100%);
+  background: linear-gradient(135deg, #3A434D 0%, #2C343C 100%);
   transition: all 0.25s ease;
 }
 .satin-button:hover {
-  background: linear-gradient(135deg, #B87D62 0%, #9A6452 100%);
-  box-shadow: 0 4px 16px rgba(166, 110, 83, 0.35);
+  background: linear-gradient(135deg, #4A545F 0%, #3A434D 100%);
+  box-shadow: 0 4px 16px rgba(58, 67, 77, 0.35);
   transform: translateY(-1px);
 }
 
