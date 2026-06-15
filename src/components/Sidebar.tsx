@@ -36,7 +36,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const location = useLocation();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  // Consultar perfil de la doctora
   const { data: doctor } = useQuery({
     queryKey: ['doctor'],
     queryFn: dbDoctor.obtener
@@ -61,16 +60,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const isActive = (path: string) => {
-    if (path === '/') {
-      return location.pathname === '/';
-    }
+    if (path === '/') return location.pathname === '/';
     return location.pathname.startsWith(path);
   };
 
-  // Cierre en Escape y Focus Trap para móviles
   useEffect(() => {
     if (!mobileOpen) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onCloseMobile();
@@ -80,53 +75,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
           'a[href], button:not([disabled]), input, select, textarea'
         );
         if (!focusableElements || focusableElements.length === 0) return;
-
         const firstEl = focusableElements[0] as HTMLElement;
         const lastEl = focusableElements[focusableElements.length - 1] as HTMLElement;
-
         if (e.shiftKey) {
-          if (document.activeElement === firstEl) {
-            lastEl.focus();
-            e.preventDefault();
-          }
+          if (document.activeElement === firstEl) { lastEl.focus(); e.preventDefault(); }
         } else {
-          if (document.activeElement === lastEl) {
-            firstEl.focus();
-            e.preventDefault();
-          }
+          if (document.activeElement === lastEl) { firstEl.focus(); e.preventDefault(); }
         }
       }
     };
-
     document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [mobileOpen, onCloseMobile]);
 
   return (
     <aside 
       ref={sidebarRef}
-      className={`fixed transition-all duration-300 z-50 shadow-luxury border border-pure-white/40 glass-panel lg:rounded-3xl rounded-r-3xl
+      className={`fixed transition-all duration-300 z-50 shadow-luxury border border-pure-white/40 glass-panel
+        rounded-r-3xl lg:rounded-3xl
+        left-0 top-0 h-screen
+        md:left-3 md:top-3 md:h-[calc(100vh-1.5rem)] md:rounded-3xl
         lg:left-5 lg:top-5 lg:h-[calc(100vh-2.5rem)]
-        left-0 top-0 h-screen lg:translate-x-0
         ${collapsed ? 'lg:w-20' : 'lg:w-64'} 
-        w-64 ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        w-64
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         flex flex-col justify-between py-6 px-4`}
       aria-label="Menú principal de navegación"
-      aria-hidden={!mobileOpen && window.innerWidth < 1024 ? "true" : "false"}
     >
       {/* Botón Colapsar (Desktop) */}
       <button
         onClick={onToggleCollapse}
-        aria-label={collapsed ? "Expandir menú lateral" : "Colapsar menú lateral"}
+        aria-label={collapsed ? 'Expandir menú lateral' : 'Colapsar menú lateral'}
         className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 rounded-full bg-satin-copper hover:bg-satin-copper-hover text-pure-white items-center justify-center border border-pure-white/20 shadow-md cursor-pointer z-50 hover:scale-105 transition-all"
       >
         {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
       </button>
 
       <div className="space-y-6 overflow-y-auto no-scrollbar pr-1">
-        {/* Brand Header (High-fashion Cosmetics Style) */}
+        {/* Brand Header */}
         <div className="flex flex-col items-center mb-6 text-center select-none group">
           <div className="w-10 h-10 rounded-full bg-satin-copper/10 border border-satin-copper/20 flex items-center justify-center transition-transform duration-700 group-hover:rotate-180">
             <span className="material-symbols-outlined text-satin-copper text-lg font-light">spa</span>
@@ -154,7 +140,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Navigation Blocks */}
         <div className="space-y-5">
-          {/* Bloque Clínico */}
           <div className="space-y-1.5">
             {!collapsed && <p className="text-[8px] uppercase tracking-[0.2em] text-slate-light font-bold px-3">Clínica</p>}
             <nav className="space-y-1">
@@ -190,7 +175,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </nav>
           </div>
 
-          {/* Bloque Administrativo */}
           <div className="space-y-1.5">
             {!collapsed && <p className="text-[8px] uppercase tracking-[0.2em] text-slate-light font-bold px-3">Gestión</p>}
             <nav className="space-y-1">
@@ -228,9 +212,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* Footer Settings & Logout */}
+      {/* Footer */}
       <div className="border-t border-satin-copper/15 pt-5 space-y-2">
-        {/* Enlaces de Cuenta */}
         <nav className="space-y-1">
           {accountItems.map((item) => {
             const active = isActive(item.path);
@@ -263,11 +246,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           })}
         </nav>
 
-        {/* Doctor Info Section */}
         {!collapsed && doctor && (
           <div className="flex items-center gap-3 p-2 bg-pure-white/20 rounded-xl border border-satin-copper/10 select-none">
             <div className="w-8 h-8 rounded-full overflow-hidden border border-satin-copper/25 shadow-sm shrink-0">
-              <img src={doctor.foto_perfil} alt={doctor.nombre} className="w-full h-full object-cover" />
+              <img src={doctor.foto_perfil || doctor.foto} alt={doctor.nombre} className="w-full h-full object-cover" />
             </div>
             <div className="truncate min-w-0 flex-1">
               <p className="text-[9px] font-semibold text-slate-dark truncate leading-tight">{doctor.nombre}</p>
@@ -278,7 +260,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={() => alert('Cerrar sesión simulado')}
-          title={collapsed ? "Cerrar Sesión" : undefined}
+          title={collapsed ? 'Cerrar Sesión' : undefined}
           aria-label="Cerrar sesión"
           className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[10px] font-semibold tracking-wider font-sans text-slate-medium hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 text-left uppercase cursor-pointer"
         >

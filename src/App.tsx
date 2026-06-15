@@ -28,7 +28,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Layout interno para tener acceso a `useNavigate` de React Router
 const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -42,7 +41,7 @@ const AppLayout: React.FC = () => {
       {/* Patrón de puntos de fondo */}
       <div className="bg-grid-overlay"></div>
 
-      {/* Backdrop para móviles */}
+      {/* Backdrop para móviles y tablet */}
       {mobileMenuOpen && (
         <div 
           className="fixed inset-0 bg-slate-dark/30 backdrop-blur-xs z-40 lg:hidden cursor-pointer"
@@ -63,15 +62,25 @@ const AppLayout: React.FC = () => {
       />
 
       {/* Área de Contenido Principal */}
-      <div className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'lg:ml-[7.25rem]' : 'lg:ml-[18.25rem]'} ml-5 mr-5 flex flex-col min-h-screen`}>
+      <div
+        className={`flex-1 transition-all duration-300
+          ${
+            sidebarCollapsed
+              ? 'lg:ml-[7.25rem]'
+              : 'lg:ml-[18.25rem]'
+          }
+          ml-0 lg:mr-5
+          px-3 sm:px-4 lg:px-0
+          flex flex-col min-h-screen`}
+      >
         {/* Cabecera superior */}
         <Topbar 
           onToggleMobileMenu={() => setMobileMenuOpen(true)}
           sidebarCollapsed={sidebarCollapsed}
         />
 
-        {/* Contenido dinámico principal (Desplazado hacia abajo por la Topbar) */}
-        <main className="flex-1 pt-28 pb-16 max-w-7xl w-full mx-auto">
+        {/* Contenido dinámico principal */}
+        <main className="flex-1 pt-24 sm:pt-28 pb-16 sm:pb-20 max-w-screen-2xl w-full mx-auto">
           <Suspense fallback={<PageLoadSkeleton />}>
             <Routes>
               <Route path="/" element={<Dashboard />} />
