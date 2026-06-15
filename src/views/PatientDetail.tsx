@@ -2,7 +2,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbDoctor } from '../services/db';
+import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbDoctor, dbConsentimientos } from '../services/db';
+import { supabase } from '../services/supabase';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 import { FaceCanvas } from '../components/FaceCanvas';
 import { 
@@ -26,7 +27,7 @@ import type { ExamenLaboratorio, RecipeMedico } from '../types/database.types';
 export const PatientDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'historial' | 'mapa' | 'citas' | 'finanzas' | 'examenes' | 'recipes'>('historial');
+  const [activeTab, setActiveTab] = useState<'historial' | 'mapa' | 'citas' | 'finanzas' | 'examenes' | 'recipes' | 'consentimientos'>('historial');
   const queryClient = useQueryClient();
 
   // Modales
@@ -37,7 +38,7 @@ export const PatientDetail: React.FC = () => {
   const [examenTitulo, setExamenTitulo] = useState('');
   const [examenFecha, setExamenFecha] = useState(new Date().toISOString().split('T')[0]);
   const [examenNotas, setExamenNotas] = useState('');
-  const [examenArchivoBase64, setExamenArchivoBase64] = useState('');
+  const [examenArchivoUrl, setExamenArchivoUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
   // Formulario Recipe
@@ -86,6 +87,11 @@ export const PatientDetail: React.FC = () => {
     queryFn: () => dbRecipes.listarPorPaciente(id || '')
   });
 
+  const { data: consentimientos = [], isLoading: loadingConsentimientos } = useQuery({
+    queryKey: ['paciente-consentimientos', id],
+    queryFn: () => dbConsentimientos.listarPorPaciente(id || '')
+  });
+
   // Mutaciones
   const addExamenMutation = useMutation({
     mutationFn: dbExamenes.insertar,
@@ -95,7 +101,7 @@ export const PatientDetail: React.FC = () => {
       setExamenTitulo('');
       setExamenFecha(new Date().toISOString().split('T')[0]);
       setExamenNotas('');
-      setExamenArchivoBase64('');
+      setExamenArchivoUrl('');
     }
   });
 
@@ -214,27 +220,70 @@ export const PatientDetail: React.FC = () => {
     };
   }, [showRecipeModal]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert('El archivo supera el límite de 2MB. Por favor seleccione un archivo más pequeño.');
+    if (file.size > 5 * 1024 * 1024) {
+      alert('El archivo supera el límite de 5MB. Por favor seleccione un archivo más pequeño.');
       e.target.value = '';
       return;
     }
 
     setIsUploading(true);
-    const reader = new FileReader();
-    reader.onload = () => {
-      setExamenArchivoBase64(reader.result as string);
+    try {
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('examenes')
+        .upload(`${id}/${Date.now()}_${file.name}`, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+      if (storageError) throw storageError;
+      const { data: { publicUrl } } = supabase.storage
+        .from('examenes')
+        .getPublicUrl(storageData.path);
+      setExamenArchivoUrl(publicUrl);
+    } catch (err: any) {
+      console.error('Error al subir archivo:', err);
+      alert('Error al subir el archivo: ' + err.message);
+      e.target.value = '';
+    } finally {
       setIsUploading(false);
-    };
-    reader.onerror = () => {
-      alert('Error al leer el archivo. Inténtelo de nuevo.');
-      setIsUploading(false);
-    };
-    reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDownloadConsentimiento = async (doc: any) => {
+    setIsGeneratingPdf(true);
+    try {
+      const { pdf } = await import('@react-pdf/renderer');
+      const { ConsentimientoPDF } = await import('../components/ConsentimientoPDF');
+      
+      const blob = await pdf(
+        <ConsentimientoPDF
+          pacienteNombre={doc.paciente_nombre}
+          pacienteDni={doc.paciente_dni}
+          tratamientoNombre={doc.tratamiento_nombre}
+          fecha={doc.fecha}
+          doctorNombre={doc.doctor_nombre}
+          firmaBase64={doc.firma_base64 || null}
+          clausulas={doc.clausulas || []}
+        />
+      ).toBlob();
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `consentimiento_${doc.paciente_nombre.replace(/\s+/g, '_').toLowerCase()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error al generar el PDF del consentimiento:', error);
+      alert('Hubo un error al generar el PDF. Por favor intente de nuevo.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const handleDownloadExamen = (examen: ExamenLaboratorio) => {
@@ -371,7 +420,8 @@ export const PatientDetail: React.FC = () => {
           { id: 'citas', label: 'Citas' },
           { id: 'finanzas', label: 'Finanzas' },
           { id: 'examenes', label: 'Exámenes de Laboratorio' },
-          { id: 'recipes', label: 'Récipes Médicos' }
+          { id: 'recipes', label: 'Récipes Médicos' },
+          { id: 'consentimientos', label: 'Consentimientos' }
         ].map((tab) => (
           <button
             key={tab.id}
@@ -714,6 +764,57 @@ export const PatientDetail: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* Tab Consentimientos */}
+        {activeTab === 'consentimientos' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-base font-display font-medium text-slate-dark">Consentimientos Informados</h3>
+            </div>
+
+            {loadingConsentimientos ? (
+              <p className="text-xs text-slate-light animate-pulse font-semibold">Cargando consentimientos...</p>
+            ) : consentimientos.length === 0 ? (
+              <div className="py-12 text-center border border-dashed border-satin-copper/25 rounded-2xl bg-pure-white/15 backdrop-blur-md">
+                <FileText className="mx-auto text-slate-light mb-2 opacity-50" size={32} />
+                <p className="text-xs text-slate-medium font-semibold">No hay consentimientos registrados para este paciente</p>
+                <p className="text-[10px] text-slate-light mt-1 font-sans">Puedes gestionar y firmar nuevos consentimientos desde el panel principal de Consentimientos.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {consentimientos.map((doc) => (
+                  <div key={doc.id} className="p-5 rounded-2xl bg-pure-white/15 border border-satin-copper/10 hover:bg-pure-white/25 transition-all duration-300 flex flex-col justify-between h-full space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-start">
+                        <span className="text-[9px] text-satin-copper font-bold uppercase tracking-widest bg-satin-copper/10 px-2.5 py-1 rounded-full">
+                          {new Date(doc.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </span>
+                        <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                          doc.estado === 'Activo' 
+                            ? 'bg-emerald-500/10 text-emerald-600' 
+                            : doc.estado === 'Pendiente'
+                            ? 'bg-amber-500/10 text-amber-600'
+                            : 'bg-slate-300 text-slate-600'
+                        }`}>
+                          {doc.estado}
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-display font-medium text-slate-dark">{doc.tratamiento_nombre}</h4>
+                      <p className="text-[11px] text-slate-light font-semibold">Doctor(a): <span className="text-slate-medium font-bold">{doc.doctor_nombre}</span></p>
+                    </div>
+                    <button
+                      onClick={() => handleDownloadConsentimiento(doc)}
+                      disabled={isGeneratingPdf}
+                      className="text-[11px] text-satin-copper font-semibold flex items-center gap-1 justify-start hover:underline cursor-pointer border-none bg-transparent disabled:opacity-50 w-fit"
+                    >
+                      <Download size={13} /> {isGeneratingPdf ? 'Generando PDF...' : 'Descargar Consentimiento (PDF)'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Modal Cargar Examen de Laboratorio */}
@@ -732,7 +833,7 @@ export const PatientDetail: React.FC = () => {
                 titulo: examenTitulo,
                 fecha: examenFecha,
                 notas: examenNotas,
-                archivo_url: examenArchivoBase64
+                archivo_url: examenArchivoUrl
               });
             }}
             className="glass-panel w-full max-w-sm rounded-2xl shadow-luxury border border-pure-white/50 overflow-hidden flex flex-col"
@@ -787,7 +888,7 @@ export const PatientDetail: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Adjuntar Documento / Imagen (Máx. 2MB)</label>
+                <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Adjuntar Documento / Imagen (Máx. 5MB)</label>
                 <input
                   type="file"
                   accept="image/*,application/pdf"
@@ -795,7 +896,7 @@ export const PatientDetail: React.FC = () => {
                   className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans font-semibold cursor-pointer"
                 />
                 {isUploading && <p className="text-[10px] text-satin-copper mt-1 animate-pulse font-semibold">Procesando archivo...</p>}
-                {examenArchivoBase64 && !isUploading && (
+                {examenArchivoUrl && !isUploading && (
                   <p className="text-[10px] text-muted-olive mt-1 font-semibold flex items-center gap-1">
                     ✓ Archivo cargado correctamente
                   </p>

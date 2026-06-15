@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbTransacciones } from '../services/db';
 import { 
@@ -22,6 +22,7 @@ import {
 export const Finances: React.FC = () => {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   // Consultar transacciones
   const { data: transacciones = [], isLoading } = useQuery({
@@ -40,35 +41,75 @@ export const Finances: React.FC = () => {
   });
 
   // Estadísticas financieras
-  const totalCaja = transacciones
-    .filter(t => t.estado === 'completado')
-    .reduce((sum, t) => sum + t.monto, 0);
+  const totalCaja = useMemo(() => {
+    return transacciones
+      .filter(t => t.estado === 'completado')
+      .reduce((sum, t) => sum + Number(t.monto), 0);
+  }, [transacciones]);
 
-  const totalPendiente = transacciones
-    .filter(t => t.estado === 'pendiente')
-    .reduce((sum, t) => sum + t.monto, 0);
+  const totalPendiente = useMemo(() => {
+    return transacciones
+      .filter(t => t.estado === 'pendiente')
+      .reduce((sum, t) => sum + Number(t.monto), 0);
+  }, [transacciones]);
 
-  // Datos para el gráfico de Recharts (agrupado por mes)
-  const chartData = [
-    { name: 'Ene', Ingresos: 12500 },
-    { name: 'Feb', Ingresos: 18200 },
-    { name: 'Mar', Ingresos: 24500 },
-    { name: 'Abr', Ingresos: 31000 },
-    { name: 'May', Ingresos: totalCaja }
-  ];
+  // Datos para el gráfico de Recharts (agrupado por mes dinámicamente)
+  const chartData = useMemo(() => {
+    const porMes: Record<string, number> = {};
+    transacciones
+      .filter(t => t.estado === 'completado')
+      .forEach(t => {
+        const dateStr = t.fecha.includes('T') ? t.fecha : `${t.fecha}T00:00:00`;
+        const mes = new Date(dateStr).toLocaleString('es-ES', { month: 'short' });
+        porMes[mes] = (porMes[mes] || 0) + Number(t.monto);
+      });
+    return Object.entries(porMes).map(([name, Ingresos]) => ({ name, Ingresos }));
+  }, [transacciones]);
 
   // Filtrar transacciones
-  const transaccionesFiltradas = transacciones.filter(t => {
-    const query = searchQuery.toLowerCase();
-    return (
-      t.paciente?.nombre.toLowerCase().includes(query) ||
-      t.monto.toString().includes(query) ||
-      t.estado.toLowerCase().includes(query)
-    );
-  });
+  const transaccionesFiltradas = useMemo(() => {
+    return transacciones.filter(t => {
+      const query = searchQuery.toLowerCase();
+      return (
+        t.paciente?.nombre?.toLowerCase().includes(query) ||
+        t.monto?.toString().includes(query) ||
+        t.estado?.toLowerCase().includes(query)
+      );
+    });
+  }, [transacciones, searchQuery]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('es-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
+  };
+
+  const handleDownloadReport = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      const { pdf } = await import('@react-pdf/renderer');
+      const { ReporteFinancieroPDF } = await import('../components/ReporteFinancieroPDF');
+      
+      const blob = await pdf(
+        <ReporteFinancieroPDF
+          transacciones={transacciones}
+          totalCaja={totalCaja}
+          totalPendiente={totalPendiente}
+        />
+      ).toBlob();
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `reporte_financiero_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error al generar el reporte PDF:', error);
+      alert('Hubo un error al generar el PDF. Por favor intente de nuevo.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   return (
@@ -80,10 +121,11 @@ export const Finances: React.FC = () => {
           <p className="text-sm text-slate-medium">Control de facturación, caja diaria e ingresos de tratamientos.</p>
         </div>
         <button
-          onClick={() => alert('Descargando reporte financiero (formato excel)...')}
-          className="bg-pure-white border border-rose-champagne hover:bg-rose-champagne-light text-slate-dark text-xs font-semibold py-2.5 px-5 rounded-xl flex items-center gap-2 transition-all shadow-sm"
+          onClick={handleDownloadReport}
+          disabled={isGeneratingPdf}
+          className="bg-pure-white border border-rose-champagne hover:bg-rose-champagne-light text-slate-dark text-xs font-semibold py-2.5 px-5 rounded-xl flex items-center gap-2 transition-all shadow-sm cursor-pointer disabled:opacity-50"
         >
-          <FileText size={15} className="text-satin-copper" /> Descargar Reporte
+          <FileText size={15} className="text-satin-copper" /> {isGeneratingPdf ? 'Generando...' : 'Descargar Reporte'}
         </button>
       </div>
 
@@ -181,15 +223,15 @@ export const Finances: React.FC = () => {
           ) : (
             <div className="space-y-3">
               {transaccionesFiltradas.map((tr) => (
-                <div key={tr.id} className="floating-row rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden group border border-pure-white/40">
+                <div key={tr.id} className="floating-row rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden group border border-pure-white/40 animate-fadeIn">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pure-white to-rose-champagne/60 border border-satin-copper/20 flex items-center justify-center text-xs text-satin-copper font-bold shadow-sm">
-                      {tr.paciente?.nombre.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                      {tr.paciente?.nombre?.split(' ').map(n => n[0]).slice(0, 2).join('')}
                     </div>
                     <div>
                       <h4 className="font-display font-medium text-sm text-slate-dark">{tr.paciente?.nombre}</h4>
                       <p className="text-[9px] text-slate-light mt-0.5 font-bold tracking-wider uppercase">
-                        {new Date(tr.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        {new Date(tr.fecha.includes('T') ? tr.fecha : `${tr.fecha}T00:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                     </div>
                   </div>

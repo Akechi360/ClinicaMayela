@@ -157,3 +157,18 @@ export interface RecipeMedico {
   indicaciones?: string;
   created_at?: string;
 }
+
+export interface Consentimiento {
+  id: string;
+  paciente_id: string;
+  paciente_nombre: string;
+  paciente_dni: string;
+  tratamiento_nombre: string;
+  fecha: string;
+  doctor_nombre: string;
+  estado: 'Activo' | 'Pendiente' | 'Archivado';
+  firma_base64?: string;
+  version: number;
+  clausulas: string[];
+  created_at: string;
+}
