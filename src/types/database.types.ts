@@ -122,6 +122,7 @@ export interface Tratamiento {
   precio: number;
   duracion_minutos: number;
   creado_en: string;
+  categoria?: string;
 }
 
 export interface CitaRelacional extends Cita {

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbPacientes, dbTratamientos, dbHistoriales, dbConsentimientos } from '../services/db';
 import { supabase } from '../services/supabase';
-import type { Paciente, Tratamiento, Consentimiento } from '../types/database.types';
+import type { Paciente, Tratamiento, Consentimiento, MapaFacialCoordenada } from '../types/database.types';
 import { FaceCanvas } from '../components/FaceCanvas';
 import { SignaturePadModal } from '../components/SignaturePadModal';
 import { useToast } from '../components/Toast';
@@ -42,7 +42,7 @@ export const NewEntry: React.FC = () => {
   const [isUploading, setIsUploading]     = useState<'antes' | 'despues' | null>(null);
 
   // Step 3
-  const [mapaCoords, setMapaCoords]       = useState<object[]>([]);
+  const [mapaCoords, setMapaCoords]       = useState<MapaFacialCoordenada[]>([]);
 
   // Step 4
   const [firmaBase64, setFirmaBase64]     = useState<string | null>(null);

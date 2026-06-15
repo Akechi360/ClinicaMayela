@@ -6,7 +6,7 @@ import { supabase } from '../services/supabase';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 import { FaceCanvas } from '../components/FaceCanvas';
 import { useToast } from '../components/Toast';
-import type { ExamenLaboratorio, RecipeMedico, Consentimiento, Paciente, DoctorProfile } from '../types/database.types';
+import type { ExamenLaboratorio, RecipeMedico, Consentimiento, Paciente, DoctorProfile, MapaFacialCoordenada } from '../types/database.types';
 import {
   ArrowLeft,
   Calendar,
@@ -46,8 +46,8 @@ export const PatientDetail: React.FC = () => {
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  const examModalRef = useRef<HTMLDivElement | null>(null);
-  const recipeModalRef = useRef<HTMLDivElement | null>(null);
+  const examModalRef = useRef<HTMLFormElement | null>(null);
+  const recipeModalRef = useRef<HTMLFormElement | null>(null);
 
   const { data: paciente, isLoading: loadingPaciente } = useQuery<Paciente | null>({
     queryKey: ['paciente', id],
@@ -296,7 +296,9 @@ export const PatientDetail: React.FC = () => {
 
   const queryCitasPaciente = citas.filter((c: { paciente_id?: string }) => c.paciente_id === id);
   const queryTransaccionesPaciente = transacciones.filter((t: { paciente_id?: string }) => t.paciente_id === id);
-  const todosLosPuntos = historiales.flatMap((h: { mapa_facial_coordenadas: unknown[] }) => h.mapa_facial_coordenadas);
+  const todosLosPuntos = historiales.flatMap(
+    (h: { mapa_facial_coordenadas: MapaFacialCoordenada[] }) => h.mapa_facial_coordenadas
+  );
 
   if (loadingPaciente) {
     return <div className="py-12 text-center text-xs text-slate-light">Cargando expediente del paciente...</div>;
@@ -483,7 +485,7 @@ export const PatientDetail: React.FC = () => {
               </div>
               <div className="border-t border-satin-copper/10 pt-4 space-y-2.5">
                 <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold mb-2">Puntos del Historial ({todosLosPuntos.length})</p>
-                {(todosLosPuntos as { producto: string; dosis: number }[]).map((pt, idx) => (
+                {todosLosPuntos.map((pt, idx) => (
                   <div key={idx} className="flex justify-between items-center bg-pure-white/15 p-3 rounded-xl border border-satin-copper/10 text-xs hover:bg-pure-white/25 transition-all">
                     <span className="flex items-center gap-2 font-semibold text-slate-dark">
                       <span className="w-5 h-5 rounded-full bg-satin-copper text-pure-white flex items-center justify-center text-[10px] font-bold shadow-sm">{idx + 1}</span>
