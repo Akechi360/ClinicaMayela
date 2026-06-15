@@ -6,6 +6,7 @@ import { Topbar } from './components/Topbar';
 import { WhatsappSimulator } from './components/WhatsappSimulator';
 import { PageLoadSkeleton } from './components/PageLoadSkeleton';
 import { ComingSoon } from './views/ComingSoon';
+import { ToastProvider } from './components/Toast';
 
 // Vistas con Lazy Loading
 const Dashboard = lazy(() => import('./views/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -92,7 +93,6 @@ const AppLayout: React.FC = () => {
               <Route path="/ajustes" element={<ClinicSettings />} />
               <Route path="/consentimientos" element={<Consentimientos />} />
               <Route path="/perfil" element={<DoctorProfile />} />
-              {/* Pantalla de sesión cerrada / en construcción */}
               <Route
                 path="/sesion-cerrada"
                 element={
@@ -115,9 +115,11 @@ const AppLayout: React.FC = () => {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <AppLayout />
-      </Router>
+      <ToastProvider>
+        <Router>
+          <AppLayout />
+        </Router>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }
