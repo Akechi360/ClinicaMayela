@@ -24,4 +24,15 @@ try {
 }
 
 export const supabase = supabaseClient;
-export const isSupabaseActive = true;
+const isPlaceholderUrl = !supabaseUrl || supabaseUrl.includes('placeholder') || supabaseUrl.includes('your-supabase-project-id');
+const isPlaceholderKey = !supabaseKey || supabaseKey.includes('placeholder') || supabaseKey.includes('your-supabase-anon-public-key');
+
+export const isSupabaseActive = !isPlaceholderUrl && !isPlaceholderKey;
+
+console.log("🔌 Antigravity Supabase Config:", {
+  supabaseUrl,
+  isPlaceholderUrl,
+  isPlaceholderKey,
+  isSupabaseActive
+});
+

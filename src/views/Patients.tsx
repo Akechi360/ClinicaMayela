@@ -80,7 +80,7 @@ export const Patients: React.FC = () => {
   const pacientesFiltrados = pacientes.filter(p => {
     const matchesSearch = 
       p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.apellido.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.apellido && p.apellido.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (p.cedula && p.cedula.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (p.telefono && p.telefono.includes(searchQuery)) ||
       (p.correo && p.correo.toLowerCase().includes(searchQuery.toLowerCase()));

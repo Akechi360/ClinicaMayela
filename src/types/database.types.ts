@@ -1,41 +1,51 @@
 export interface Paciente {
   id:          string;   // UUID
   nombre:      string;
-  apellido:    string;
+  apellido?:   string;
   cedula?:     string;
   telefono?:   string;
   correo?:     string;
   fecha_nac?:  string;
   foto_perfil?: string;
   notas?:      string;
-  created_at:  string;
+  created_at?: string;
+  // Retrocompatibilidad
+  email?:      string;
+  fecha_nacimiento?: string;
+  es_vip?:     boolean;
+  antecedentes?: string;
+  alergias?:   string;
+  creado_en?:  string;
+  genero?:     string;
 }
 
 export interface HistorialClinico {
   id:                      string;
   paciente_id:             string;
   fecha:                   string;
-  tratamiento:             string;
+  tratamiento?:            string;
   notas_medicas?:          string;
   antecedentes?:           string;
   foto_antes?:             string;
   foto_despues?:           string;
   mapa_facial_coordenadas: MapaFacialCoordenada[];
   productos_usados?:       ProductoUsado[];
-  created_at:              string;
+  created_at?:             string;
   // Retrocompatibilidad
   producto?: string;
   cantidad?: string;
   lote?: string;
   tecnica?: string;
   cita_id?: string;
+  creado_en?: string;
+  tratamiento_id?: string;
 }
 
 export interface MapaFacialCoordenada {
   x:        number;
   y:        number;
   z?:       number;
-  zona:     string;
+  zona?:    string;
   producto: string;
   dosis:    number;
 }
@@ -53,12 +63,13 @@ export interface Cita {
   tipo?:       string;
   estado:      string; // allow 'pendiente' | 'completada' | 'cancelada' | 'en_sala' | 'confirmado' | 'cancelado'
   notas?:      string;
-  origen:      'manual' | 'whatsapp';
-  created_at:  string;
+  origen?:     'manual' | 'whatsapp';
+  created_at?: string;
   // join y retrocompatibilidad
   pacientes?:  Pick<Paciente, 'nombre' | 'apellido' | 'telefono'>;
   tratamiento?: any;
   tratamiento_id?: string;
+  creado_en?: string;
 }
 
 export interface DoctorProfile {
@@ -76,7 +87,9 @@ export interface DoctorProfile {
   horario:      any;
   linkedin?:    string;
   instagram?:   string;
-  updated_at:   string;
+  mpps?:        string;
+  col?:         string;
+  updated_at?:  string;
 }
 
 export interface Transaccion {
@@ -88,6 +101,7 @@ export interface Transaccion {
   estado: string;
   metodo_pago: string;
   paciente?: any;
+  creado_en?: string;
 }
 
 export interface ClinicSettings {
@@ -97,5 +111,49 @@ export interface ClinicSettings {
   bot_qr_base64?:      string | null;
   hora_recordatorio?:  string;
   mensaje_bienvenida?: string;
-  updated_at:          string;
+  updated_at?:         string;
+}
+
+// Retrocompatibilidad
+export interface Tratamiento {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  duracion_minutos: number;
+  creado_en: string;
+}
+
+export interface CitaRelacional extends Cita {
+  paciente?: Paciente;
+  tratamiento?: Tratamiento;
+}
+
+export interface HistorialClinicoRelacional extends HistorialClinico {
+  paciente?: Paciente;
+  tratamiento?: any;
+}
+
+export interface TransaccionRelacional extends Transaccion {
+  paciente?: Paciente;
+  cita?: CitaRelacional;
+}
+
+export interface ExamenLaboratorio {
+  id: string;
+  paciente_id: string;
+  titulo: string;
+  fecha: string;
+  archivo_url?: string; // Base64
+  notas?: string;
+  created_at?: string;
+}
+
+export interface RecipeMedico {
+  id: string;
+  paciente_id: string;
+  fecha: string;
+  medicamentos: string;
+  indicaciones?: string;
+  created_at?: string;
 }

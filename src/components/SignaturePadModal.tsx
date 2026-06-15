@@ -67,26 +67,38 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
   useEffect(() => {
     if (!isOpen || !canvasRef.current) return;
 
-    const canvas = canvasRef.current;
-    
-    // Configurar escala de pixeles para evitar firmas pixeladas
-    const ratio = Math.max(window.devicePixelRatio || 1, 1);
-    canvas.width = canvas.offsetWidth * ratio;
-    canvas.height = canvas.offsetHeight * ratio;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.scale(ratio, ratio);
-    }
+    let pad: SignaturePad | null = null;
 
-    const pad = new SignaturePad(canvas, {
-      penColor: '#3A434D', // color slate-dark
-      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    });
-    
-    signaturePadRef.current = pad;
+    const initPad = () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      const width = canvas.offsetWidth || 350;
+      const height = canvas.offsetHeight || 190;
+
+      canvas.width = width * ratio;
+      canvas.height = height * ratio;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.scale(ratio, ratio);
+        ctx.clearRect(0, 0, width, height);
+      }
+
+      pad = new SignaturePad(canvas, {
+        penColor: '#3A434D', // color slate-dark
+        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+      });
+      signaturePadRef.current = pad;
+    };
+
+    const timer = setTimeout(initPad, 100);
 
     return () => {
-      pad.off();
+      clearTimeout(timer);
+      if (pad) {
+        pad.off();
+      }
       signaturePadRef.current = null;
     };
   }, [isOpen]);

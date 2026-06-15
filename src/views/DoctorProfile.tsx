@@ -38,6 +38,8 @@ export const DoctorProfile: React.FC = () => {
   const [horario, setHorario] = useState('');
   const [linkedin, setLinkedin] = useState('');
   const [instagram, setInstagram] = useState('');
+  const [mpps, setMpps] = useState('');
+  const [col, setCol] = useState('');
 
   // Notificaciones locales
   const [successMessage, setSuccessMessage] = useState('');
@@ -56,6 +58,8 @@ export const DoctorProfile: React.FC = () => {
       setHorario(doctor.horario || '');
       setLinkedin(doctor.linkedin || '');
       setInstagram(doctor.instagram || '');
+      setMpps(doctor.mpps || '');
+      setCol(doctor.col || '');
     }
   }, [doctor]);
 
@@ -99,7 +103,9 @@ export const DoctorProfile: React.FC = () => {
       biografia,
       horario,
       linkedin: linkedin || undefined,
-      instagram: instagram || undefined
+      instagram: instagram || undefined,
+      mpps: mpps || undefined,
+      col: col || undefined
     });
   };
 
@@ -176,6 +182,30 @@ export const DoctorProfile: React.FC = () => {
                   value={cedula}
                   onChange={(e) => setCedula(e.target.value)}
                   placeholder="Ej. 12345678-A"
+                  className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans"
+                />
+              </div>
+
+              {/* MPPS */}
+              <div className="flex flex-col space-y-1">
+                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Registro MPPS</label>
+                <input
+                  type="text"
+                  value={mpps}
+                  onChange={(e) => setMpps(e.target.value)}
+                  placeholder="Ej. MPPS-12345"
+                  className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans"
+                />
+              </div>
+
+              {/* COL */}
+              <div className="flex flex-col space-y-1">
+                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Colegio de Médicos (COL)</label>
+                <input
+                  type="text"
+                  value={col}
+                  onChange={(e) => setCol(e.target.value)}
+                  placeholder="Ej. COL-67890"
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans"
                 />
               </div>

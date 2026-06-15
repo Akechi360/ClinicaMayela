@@ -44,42 +44,56 @@ interface Consentimiento {
 }
 
 export const Consentimientos: React.FC = () => {
-  // Datos mock iniciales
-  const [documentos, setDocumentos] = useState<Consentimiento[]>([
-    {
-      id: 'cons-001',
-      pacienteNombre: 'María Paula Benavides',
-      pacienteDni: '12.345.678-9',
-      tratamientoNombre: 'Toxina Botulínica (Botox)',
-      fecha: '2026-06-10',
-      doctorNombre: 'Dra. Mayela Silva',
-      estado: 'Activo',
-      firmaBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAAA8CAYAAAC/S16WAAAACXBIWXMAAAsTAAALEwEAmpwYAAABJGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgOS4wLWMwMDAgNzkuZGE3Y2MyYiwgMjAyMy8wNC8xNC0wMDozOToxMiAgICAgICAgIj4KIDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+CiAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyI+CiAgIDx4bXA6Q3JlYXRvclRvb2w+QWRvYmUgRmlyZXdvcmtzPC94bXA6Q3JlYXRvclRvb2w+CiAgPC9yZGY6RGVzY3JpcHRpb24+CiA8L3JkZjpSREY+Cjw/eHBhY2tldCBlbmQ9InciPz504e90AAAAmUlEQVRoge3QMQ0AMAzAsPr3zVOaYkF2pW1yZgZ2K1vZyFawVbaylW1grWxlK1vBVtkytrKVrWCreBnbyla2gq2yZWxlK1vBVvEytpWtbAVbZcvYyla2gq2yZWxlK1vBVvEytpWtbAVbZcvYyla2gq2yZWxlK1vBVvEytpWtbAVbZcvYyla2gq2yZWxlK1vBVtkytvICtpoGecY/4yUAAAAASUVORK5CYII=',
-      version: 1
-    },
-    {
-      id: 'cons-002',
-      pacienteNombre: 'Carlos Eduardo Rivas',
-      pacienteDni: '15.672.981-K',
-      tratamientoNombre: 'Restylane Kysse (Labios)',
-      fecha: '2026-06-12',
-      doctorNombre: 'Dra. Mayela Silva',
-      estado: 'Pendiente',
-      firmaBase64: null,
-      version: 1
-    },
-    {
-      id: 'cons-003',
-      pacienteNombre: 'Lucía Fernanda Gómez',
-      pacienteDni: '18.902.124-5',
-      tratamientoNombre: 'Juvéderm Voluma (Pómulos)',
-      fecha: '2026-05-20',
-      doctorNombre: 'Dra. Mayela Silva',
-      estado: 'Archivado',
-      firmaBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAAA8CAYAAAC/S16WAAAACXBIWXMAAAsTAAALEwEAmpwYAAABJGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgOS4wLWMwMDAgNzkuZGE3Y2MyYiwgMjAyMy8wNC8xNC0wMDozOToxMiAgICAgICAgIj4KIDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+CiAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyI+CiAgIDx4bXA6Q3JlYXRvclRvb2w+QWRvYmUgRmlyZXdvcmtzPC94bXA6Q3JlYXRvclRvb2w+CiAgPC9yZGY6RGVzY3JpcHRpb24+CiA8L3JkZjpSREY+Cjw/eHBhY2tldCBlbmQ9InciPz504e90AAAAmUlEQVRoge3QMQ0AMAzAsPr3zVOaYkF2pW1yZgZ2K1vZyFawVbaylW1grWxlK1vBVtkytrKVrWCreBnbyla2gq2yZWxlK1vBVvEytpWtbAVbZcvYyla2gq2yZWxlK1vBVvEytpWtbAVbZcvYyla2gq2yZWxlK1vBVvEytpWtbAVbZcvYyla2gq2yZWxlK1vBVtkytvICtpoGecY/4yUAAAAASUVORK5CYII=',
-      version: 2
+  // Inicialización desde LocalStorage con datos mock por defecto
+  const [documentos, setDocumentos] = useState<Consentimiento[]>(() => {
+    const saved = localStorage.getItem('clinica_consentimientos');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Error al cargar consentimientos:', e);
+      }
     }
-  ]);
+    return [
+      {
+        id: 'cons-001',
+        pacienteNombre: 'María Paula Benavides',
+        pacienteDni: '12.345.678-9',
+        tratamientoNombre: 'Toxina Botulínica (Botox)',
+        fecha: '2026-06-10',
+        doctorNombre: 'Dra. Mayela Silva',
+        estado: 'Activo',
+        firmaBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAAA8CAYAAAC/S16WAAAACXBIWXMAAAsTAAALEwEAmpwYAAABJGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgOS4wLWMwMDAgNzkuZGE3Y2MyYiwgMjAyMy8wNC8xNC0wMDozOToxMiAgICAgICAgIj4KIDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+CiAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyI+CiAgIDx4bXA6Q3JlYXRvclRvb2w+QWRvYmUgRmlyZXdvcmtzPC94bXA6Q3JlYXRvclRvb2w+CiAgPC9yZGY6RGVzY3JpcHRpb24+CiA8L3JkZjpSREY+Cjw/eHBhY2tldCBlbmQ9InciPz504e90AAAAmUlEQVRoge3QMQ0AMAzAsPr3zVOaYkF2pW1yZgZ2K1vZyFawVbaylW1grWxlK1vBVtkytrKVrWCreBnbyla2gq2yZWxlK1vBVvEytpWtbAVbZcvYyla2gq2yZWxlK1vBVvEytpWtbAVbZcvYyla2gq2yZWxlK1vBVvEytpWtbAVbZcvYyla2gq2yZWxlK1vBVtkytvICtpoGecY/4yUAAAAASUVORK5CYII=',
+        version: 1
+      },
+      {
+        id: 'cons-002',
+        pacienteNombre: 'Carlos Eduardo Rivas',
+        pacienteDni: '15.672.981-K',
+        tratamientoNombre: 'Restylane Kysse (Labios)',
+        fecha: '2026-06-12',
+        doctorNombre: 'Dra. Mayela Silva',
+        estado: 'Pendiente',
+        firmaBase64: null,
+        version: 1
+      },
+      {
+        id: 'cons-003',
+        pacienteNombre: 'Lucía Fernanda Gómez',
+        pacienteDni: '18.902.124-5',
+        tratamientoNombre: 'Juvéderm Voluma (Pómulos)',
+        fecha: '2026-05-20',
+        doctorNombre: 'Dra. Mayela Silva',
+        estado: 'Archivado',
+        firmaBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAAA8CAYAAAC/S16WAAAACXBIWXMAAAsTAAALEwEAmpwYAAABJGlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgOS4wLWMwMDAgNzkuZGE3Y2MyYiwgMjAyMy8wNC8xNC0wMDozOToxMiAgICAgICAgIj4KIDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+CiAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyI+CiAgIDx4bXA6Q3JlYXRvclRvb2w+QWRvYmUgRmlyZXdvcmtzPC94bXA6Q3JlYXRvclRvb2w+CiAgPC9yZGY6RGVzY3JpcHRpb24+CiA8L3JkZjpSREY+Cjw/eHBhY2tldCBlbmQ9InciPz504e90AAAAmUlEQVRoge3QMQ0AMAzAsPr3zVOaYkF2pW1yZgZ2K1vZyFawVbaylW1grWxlK1vBVtkytrKVrWCreBnbyla2gq2yZWxlK1vBVvEytpWtbAVbZcvYyla2gq2yZWxlK1vBVvEytpWtbAVbZcvYyla2gq2yZWxlK1vBVvEytpWtbAVbZcvYyla2gq2yZWxlK1vBVtkytvICtpoGecY/4yUAAAAASUVORK5CYII=',
+        version: 2
+      }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('clinica_consentimientos', JSON.stringify(documentos));
+  }, [documentos]);
 
   // Consultar perfil de la doctora
   const { data: doctor } = useQuery({

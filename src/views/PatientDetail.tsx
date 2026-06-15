@@ -1,8 +1,8 @@
 // @ts-nocheck
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones } from '../services/db';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbDoctor } from '../services/db';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 import { FaceCanvas } from '../components/FaceCanvas';
 import { 
@@ -14,18 +14,51 @@ import {
   Plus, 
   Map, 
   Image as ImageIcon,
-  Sparkles
+  Sparkles,
+  Upload,
+  Trash2,
+  Download,
+  Printer,
+  X
 } from 'lucide-react';
+import type { ExamenLaboratorio, RecipeMedico } from '../types/database.types';
 
 export const PatientDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'historial' | 'mapa' | 'citas' | 'finanzas'>('historial');
+  const [activeTab, setActiveTab] = useState<'historial' | 'mapa' | 'citas' | 'finanzas' | 'examenes' | 'recipes'>('historial');
+  const queryClient = useQueryClient();
+
+  // Modales
+  const [showExamenModal, setShowExamenModal] = useState(false);
+  const [showRecipeModal, setShowRecipeModal] = useState(false);
+
+  // Formulario Examen
+  const [examenTitulo, setExamenTitulo] = useState('');
+  const [examenFecha, setExamenFecha] = useState(new Date().toISOString().split('T')[0]);
+  const [examenNotas, setExamenNotas] = useState('');
+  const [examenArchivoBase64, setExamenArchivoBase64] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Formulario Recipe
+  const [recipeMedicamentos, setRecipeMedicamentos] = useState('');
+  const [recipeIndicaciones, setRecipeIndicaciones] = useState('');
+  const [recipeFecha, setRecipeFecha] = useState(new Date().toISOString().split('T')[0]);
+
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const examModalRef = useRef<HTMLDivElement | null>(null);
+  const recipeModalRef = useRef<HTMLDivElement | null>(null);
 
   // Consultas de datos
   const { data: paciente, isLoading: loadingPaciente } = useQuery({
     queryKey: ['paciente', id],
     queryFn: () => dbPacientes.obtener(id || '')
+  });
+
+  const { data: doctor } = useQuery({
+    queryKey: ['doctor-profile'],
+    queryFn: dbDoctor.obtener
   });
 
   const { data: historiales = [], isLoading: loadingHistoriales } = useQuery({
@@ -42,6 +75,214 @@ export const PatientDetail: React.FC = () => {
     queryKey: ['transacciones'],
     queryFn: dbTransacciones.listar
   });
+
+  const { data: examenes = [] } = useQuery({
+    queryKey: ['paciente-examenes', id],
+    queryFn: () => dbExamenes.listarPorPaciente(id || '')
+  });
+
+  const { data: recipes = [] } = useQuery({
+    queryKey: ['paciente-recipes', id],
+    queryFn: () => dbRecipes.listarPorPaciente(id || '')
+  });
+
+  // Mutaciones
+  const addExamenMutation = useMutation({
+    mutationFn: dbExamenes.insertar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['paciente-examenes', id] });
+      setShowExamenModal(false);
+      setExamenTitulo('');
+      setExamenFecha(new Date().toISOString().split('T')[0]);
+      setExamenNotas('');
+      setExamenArchivoBase64('');
+    }
+  });
+
+  const deleteExamenMutation = useMutation({
+    mutationFn: dbExamenes.eliminar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['paciente-examenes', id] });
+    }
+  });
+
+  const addRecipeMutation = useMutation({
+    mutationFn: dbRecipes.insertar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['paciente-recipes', id] });
+      setShowRecipeModal(false);
+      setRecipeMedicamentos('');
+      setRecipeIndicaciones('');
+      setRecipeFecha(new Date().toISOString().split('T')[0]);
+    }
+  });
+
+  const deleteRecipeMutation = useMutation({
+    mutationFn: dbRecipes.eliminar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['paciente-recipes', id] });
+    }
+  });
+
+  // Focus trap for Examen Modal
+  useEffect(() => {
+    if (!showExamenModal || !examModalRef.current) return;
+    const modal = examModalRef.current;
+    const previouslyFocused = document.activeElement as HTMLElement;
+
+    const focusable = modal.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex="0"]:not([disabled])'
+    );
+    const firstFocusable = focusable[0];
+    const lastFocusable = focusable[focusable.length - 1];
+
+    if (firstFocusable) {
+      setTimeout(() => firstFocusable.focus(), 50);
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowExamenModal(false);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          lastFocusable.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          firstFocusable.focus();
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      if (previouslyFocused) {
+        previouslyFocused.focus();
+      }
+    };
+  }, [showExamenModal]);
+
+  // Focus trap for Recipe Modal
+  useEffect(() => {
+    if (!showRecipeModal || !recipeModalRef.current) return;
+    const modal = recipeModalRef.current;
+    const previouslyFocused = document.activeElement as HTMLElement;
+
+    const focusable = modal.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex="0"]:not([disabled])'
+    );
+    const firstFocusable = focusable[0];
+    const lastFocusable = focusable[focusable.length - 1];
+
+    if (firstFocusable) {
+      setTimeout(() => firstFocusable.focus(), 50);
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowRecipeModal(false);
+        return;
+      }
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          lastFocusable.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          firstFocusable.focus();
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      if (previouslyFocused) {
+        previouslyFocused.focus();
+      }
+    };
+  }, [showRecipeModal]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      alert('El archivo supera el límite de 2MB. Por favor seleccione un archivo más pequeño.');
+      e.target.value = '';
+      return;
+    }
+
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setExamenArchivoBase64(reader.result as string);
+      setIsUploading(false);
+    };
+    reader.onerror = () => {
+      alert('Error al leer el archivo. Inténtelo de nuevo.');
+      setIsUploading(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDownloadExamen = (examen: ExamenLaboratorio) => {
+    if (!examen.archivo_url) return;
+    const link = document.createElement('a');
+    link.href = examen.archivo_url;
+    link.download = examen.titulo.replace(/\s+/g, '_').toLowerCase();
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownloadRecipe = async (recipe: RecipeMedico) => {
+    setIsGeneratingPdf(true);
+    try {
+      const { pdf } = await import('@react-pdf/renderer');
+      const { RecipePDF } = await import('../components/RecipePDF');
+      
+      const blob = await pdf(
+        <RecipePDF
+          pacienteNombre={paciente.nombre}
+          pacienteDni={paciente.cedula || ''}
+          fecha={new Date(recipe.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+          doctorNombre={doctor?.nombre || 'Dra. Mayela González'}
+          doctorEspecialidad={doctor?.especialidad || 'Medicina Estética & Bienestar'}
+          doctorCedula={doctor?.cedula || '12345678-A'}
+          doctorMpps={doctor?.mpps}
+          doctorCol={doctor?.col}
+          medicamentos={recipe.medicamentos}
+          indicaciones={recipe.indicaciones}
+        />
+      ).toBlob();
+      
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `recipe_${paciente.nombre.replace(/\s+/g, '_').toLowerCase()}_${recipe.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error al generar el PDF del récipe:', error);
+      alert('Hubo un error al generar el PDF. Por favor intente de nuevo.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   const queryCitasPaciente = citas.filter(c => c.paciente_id === id);
   const queryTransaccionesPaciente = transacciones.filter(t => t.paciente_id === id);
@@ -123,18 +364,25 @@ export const PatientDetail: React.FC = () => {
       </div>
 
       {/* Navigation Tabs (Editorial) */}
-      <div className="border-b border-rose-champagne flex gap-6 font-sans">
-        {['historial', 'mapa', 'citas', 'finanzas'].map((tab) => (
+      <div className="border-b border-rose-champagne flex flex-wrap gap-x-6 gap-y-2 font-sans">
+        {[
+          { id: 'historial', label: 'Historial Clínico' },
+          { id: 'mapa', label: 'Mapa Facial' },
+          { id: 'citas', label: 'Citas' },
+          { id: 'finanzas', label: 'Finanzas' },
+          { id: 'examenes', label: 'Exámenes de Laboratorio' },
+          { id: 'recipes', label: 'Récipes Médicos' }
+        ].map((tab) => (
           <button
-            key={tab}
-            onClick={() => setActiveTab(tab as any)}
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
             className={`pb-3.5 text-[10px] font-bold tracking-[0.15em] uppercase border-b-2 transition-all duration-300 ${
-              activeTab === tab
+              activeTab === tab.id
                 ? 'border-satin-copper text-satin-copper'
                 : 'border-transparent text-slate-light hover:text-slate-dark'
             }`}
           >
-            {tab === 'historial' ? 'Historial Clínico' : tab === 'mapa' ? 'Mapa Facial' : tab}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -339,7 +587,332 @@ export const PatientDetail: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* Tab Exámenes */}
+        {activeTab === 'examenes' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-base font-display font-medium text-slate-dark">Exámenes de Laboratorio</h3>
+              <button
+                onClick={() => setShowExamenModal(true)}
+                className="bg-satin-copper hover:bg-satin-copper-hover text-pure-white text-[11px] font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Upload size={13} /> Cargar Examen
+              </button>
+            </div>
+
+            {examenes.length === 0 ? (
+              <div className="py-12 text-center border border-dashed border-satin-copper/25 rounded-2xl bg-pure-white/15 backdrop-blur-md">
+                <FileText className="mx-auto text-slate-light mb-2 opacity-50" size={32} />
+                <p className="text-xs text-slate-medium font-semibold">No hay exámenes de laboratorio registrados</p>
+                <p className="text-[10px] text-slate-light mt-1 font-sans">Carga el primer examen médico del paciente con el botón "Cargar Examen".</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {examenes.map((examen) => (
+                  <div key={examen.id} className="p-5 rounded-2xl bg-pure-white/15 border border-satin-copper/10 hover:bg-pure-white/25 transition-all duration-300 flex flex-col justify-between h-full space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-start">
+                        <span className="text-[9px] text-satin-copper font-bold uppercase tracking-widest bg-satin-copper/10 px-2.5 py-1 rounded-full">
+                          {new Date(examen.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </span>
+                        <button
+                          onClick={() => {
+                            if (confirm('¿Está seguro de que desea eliminar este examen?')) {
+                              deleteExamenMutation.mutate(examen.id);
+                            }
+                          }}
+                          className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 cursor-pointer"
+                          title="Eliminar Examen"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                      <h4 className="text-sm font-display font-medium text-slate-dark">{examen.titulo}</h4>
+                      {examen.notas && (
+                        <p className="text-xs text-slate-medium leading-relaxed font-sans italic">"{examen.notas}"</p>
+                      )}
+                    </div>
+                    {examen.archivo_url && (
+                      <button
+                        onClick={() => handleDownloadExamen(examen)}
+                        className="text-[11px] text-satin-copper font-semibold flex items-center gap-1 justify-start hover:underline cursor-pointer border-none bg-transparent w-fit"
+                      >
+                        <Download size={13} /> Descargar / Ver Adjunto
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab Récipes */}
+        {activeTab === 'recipes' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-base font-display font-medium text-slate-dark">Récipes Médicos</h3>
+              <button
+                onClick={() => setShowRecipeModal(true)}
+                className="bg-satin-copper hover:bg-satin-copper-hover text-pure-white text-[11px] font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus size={13} /> Emitir Récipe
+              </button>
+            </div>
+
+            {recipes.length === 0 ? (
+              <div className="py-12 text-center border border-dashed border-satin-copper/25 rounded-2xl bg-pure-white/15 backdrop-blur-md">
+                <FileText className="mx-auto text-slate-light mb-2 opacity-50" size={32} />
+                <p className="text-xs text-slate-medium font-semibold">No se han emitido récipes médicos</p>
+                <p className="text-[10px] text-slate-light mt-1 font-sans">Genera la primera prescripción médica del paciente con el botón "Emitir Récipe".</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {recipes.map((recipe) => (
+                  <div key={recipe.id} className="p-5 rounded-2xl bg-pure-white/15 border border-satin-copper/10 hover:bg-pure-white/25 transition-all duration-300 flex flex-col justify-between h-full space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-start">
+                        <span className="text-[9px] text-satin-copper font-bold uppercase tracking-widest bg-satin-copper/10 px-2.5 py-1 rounded-full">
+                          {new Date(recipe.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </span>
+                        <button
+                          onClick={() => {
+                            if (confirm('¿Está seguro de que desea eliminar este récipe?')) {
+                              deleteRecipeMutation.mutate(recipe.id);
+                            }
+                          }}
+                          className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 cursor-pointer"
+                          title="Eliminar Récipe"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                      <div className="space-y-3 font-sans">
+                        <div>
+                          <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold">Prescripción (Rx)</p>
+                          <p className="text-xs text-slate-dark mt-0.5 whitespace-pre-line leading-relaxed font-semibold">{recipe.medicamentos}</p>
+                        </div>
+                        {recipe.indicaciones && (
+                          <div>
+                            <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold">Indicaciones</p>
+                            <p className="text-xs text-slate-medium mt-0.5 whitespace-pre-line leading-relaxed italic">"{recipe.indicaciones}"</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleDownloadRecipe(recipe)}
+                      disabled={isGeneratingPdf}
+                      className="text-[11px] text-satin-copper font-semibold flex items-center gap-1 justify-start hover:underline cursor-pointer border-none bg-transparent disabled:opacity-50 w-fit"
+                    >
+                      <Printer size={13} /> {isGeneratingPdf ? 'Generando PDF...' : 'Imprimir Récipe (PDF)'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Modal Cargar Examen de Laboratorio */}
+      {showExamenModal && (
+        <div className="fixed inset-0 bg-slate-dark/40 backdrop-blur-sm flex items-center justify-center z-[90] p-4 select-none">
+          <form
+            ref={examModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-exam-title"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (isUploading) return;
+              addExamenMutation.mutate({
+                paciente_id: id || '',
+                titulo: examenTitulo,
+                fecha: examenFecha,
+                notas: examenNotas,
+                archivo_url: examenArchivoBase64
+              });
+            }}
+            className="glass-panel w-full max-w-sm rounded-2xl shadow-luxury border border-pure-white/50 overflow-hidden flex flex-col"
+          >
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-satin-copper/10 flex justify-between items-center bg-pure-white/20">
+              <h3 id="modal-exam-title" className="font-display font-medium text-slate-dark text-sm uppercase tracking-wider">Cargar Examen</h3>
+              <button
+                type="button"
+                onClick={() => setShowExamenModal(false)}
+                aria-label="Cerrar modal de examen"
+                className="text-slate-light hover:text-slate-dark cursor-pointer border-none bg-transparent"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Form Fields */}
+            <div className="p-5 space-y-4 text-xs font-sans">
+              <div>
+                <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Título del Examen</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="ej. Perfil Hormonal, Hematología Completa"
+                  value={examenTitulo}
+                  onChange={(e) => setExamenTitulo(e.target.value)}
+                  className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Fecha de Emisión</label>
+                <input
+                  type="date"
+                  required
+                  value={examenFecha}
+                  onChange={(e) => setExamenFecha(e.target.value)}
+                  className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Notas o Hallazgos</label>
+                <textarea
+                  placeholder="Notas adicionales o valores fuera de rango..."
+                  value={examenNotas}
+                  onChange={(e) => setExamenNotas(e.target.value)}
+                  rows={3}
+                  className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans font-semibold resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Adjuntar Documento / Imagen (Máx. 2MB)</label>
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={handleFileChange}
+                  className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans font-semibold cursor-pointer"
+                />
+                {isUploading && <p className="text-[10px] text-satin-copper mt-1 animate-pulse font-semibold">Procesando archivo...</p>}
+                {examenArchivoBase64 && !isUploading && (
+                  <p className="text-[10px] text-muted-olive mt-1 font-semibold flex items-center gap-1">
+                    ✓ Archivo cargado correctamente
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="px-5 py-3.5 bg-pure-white/20 border-t border-satin-copper/10 flex justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowExamenModal(false)}
+                className="px-4 py-2 border border-slate-medium/20 text-slate-medium hover:bg-slate-medium/5 hover:text-slate-dark transition-all rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isUploading || addExamenMutation.isPending || !examenTitulo}
+                className="px-4 py-2 bg-satin-copper hover:bg-satin-copper-hover disabled:opacity-50 text-pure-white transition-all rounded-lg font-bold text-[10px] uppercase tracking-wider shadow-md cursor-pointer"
+              >
+                {addExamenMutation.isPending ? 'Cargando...' : 'Guardar Examen'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Modal Emitir Nuevo Récipe */}
+      {showRecipeModal && (
+        <div className="fixed inset-0 bg-slate-dark/40 backdrop-blur-sm flex items-center justify-center z-[90] p-4 select-none">
+          <form
+            ref={recipeModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-recipe-title"
+            onSubmit={(e) => {
+              e.preventDefault();
+              addRecipeMutation.mutate({
+                paciente_id: id || '',
+                fecha: recipeFecha,
+                medicamentos: recipeMedicamentos,
+                indicaciones: recipeIndicaciones
+              });
+            }}
+            className="glass-panel w-full max-w-sm rounded-2xl shadow-luxury border border-pure-white/50 overflow-hidden flex flex-col"
+          >
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-satin-copper/10 flex justify-between items-center bg-pure-white/20">
+              <h3 id="modal-recipe-title" className="font-display font-medium text-slate-dark text-sm uppercase tracking-wider">Emitir Récipe Médico</h3>
+              <button
+                type="button"
+                onClick={() => setShowRecipeModal(false)}
+                aria-label="Cerrar modal de récipe"
+                className="text-slate-light hover:text-slate-dark cursor-pointer border-none bg-transparent"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Form Fields */}
+            <div className="p-5 space-y-4 text-xs font-sans">
+              <div>
+                <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Fecha de Emisión</label>
+                <input
+                  type="date"
+                  required
+                  value={recipeFecha}
+                  onChange={(e) => setRecipeFecha(e.target.value)}
+                  className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Prescripción (Medicamentos / Dosificación)</label>
+                <textarea
+                  required
+                  placeholder="ej. 1. Restylane Lip Volume 1ml&#10;2. Ácido Hialurónico Crema aplicar 2 veces al día"
+                  value={recipeMedicamentos}
+                  onChange={(e) => setRecipeMedicamentos(e.target.value)}
+                  rows={4}
+                  className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans font-semibold resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Indicaciones Adicionales / Cuidados</label>
+                <textarea
+                  placeholder="ej. No realizar ejercicio físico por 24 horas. Aplicar frío local..."
+                  value={recipeIndicaciones}
+                  onChange={(e) => setRecipeIndicaciones(e.target.value)}
+                  rows={3}
+                  className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans font-semibold resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="px-5 py-3.5 bg-pure-white/20 border-t border-satin-copper/10 flex justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowRecipeModal(false)}
+                className="px-4 py-2 border border-slate-medium/20 text-slate-medium hover:bg-slate-medium/5 hover:text-slate-dark transition-all rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={addRecipeMutation.isPending || !recipeMedicamentos}
+                className="px-4 py-2 bg-satin-copper hover:bg-satin-copper-hover disabled:opacity-50 text-pure-white transition-all rounded-lg font-bold text-[10px] uppercase tracking-wider shadow-md cursor-pointer"
+              >
+                {addRecipeMutation.isPending ? 'Guardando...' : 'Emitir Récipe'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };
