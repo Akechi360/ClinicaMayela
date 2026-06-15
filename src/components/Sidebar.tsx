@@ -2,15 +2,15 @@ import React, { useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { dbDoctor } from '../services/db';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Calendar, 
-  Sparkles, 
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  Sparkles,
   FileText,
-  Image, 
-  DollarSign, 
-  Settings, 
+  Image,
+  DollarSign,
+  Settings,
   LogOut,
   Plus,
   User,
@@ -20,18 +20,20 @@ import {
 
 interface SidebarProps {
   onNewCitaClick: () => void;
+  onLogout: () => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
   mobileOpen: boolean;
   onCloseMobile: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ 
-  onNewCitaClick, 
-  collapsed, 
-  onToggleCollapse, 
-  mobileOpen, 
-  onCloseMobile 
+export const Sidebar: React.FC<SidebarProps> = ({
+  onNewCitaClick,
+  onLogout,
+  collapsed,
+  onToggleCollapse,
+  mobileOpen,
+  onCloseMobile
 }) => {
   const location = useLocation();
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -67,20 +69,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   useEffect(() => {
     if (!mobileOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onCloseMobile();
-      }
+      if (e.key === 'Escape') onCloseMobile();
       if (e.key === 'Tab') {
-        const focusableElements = sidebarRef.current?.querySelectorAll(
+        const els = sidebarRef.current?.querySelectorAll(
           'a[href], button:not([disabled]), input, select, textarea'
         );
-        if (!focusableElements || focusableElements.length === 0) return;
-        const firstEl = focusableElements[0] as HTMLElement;
-        const lastEl = focusableElements[focusableElements.length - 1] as HTMLElement;
+        if (!els || els.length === 0) return;
+        const first = els[0] as HTMLElement;
+        const last = els[els.length - 1] as HTMLElement;
         if (e.shiftKey) {
-          if (document.activeElement === firstEl) { lastEl.focus(); e.preventDefault(); }
+          if (document.activeElement === first) { last.focus(); e.preventDefault(); }
         } else {
-          if (document.activeElement === lastEl) { firstEl.focus(); e.preventDefault(); }
+          if (document.activeElement === last) { first.focus(); e.preventDefault(); }
         }
       }
     };
@@ -88,21 +88,57 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [mobileOpen, onCloseMobile]);
 
+  const navItemClass = (active: boolean) =>
+    `flex items-center justify-between px-3 py-2.5 rounded-xl text-[10px] font-semibold tracking-wider font-sans transition-all duration-300 relative group ${
+      active
+        ? 'sidebar-active-item text-pure-white shadow-sm'
+        : 'text-slate-medium hover:text-slate-dark hover:bg-pure-white/40 border border-transparent'
+    }`;
+
+  const renderNavItems = (items: typeof clinicalItems) =>
+    items.map((item) => {
+      const active = isActive(item.path);
+      return (
+        <Link
+          key={item.path}
+          to={item.path}
+          onClick={onCloseMobile}
+          title={collapsed ? item.name : undefined}
+          aria-label={item.name}
+          className={navItemClass(active)}
+        >
+          <div className="flex items-center gap-2.5">
+            <span className={`${
+              active ? 'text-satin-copper-light' : 'text-slate-light group-hover:text-satin-copper'
+            } transition-colors duration-300`}>
+              {item.icon}
+            </span>
+            {!collapsed && <span className="uppercase tracking-[0.1em]">{item.name}</span>}
+          </div>
+          {!collapsed && (
+            active
+              ? <span className="w-1.5 h-1.5 rounded-full bg-satin-copper-light shadow-[0_0_8px_#C28E75]" />
+              : <span className="w-1 h-1 rounded-full bg-transparent group-hover:bg-satin-copper/40 transition-all duration-300" />
+          )}
+        </Link>
+      );
+    });
+
   return (
-    <aside 
+    <aside
       ref={sidebarRef}
       className={`fixed transition-all duration-300 z-50 shadow-luxury border border-pure-white/40 glass-panel
         rounded-r-3xl lg:rounded-3xl
         left-0 top-0 h-screen
         md:left-3 md:top-3 md:h-[calc(100vh-1.5rem)] md:rounded-3xl
         lg:left-5 lg:top-5 lg:h-[calc(100vh-2.5rem)]
-        ${collapsed ? 'lg:w-20' : 'lg:w-64'} 
+        ${collapsed ? 'lg:w-20' : 'lg:w-64'}
         w-64
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         flex flex-col justify-between py-6 px-4`}
       aria-label="Menú principal de navegación"
     >
-      {/* Botón Colapsar (Desktop) */}
+      {/* Botón colapsar */}
       <button
         onClick={onToggleCollapse}
         aria-label={collapsed ? 'Expandir menú lateral' : 'Colapsar menú lateral'}
@@ -112,7 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </button>
 
       <div className="space-y-6 overflow-y-auto no-scrollbar pr-1">
-        {/* Brand Header */}
+        {/* Brand */}
         <div className="flex flex-col items-center mb-6 text-center select-none group">
           <div className="w-10 h-10 rounded-full bg-satin-copper/10 border border-satin-copper/20 flex items-center justify-center transition-transform duration-700 group-hover:rotate-180">
             <span className="material-symbols-outlined text-satin-copper text-lg font-light">spa</span>
@@ -120,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {!collapsed && (
             <>
               <h1 className="text-sm font-display font-light text-slate-dark tracking-[0.3em] uppercase mt-3 transition-colors group-hover:text-satin-copper duration-500">Rejuvenece</h1>
-              <div className="w-6 h-[1px] bg-satin-copper/30 my-2"></div>
+              <div className="w-6 h-[1px] bg-satin-copper/30 my-2" />
               <p className="text-[8px] uppercase tracking-[0.2em] text-satin-copper font-bold truncate max-w-full">
                 {doctor?.nombre || 'Dra. Mayela González'}
               </p>
@@ -128,128 +164,37 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* Action Button */}
-        <button 
+        {/* Nueva Cita */}
+        <button
           onClick={onNewCitaClick}
           aria-label="Programar nueva cita"
-          className="w-full satin-button text-pure-white py-3 rounded-xl transition-all duration-300 mb-6 flex items-center justify-center gap-1.5 font-sans font-bold text-[10px] tracking-[0.15em] uppercase hover:shadow-[0_12px_30px_rgba(166,110,83,0.35)] cursor-pointer"
+          className="w-full satin-button text-slate-dark py-3 rounded-xl transition-all duration-300 mb-6 flex items-center justify-center gap-1.5 font-sans font-bold text-[10px] tracking-[0.15em] uppercase cursor-pointer"
         >
-          <Plus size={14} /> 
+          <Plus size={14} />
           {!collapsed && <span>Nueva Cita</span>}
         </button>
 
-        {/* Navigation Blocks */}
+        {/* Nav clínica */}
         <div className="space-y-5">
           <div className="space-y-1.5">
             {!collapsed && <p className="text-[8px] uppercase tracking-[0.2em] text-slate-light font-bold px-3">Clínica</p>}
-            <nav className="space-y-1">
-              {clinicalItems.map((item) => {
-                const active = isActive(item.path);
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={onCloseMobile}
-                    title={collapsed ? item.name : undefined}
-                    aria-label={item.name}
-                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-[10px] font-semibold tracking-wider font-sans transition-all duration-300 relative group ${
-                      active 
-                        ? 'sidebar-active-item text-pure-white shadow-sm' 
-                        : 'text-slate-medium hover:text-slate-dark hover:bg-pure-white/40 border border-transparent'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span className={`${active ? 'text-satin-copper-light' : 'text-slate-light group-hover:text-satin-copper'} transition-colors duration-300`}>
-                        {item.icon}
-                      </span>
-                      {!collapsed && <span className="uppercase tracking-[0.1em]">{item.name}</span>}
-                    </div>
-                    {!collapsed && (active ? (
-                      <span className="w-1.5 h-1.5 rounded-full bg-satin-copper-light shadow-[0_0_8px_#C28E75]"></span>
-                    ) : (
-                      <span className="w-1 h-1 rounded-full bg-transparent group-hover:bg-satin-copper/40 transition-all duration-300"></span>
-                    ))}
-                  </Link>
-                );
-              })}
-            </nav>
+            <nav className="space-y-1">{renderNavItems(clinicalItems)}</nav>
           </div>
-
           <div className="space-y-1.5">
             {!collapsed && <p className="text-[8px] uppercase tracking-[0.2em] text-slate-light font-bold px-3">Gestión</p>}
-            <nav className="space-y-1">
-              {adminItems.map((item) => {
-                const active = isActive(item.path);
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={onCloseMobile}
-                    title={collapsed ? item.name : undefined}
-                    aria-label={item.name}
-                    className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-[10px] font-semibold tracking-wider font-sans transition-all duration-300 relative group ${
-                      active 
-                        ? 'sidebar-active-item text-pure-white shadow-sm' 
-                        : 'text-slate-medium hover:text-slate-dark hover:bg-pure-white/40 border border-transparent'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span className={`${active ? 'text-satin-copper-light' : 'text-slate-light group-hover:text-satin-copper'} transition-colors duration-300`}>
-                        {item.icon}
-                      </span>
-                      {!collapsed && <span className="uppercase tracking-[0.1em]">{item.name}</span>}
-                    </div>
-                    {!collapsed && (active ? (
-                      <span className="w-1.5 h-1.5 rounded-full bg-satin-copper-light shadow-[0_0_8px_#C28E75]"></span>
-                    ) : (
-                      <span className="w-1 h-1 rounded-full bg-transparent group-hover:bg-satin-copper/40 transition-all duration-300"></span>
-                    ))}
-                  </Link>
-                );
-              })}
-            </nav>
+            <nav className="space-y-1">{renderNavItems(adminItems)}</nav>
           </div>
         </div>
       </div>
 
       {/* Footer */}
       <div className="border-t border-satin-copper/15 pt-5 space-y-2">
-        <nav className="space-y-1">
-          {accountItems.map((item) => {
-            const active = isActive(item.path);
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={onCloseMobile}
-                title={collapsed ? item.name : undefined}
-                aria-label={item.name}
-                className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-[10px] font-semibold tracking-wider font-sans transition-all duration-300 relative group ${
-                  active 
-                    ? 'sidebar-active-item text-pure-white' 
-                    : 'text-slate-medium hover:text-slate-dark hover:bg-pure-white/40 border border-transparent'
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className={`${active ? 'text-satin-copper-light' : 'text-slate-light group-hover:text-satin-copper'} transition-colors duration-300`}>
-                    {item.icon}
-                  </span>
-                  {!collapsed && <span className="uppercase tracking-[0.1em]">{item.name}</span>}
-                </div>
-                {!collapsed && (active ? (
-                  <span className="w-1.5 h-1.5 rounded-full bg-satin-copper-light shadow-[0_0_8px_#C28E75]"></span>
-                ) : (
-                  <span className="w-1 h-1 rounded-full bg-transparent group-hover:bg-satin-copper/40 transition-all duration-300"></span>
-                ))}
-              </Link>
-            );
-          })}
-        </nav>
+        <nav className="space-y-1">{renderNavItems(accountItems)}</nav>
 
         {!collapsed && doctor && (
           <div className="flex items-center gap-3 p-2 bg-pure-white/20 rounded-xl border border-satin-copper/10 select-none">
             <div className="w-8 h-8 rounded-full overflow-hidden border border-satin-copper/25 shadow-sm shrink-0">
-              <img src={doctor.foto_perfil || doctor.foto} alt={doctor.nombre} className="w-full h-full object-cover" />
+              <img src={doctor.foto || ''} alt={doctor.nombre || ''} className="w-full h-full object-cover" />
             </div>
             <div className="truncate min-w-0 flex-1">
               <p className="text-[9px] font-semibold text-slate-dark truncate leading-tight">{doctor.nombre}</p>
@@ -259,7 +204,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         <button
-          onClick={() => alert('Cerrar sesión simulado')}
+          onClick={onLogout}
           title={collapsed ? 'Cerrar Sesión' : undefined}
           aria-label="Cerrar sesión"
           className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[10px] font-semibold tracking-wider font-sans text-slate-medium hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 text-left uppercase cursor-pointer"

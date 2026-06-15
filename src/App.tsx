@@ -5,8 +5,9 @@ import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
 import { WhatsappSimulator } from './components/WhatsappSimulator';
 import { PageLoadSkeleton } from './components/PageLoadSkeleton';
+import { ComingSoon } from './views/ComingSoon';
 
-// Vistas con Lazy Loading (Named exports)
+// Vistas con Lazy Loading
 const Dashboard = lazy(() => import('./views/Dashboard').then(m => ({ default: m.Dashboard })));
 const Patients = lazy(() => import('./views/Patients').then(m => ({ default: m.Patients })));
 const PatientDetail = lazy(() => import('./views/PatientDetail').then(m => ({ default: m.PatientDetail })));
@@ -33,35 +34,34 @@ const AppLayout: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const handleLogout = () => {
+    navigate('/sesion-cerrada');
+  };
+
   return (
     <div className="flex min-h-screen bg-transparent relative">
-      {/* Imagen de fondo premium fixed */}
       <div className="bg-app-image"></div>
-
-      {/* Patrón de puntos de fondo */}
       <div className="bg-grid-overlay"></div>
 
-      {/* Backdrop para móviles y tablet */}
       {mobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-slate-dark/30 backdrop-blur-xs z-40 lg:hidden cursor-pointer"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
 
-      {/* Barra de Navegación Lateral */}
-      <Sidebar 
+      <Sidebar
         onNewCitaClick={() => {
           setMobileMenuOpen(false);
           navigate('/nueva-entrada');
-        }} 
+        }}
+        onLogout={handleLogout}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         mobileOpen={mobileMenuOpen}
         onCloseMobile={() => setMobileMenuOpen(false)}
       />
 
-      {/* Área de Contenido Principal */}
       <div
         className={`flex-1 transition-all duration-300
           ${
@@ -73,13 +73,11 @@ const AppLayout: React.FC = () => {
           px-3 sm:px-4 lg:px-0
           flex flex-col min-h-screen`}
       >
-        {/* Cabecera superior */}
-        <Topbar 
+        <Topbar
           onToggleMobileMenu={() => setMobileMenuOpen(true)}
           sidebarCollapsed={sidebarCollapsed}
         />
 
-        {/* Contenido dinámico principal */}
         <main className="flex-1 pt-24 sm:pt-28 pb-16 sm:pb-20 max-w-screen-2xl w-full mx-auto">
           <Suspense fallback={<PageLoadSkeleton />}>
             <Routes>
@@ -94,12 +92,21 @@ const AppLayout: React.FC = () => {
               <Route path="/ajustes" element={<ClinicSettings />} />
               <Route path="/consentimientos" element={<Consentimientos />} />
               <Route path="/perfil" element={<DoctorProfile />} />
+              {/* Pantalla de sesión cerrada / en construcción */}
+              <Route
+                path="/sesion-cerrada"
+                element={
+                  <ComingSoon
+                    moduleName="Sesión Cerrada"
+                    progress={40}
+                  />
+                }
+              />
             </Routes>
           </Suspense>
         </main>
       </div>
 
-      {/* Simulador flotante del Bot de WhatsApp */}
       <WhatsappSimulator />
     </div>
   );
