@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { createClient } from '@supabase/supabase-js';
 
 let rawUrl = import.meta.env.VITE_SUPABASE_URL;

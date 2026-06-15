@@ -421,7 +421,7 @@ export async function getDashboardStats() {
     supabase.from('citas').select('*', { count: 'exact', head: true })
       .eq('estado', 'pendiente'),
     supabase.from('historial_clinico')
-      .select('tratamiento, fecha, paciente:pacientes(nombre, apellido)')
+      .select('tratamiento, fecha, paciente:pacientes(nombre)')
       .order('fecha', { ascending: false })
       .limit(5),
   ]);
@@ -435,7 +435,7 @@ export async function getDashboardStats() {
       return {
         tratamiento: h.tratamiento || 'Tratamiento',
         fecha: h.fecha,
-        pacientes: p ? { nombre: p.nombre, apellido: p.apellido } : { nombre: 'Paciente', apellido: '' }
+        pacientes: p ? { nombre: p.nombre, apellido: '' } : { nombre: 'Paciente', apellido: '' }
       };
     })
   };
