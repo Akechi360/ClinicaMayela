@@ -1,425 +1,387 @@
-// @ts-nocheck
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbCitas, dbPacientes, dbTratamientos } from '../services/db';
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  User, 
-  Sparkles, 
-  Plus, 
-  Trash2, 
-  X, 
-  ListFilter
+import type { Paciente, Tratamiento } from '../types/database.types';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  X,
+  UserCheck,
+  CheckCircle,
+  XCircle,
+  Loader2
 } from 'lucide-react';
+import { useToast } from '../components/Toast';
+
+type EstadoCita = 'pendiente' | 'confirmado' | 'en_sala' | 'completado' | 'cancelado';
+
+interface Cita {
+  id: string;
+  paciente_id: string;
+  tratamiento_id: string;
+  fecha_hora: string;
+  notas?: string;
+  estado: EstadoCita;
+  paciente?: Paciente;
+  tratamiento?: Tratamiento;
+}
+
+const HOURS = Array.from({ length: 11 }, (_, i) => i + 8); // 08:00 – 18:00
+
+const ESTADO_STYLES: Record<EstadoCita, string> = {
+  pendiente:   'bg-slate-light/15 text-slate-medium border-slate-light/20',
+  confirmado:  'bg-satin-copper/10 text-satin-copper border-satin-copper/20',
+  en_sala:     'bg-rose-champagne/40 text-slate-dark border-satin-copper/25 animate-pulse',
+  completado:  'bg-muted-olive/10 text-muted-olive border-muted-olive/20',
+  cancelado:   'bg-red-500/10 text-red-500 border-red-500/20',
+};
+
+const ESTADO_LABEL: Record<EstadoCita, string> = {
+  pendiente:  'Pendiente',
+  confirmado: 'Confirmado',
+  en_sala:    'En Sala',
+  completado: 'Completado',
+  cancelado:  'Cancelado',
+};
 
 export const Agenda: React.FC = () => {
   const queryClient = useQueryClient();
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [filtroEstado, setFiltroEstado] = useState<string>('todos');
-  const modalRef = useRef<HTMLDivElement | null>(null);
+  const toast = useToast();
 
-  // Focus trap y control de teclado (Escape para cerrar, Tab circular) para el modal
-  useEffect(() => {
-    if (!showAddModal || !modalRef.current) return;
-    const modal = modalRef.current;
-    
-    const previouslyFocused = document.activeElement as HTMLElement;
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [showModal, setShowModal] = useState(false);
+  const [selectedCita, setSelectedCita] = useState<Cita | null>(null);
 
-    const focusable = modal.querySelectorAll<HTMLElement>(
-      'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])'
-    );
-    const firstFocusable = focusable[0];
-    const lastFocusable = focusable[focusable.length - 1];
+  // Nueva cita
+  const [newPacienteId, setNewPacienteId]     = useState('');
+  const [newTratamientoId, setNewTratamientoId] = useState('');
+  const [newFecha, setNewFecha]               = useState(new Date().toISOString().split('T')[0]);
+  const [newHora, setNewHora]                 = useState('09:00');
+  const [newNotas, setNewNotas]               = useState('');
 
-    if (firstFocusable) {
-      setTimeout(() => firstFocusable.focus(), 50);
-    }
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setShowAddModal(false);
-        return;
-      }
-      if (e.key !== 'Tab') return;
-
-      if (e.shiftKey) {
-        if (document.activeElement === firstFocusable) {
-          lastFocusable.focus();
-          e.preventDefault();
-        }
-      } else {
-        if (document.activeElement === lastFocusable) {
-          firstFocusable.focus();
-          e.preventDefault();
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      if (previouslyFocused) {
-        previouslyFocused.focus();
-      }
-    };
-  }, [showAddModal]);
-
-  // Estados del formulario de nueva cita
-  const [pacienteId, setPacienteId] = useState('');
-  const [tratamientoId, setTratamientoId] = useState('');
-  const [fecha, setFecha] = useState('');
-  const [hora, setHora] = useState('');
-  const [notas, setNotas] = useState('');
-
-  // Consultar datos
-  const { data: citas = [], isLoading: loadingCitas } = useQuery({
+  const { data: citas = [], isLoading } = useQuery<Cita[]>({
     queryKey: ['citas'],
     queryFn: dbCitas.listar
   });
 
-  const { data: pacientes = [] } = useQuery({
+  const { data: pacientes = [] } = useQuery<Paciente[]>({
     queryKey: ['pacientes'],
     queryFn: dbPacientes.listar
   });
 
-  const { data: tratamientos = [] } = useQuery({
+  const { data: tratamientos = [] } = useQuery<Tratamiento[]>({
     queryKey: ['tratamientos'],
     queryFn: dbTratamientos.listar
   });
 
-  // Mutación para agregar cita
-  const addCitaMutation = useMutation({
-    mutationFn: dbCitas.insertar,
+  const crearMutation = useMutation<Cita, Error, Partial<Cita>>({
+    mutationFn: (datos) => dbCitas.insertar(datos),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['citas'] });
       queryClient.invalidateQueries({ queryKey: ['transacciones'] });
-      setShowAddModal(false);
+      setShowModal(false);
       resetForm();
-    }
+      toast.success('Cita agendada correctamente.');
+    },
+    onError: (err) => toast.error(`Error al agendar cita: ${err.message}`)
   });
 
-  // Mutación para actualizar el estado
-  const updateEstadoMutation = useMutation({
-    mutationFn: ({ id, estado }: { id: string; estado: 'confirmado' | 'en_sala' | 'pendiente' | 'cancelado' }) => 
-      dbCitas.actualizarEstado(id, estado),
-    onSuccess: () => {
+  const actualizarEstadoMutation = useMutation<Cita, Error, { id: string; estado: EstadoCita }>({
+    mutationFn: ({ id, estado }) => dbCitas.actualizarEstado(id, estado),
+    onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['citas'] });
-    }
+      toast.success(`Estado actualizado a “${ESTADO_LABEL[vars.estado]}”.`);
+      setSelectedCita(null);
+    },
+    onError: (err) => toast.error(`Error al actualizar estado: ${err.message}`)
   });
 
-  // Mutación para eliminar cita
-  const deleteCitaMutation = useMutation({
-    mutationFn: dbCitas.eliminar,
+  const eliminarMutation = useMutation<void, Error, string>({
+    mutationFn: (id) => dbCitas.eliminar(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['citas'] });
-    }
+      toast.success('Cita eliminada.');
+      setSelectedCita(null);
+    },
+    onError: (err) => toast.error(`Error al eliminar cita: ${err.message}`)
   });
 
   const resetForm = () => {
-    setPacienteId('');
-    setTratamientoId('');
-    setFecha('');
-    setHora('');
-    setNotas('');
+    setNewPacienteId('');
+    setNewTratamientoId('');
+    setNewFecha(new Date().toISOString().split('T')[0]);
+    setNewHora('09:00');
+    setNewNotas('');
   };
 
-  const handleAddCita = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!pacienteId || !tratamientoId || !fecha || !hora) return;
-    
-    const fechaHora = new Date(`${fecha}T${hora}`).toISOString();
-    
-    addCitaMutation.mutate({
-      paciente_id: pacienteId,
-      tratamiento_id: tratamientoId,
-      fecha_hora: fechaHora,
-      estado: 'pendiente',
-      notas
+  // Semana actual
+  const weekDays = useMemo(() => {
+    const start = new Date(currentDate);
+    const day = start.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    start.setDate(start.getDate() + diff);
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      return d;
     });
-  };
+  }, [currentDate]);
 
-  const citasFiltradas = citas.filter(cita => {
-    if (filtroEstado === 'todos') return true;
-    return cita.estado === filtroEstado;
-  });
+  const citasDeHoy = useMemo(() => {
+    const hoy = new Date().toDateString();
+    return citas.filter(c => new Date(c.fecha_hora).toDateString() === hoy);
+  }, [citas]);
 
-  const formatFecha = (isoString: string) => {
-    const d = new Date(isoString);
-    return d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  };
+  const getCitasForSlot = (day: Date, hour: number) =>
+    citas.filter(c => {
+      const d = new Date(c.fecha_hora);
+      return (
+        d.toDateString() === day.toDateString() &&
+        d.getHours() === hour
+      );
+    });
 
-  // Agrupar citas por día para mostrarlas ordenadas
-  const citasAgrupadas = citasFiltradas.reduce((groups: { [key: string]: typeof citas }, cita) => {
-    const dia = cita.fecha_hora.split('T')[0];
-    if (!groups[dia]) {
-      groups[dia] = [];
-    }
-    groups[dia].push(cita);
-    return groups;
-  }, {});
+  const prevWeek = () => { const d = new Date(currentDate); d.setDate(d.getDate() - 7); setCurrentDate(d); };
+  const nextWeek = () => { const d = new Date(currentDate); d.setDate(d.getDate() + 7); setCurrentDate(d); };
 
-  const getEstadoColor = (estado: string) => {
-    switch (estado) {
-      case 'confirmado': return 'bg-muted-olive text-pure-white';
-      case 'en_sala': return 'bg-satin-copper text-pure-white';
-      case 'pendiente': return 'bg-slate-light text-slate-dark';
-      default: return 'bg-red-400 text-pure-white';
-    }
-  };
+  const dayNames = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
   return (
-    <div className="space-y-8 px-2 font-sans">
+    <div className="space-y-6 px-2 font-sans">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h2 className="text-3xl font-display font-light text-slate-dark tracking-wide">
-            Agenda de <span className="italic font-normal text-satin-copper">Citas</span>
-          </h2>
-          <p className="text-xs text-slate-light mt-0.5">Planifica y gestiona las visitas clínicas diarias de forma visual.</p>
+          <h2 className="text-3xl font-display font-medium text-slate-dark mb-1">Agenda</h2>
+          <p className="text-sm text-slate-medium">Calendario semanal de citas y procedimientos.</p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
-          className="bg-satin-copper hover:bg-satin-copper-hover text-pure-white text-[10px] font-bold tracking-[0.15em] uppercase py-3 px-5 rounded-xl transition-all cursor-pointer shadow-lg shadow-satin-copper/10"
+          onClick={() => setShowModal(true)}
+          className="satin-button text-pure-white text-xs font-bold py-2.5 px-5 rounded-xl shadow-md flex items-center gap-2 cursor-pointer"
         >
-          <Plus size={13} /> Programar Cita
+          + Nueva Cita
         </button>
       </div>
 
-      {/* Filters (Glassmorphic) */}
-      <div className="flex flex-wrap gap-2 items-center glass-panel p-4 rounded-2xl shadow-luxury border border-pure-white/40 w-full">
-        <span className="text-xs text-slate-medium flex items-center gap-1 mr-2"><ListFilter size={13} className="text-satin-copper" /> Filtrar por estado:</span>
-        {['todos', 'pendiente', 'confirmado', 'en_sala', 'cancelado'].map(est => (
-          <button
-            key={est}
-            onClick={() => setFiltroEstado(est)}
-            className={`px-3.5 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all border cursor-pointer ${
-              filtroEstado === est
-                ? 'sidebar-active-item border-slate-medium text-pure-white shadow-sm'
-                : 'bg-pure-white/20 border-satin-copper/15 text-slate-medium hover:text-slate-dark'
-            }`}
-          >
-            {est}
-          </button>
+      {/* Stats strip */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Citas Hoy', value: citasDeHoy.length, color: 'text-satin-copper' },
+          { label: 'Pendientes', value: citas.filter(c => c.estado === 'pendiente').length, color: 'text-slate-medium' },
+          { label: 'En Sala', value: citas.filter(c => c.estado === 'en_sala').length, color: 'text-satin-copper-light' },
+          { label: 'Completadas', value: citas.filter(c => c.estado === 'completado').length, color: 'text-muted-olive' },
+        ].map(stat => (
+          <div key={stat.label} className="glass-panel rounded-2xl p-4 border border-pure-white/40 shadow-luxury text-center">
+            <p className={`text-2xl font-display font-medium ${stat.color}`}>{stat.value}</p>
+            <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold mt-1">{stat.label}</p>
+          </div>
         ))}
       </div>
 
-      {/* Agenda list */}
-      <div className="space-y-8">
-        {loadingCitas ? (
-          <div className="text-center py-12 text-xs text-slate-light">Cargando agenda...</div>
-        ) : Object.keys(citasAgrupadas).length === 0 ? (
-          <div className="glass-panel py-16 text-center rounded-3xl border border-pure-white/40 shadow-luxury">
-            <CalendarIcon className="mx-auto text-satin-copper-light mb-3 opacity-60" size={30} />
-            <p className="text-sm font-semibold text-slate-dark mb-1 font-display">No hay citas en la agenda</p>
-            <p className="text-xs text-slate-medium">Empieza programando una cita con el botón superior.</p>
+      {/* Calendar */}
+      <div className="glass-panel rounded-3xl border border-pure-white/40 shadow-luxury overflow-hidden">
+        {/* Calendar Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-satin-copper/10 bg-pure-white/20">
+          <button onClick={prevWeek} className="w-8 h-8 rounded-full hover:bg-satin-copper/10 flex items-center justify-center transition-all cursor-pointer">
+            <ChevronLeft size={16} className="text-slate-medium" />
+          </button>
+          <h3 className="text-sm font-display font-medium text-slate-dark tracking-wide">
+            {weekDays[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} – {weekDays[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </h3>
+          <button onClick={nextWeek} className="w-8 h-8 rounded-full hover:bg-satin-copper/10 flex items-center justify-center transition-all cursor-pointer">
+            <ChevronRight size={16} className="text-slate-medium" />
+          </button>
+        </div>
+
+        {/* Day Headers */}
+        <div className="grid grid-cols-8 border-b border-satin-copper/10">
+          <div className="py-3 px-2 text-center">
+            <Clock size={12} className="mx-auto text-slate-light" />
           </div>
-        ) : (
-          Object.keys(citasAgrupadas).sort().map((dia) => (
-            <div key={dia} className="space-y-4">
-              {/* Encabezado del día (Editorial) */}
-              <h3 className="text-xs font-semibold text-slate-dark uppercase tracking-[0.2em] border-b border-rose-champagne pb-2.5 capitalize font-sans">
-                {formatFecha(citasAgrupadas[dia][0].fecha_hora)}
-              </h3>
-              
-              {/* Citas del día */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {citasAgrupadas[dia].map((cita) => (
-                  <div 
-                    key={cita.id} 
-                    className="glass-panel p-5 rounded-2xl luxury-shadow flex justify-between items-start hover:shadow-xl transition-all duration-500 relative group"
-                  >
-                    <div className="space-y-3.5">
-                      {/* Hora y Paciente */}
-                      <div className="space-y-1">
-                        <p className="text-xs text-satin-copper font-semibold flex items-center gap-1.5">
-                          <Clock size={12} />
-                          {new Date(cita.fecha_hora).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                        <p className="text-sm font-semibold text-slate-dark flex items-center gap-1.5">
-                          <User size={14} className="text-slate-light" />
-                          {cita.paciente?.nombre}
-                          {cita.paciente?.es_vip && (
-                            <span className="text-[8px] bg-satin-copper/10 text-satin-copper font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">VIP</span>
-                          )}
-                        </p>
-                      </div>
-
-                      {/* Tratamiento y Notas */}
-                      <div className="space-y-1.5">
-                        <p className="text-xs text-slate-medium flex items-center gap-1.5">
-                          <Sparkles size={13} className="text-slate-light" />
-                          {cita.tratamiento?.nombre} (${cita.tratamiento?.precio})
-                        </p>
-                        {cita.notas && (
-                          <p className="text-[10px] text-slate-medium italic bg-rose-champagne-light/50 p-2.5 rounded-xl border border-rose-champagne/40 leading-relaxed max-w-xs">
-                            "{cita.notas}"
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Botones rápidos de Estado */}
-                      <div className="flex gap-1.5 pt-1.5">
-                        {['pendiente', 'confirmado', 'en_sala'].map((est) => {
-                          const isCurrent = cita.estado === est;
-                          return (
-                            <button
-                              key={est}
-                              onClick={() => updateEstadoMutation.mutate({ id: cita.id, estado: est as any })}
-                              className={`px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all border ${
-                                isCurrent
-                                  ? getEstadoColor(est)
-                                  : 'bg-pure-white/50 border-rose-champagne text-slate-light hover:text-slate-dark hover:border-slate-medium'
-                              }`}
-                            >
-                              {est === 'en_sala' ? 'En Sala' : est}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Botón de eliminación y Estado */}
-                    <div className="flex flex-col justify-between items-end h-full min-h-[90px] pt-1">
-                      <span className={`text-[9px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${getEstadoColor(cita.estado)}`}>
-                        {cita.estado}
-                      </span>
-                      
-                      <button
-                        onClick={() => {
-                          if (confirm('¿Deseas cancelar y eliminar esta cita de la agenda?')) {
-                            deleteCitaMutation.mutate(cita.id);
-                          }
-                        }}
-                        className="text-slate-light hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-full hover:bg-red-500/10"
-                        title="Eliminar cita"
-                        aria-label="Eliminar cita"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+          {weekDays.map((day, i) => {
+            const isToday = day.toDateString() === new Date().toDateString();
+            return (
+              <div key={i} className={`py-3 text-center border-l border-satin-copper/8 ${isToday ? 'bg-satin-copper/5' : ''}`}>
+                <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold">{dayNames[i]}</p>
+                <p className={`text-lg font-display font-medium mt-0.5 ${
+                  isToday ? 'text-satin-copper' : 'text-slate-dark'
+                }`}>{day.getDate()}</p>
               </div>
+            );
+          })}
+        </div>
+
+        {/* Time Grid */}
+        <div className="overflow-y-auto max-h-[520px]">
+          {isLoading ? (
+            <div className="py-16 flex items-center justify-center gap-2 text-xs text-slate-light">
+              <Loader2 size={16} className="animate-spin text-satin-copper" /> Cargando agenda...
             </div>
-          ))
-        )}
+          ) : (
+            HOURS.map(hour => (
+              <div key={hour} className="grid grid-cols-8 border-b border-satin-copper/6 min-h-[64px] hover:bg-pure-white/10 transition-colors">
+                <div className="py-2 px-3 text-right">
+                  <span className="text-[10px] text-slate-light font-bold">{String(hour).padStart(2, '0')}:00</span>
+                </div>
+                {weekDays.map((day, di) => {
+                  const slotCitas = getCitasForSlot(day, hour);
+                  return (
+                    <div key={di} className="py-1 px-1 border-l border-satin-copper/6 space-y-1">
+                      {slotCitas.map(cita => (
+                        <button
+                          key={cita.id}
+                          onClick={() => setSelectedCita(cita)}
+                          className={`w-full text-left px-2 py-1.5 rounded-lg border text-[9px] font-bold uppercase tracking-wide transition-all hover:scale-[1.02] cursor-pointer leading-tight ${ESTADO_STYLES[cita.estado]}`}
+                        >
+                          <span className="block truncate">{cita.paciente?.nombre?.split(' ')[0]}</span>
+                          <span className="block truncate font-normal normal-case text-[8px] opacity-80">{cita.tratamiento?.nombre}</span>
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
-      {/* Modal para programar cita */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-slate-dark/45 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div
-            ref={modalRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modal-title"
-            className="glass-panel rounded-2xl shadow-2xl p-6 w-full max-w-md font-sans border border-pure-white/45"
+      {/* Modal: Nueva Cita */}
+      {showModal && (
+        <div className="fixed inset-0 bg-slate-dark/40 backdrop-blur-sm flex items-center justify-center z-[90] p-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              crearMutation.mutate({
+                paciente_id: newPacienteId,
+                tratamiento_id: newTratamientoId,
+                fecha_hora: `${newFecha}T${newHora}:00`,
+                notas: newNotas,
+                estado: 'pendiente'
+              });
+            }}
+            className="glass-panel w-full max-w-sm rounded-2xl shadow-luxury border border-pure-white/50 overflow-hidden flex flex-col"
           >
-            <div className="flex justify-between items-center mb-4 border-b border-satin-copper/15 pb-3">
-              <h3 id="modal-title" className="text-base font-medium text-slate-dark font-display">Programar Nueva Cita</h3>
-              <button
-                type="button"
-                onClick={() => setShowAddModal(false)}
-                className="text-slate-medium hover:text-slate-dark cursor-pointer"
-                aria-label="Cerrar modal"
-              >
-                <X size={18} />
+            <div className="px-5 py-4 border-b border-satin-copper/10 flex justify-between items-center bg-pure-white/20">
+              <h3 className="font-display font-medium text-slate-dark text-sm uppercase tracking-wider">Nueva Cita</h3>
+              <button type="button" onClick={() => { setShowModal(false); resetForm(); }} className="text-slate-light hover:text-slate-dark cursor-pointer"><X size={16} /></button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Paciente</label>
+                <select required value={newPacienteId} onChange={e => setNewPacienteId(e.target.value)}
+                  className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold">
+                  <option value="">Seleccionar paciente...</option>
+                  {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Tratamiento</label>
+                <select required value={newTratamientoId} onChange={e => setNewTratamientoId(e.target.value)}
+                  className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold">
+                  <option value="">Seleccionar tratamiento...</option>
+                  {tratamientos.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Fecha</label>
+                  <input type="date" required value={newFecha} onChange={e => setNewFecha(e.target.value)}
+                    className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold" />
+                </div>
+                <div>
+                  <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Hora</label>
+                  <input type="time" required value={newHora} onChange={e => setNewHora(e.target.value)}
+                    className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Notas (opcional)</label>
+                <textarea value={newNotas} onChange={e => setNewNotas(e.target.value)} rows={2} placeholder="Observaciones previas..."
+                  className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold resize-none" />
+              </div>
+            </div>
+            <div className="px-5 py-3.5 bg-pure-white/20 border-t border-satin-copper/10 flex justify-end gap-2.5">
+              <button type="button" onClick={() => { setShowModal(false); resetForm(); }}
+                className="px-4 py-2 border border-slate-medium/20 text-slate-medium hover:bg-slate-medium/5 rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer">
+                Cancelar
+              </button>
+              <button type="submit" disabled={crearMutation.isPending}
+                className="px-4 py-2 satin-button text-pure-white rounded-lg font-bold text-[10px] uppercase tracking-wider shadow-md cursor-pointer disabled:opacity-50">
+                {crearMutation.isPending ? 'Agendando...' : 'Confirmar Cita'}
               </button>
             </div>
+          </form>
+        </div>
+      )}
 
-            <form onSubmit={handleAddCita} className="space-y-4">
-              {/* Paciente */}
-              <div className="flex flex-col space-y-1">
-                <label htmlFor="paciente" className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Paciente</label>
-                <select
-                  id="paciente"
-                  required
-                  value={pacienteId}
-                  onChange={(e) => setPacienteId(e.target.value)}
-                  className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans"
-                >
-                  <option value="" className="bg-rose-champagne-light text-slate-dark">Selecciona un paciente</option>
-                  {pacientes.map(p => (
-                    <option key={p.id} value={p.id} className="bg-rose-champagne-light text-slate-dark">{p.nombre}</option>
-                  ))}
-                </select>
+      {/* Modal: Detalle / Estado Cita */}
+      {selectedCita && (
+        <div className="fixed inset-0 bg-slate-dark/40 backdrop-blur-sm flex items-center justify-center z-[90] p-4">
+          <div className="glass-panel w-full max-w-sm rounded-2xl shadow-luxury border border-pure-white/50 overflow-hidden">
+            <div className="px-5 py-4 border-b border-satin-copper/10 flex justify-between items-center bg-pure-white/20">
+              <h3 className="font-display font-medium text-slate-dark text-sm uppercase tracking-wider">Detalle de Cita</h3>
+              <button onClick={() => setSelectedCita(null)} className="text-slate-light hover:text-slate-dark cursor-pointer"><X size={16} /></button>
+            </div>
+            <div className="p-5 space-y-3 text-xs">
+              <div className="space-y-1">
+                <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold">Paciente</p>
+                <p className="font-display font-medium text-slate-dark text-sm">{selectedCita.paciente?.nombre}</p>
               </div>
-
-              {/* Tratamiento */}
-              <div className="flex flex-col space-y-1">
-                <label htmlFor="tratamiento" className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Procedimiento sugerido</label>
-                <select
-                  id="tratamiento"
-                  required
-                  value={tratamientoId}
-                  onChange={(e) => setTratamientoId(e.target.value)}
-                  className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans"
-                >
-                  <option value="" className="bg-rose-champagne-light text-slate-dark">Selecciona un tratamiento</option>
-                  {tratamientos.map(t => (
-                    <option key={t.id} value={t.id} className="bg-rose-champagne-light text-slate-dark">{t.nombre} (${t.precio})</option>
-                  ))}
-                </select>
+              <div className="space-y-1">
+                <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold">Tratamiento</p>
+                <p className="font-semibold text-slate-dark">{selectedCita.tratamiento?.nombre}</p>
               </div>
-
-              {/* Fecha y Hora */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col space-y-1">
-                  <label htmlFor="fecha" className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Fecha</label>
-                  <input
-                    id="fecha"
-                    type="date"
-                    required
-                    value={fecha}
-                    onChange={(e) => setFecha(e.target.value)}
-                    className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans"
-                  />
+              <div className="space-y-1">
+                <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold">Fecha y Hora</p>
+                <p className="font-semibold text-slate-dark">
+                  {new Date(selectedCita.fecha_hora).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })} &mdash; {new Date(selectedCita.fecha_hora).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+              {selectedCita.notas && (
+                <div className="bg-rose-champagne-light/50 p-3 rounded-xl border border-satin-copper/10">
+                  <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold mb-1">Notas</p>
+                  <p className="italic text-slate-medium text-[11px]">&ldquo;{selectedCita.notas}&rdquo;</p>
                 </div>
-                <div className="flex flex-col space-y-1">
-                  <label htmlFor="hora" className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Hora</label>
-                  <input
-                    id="hora"
-                    type="time"
-                    required
-                    value={hora}
-                    onChange={(e) => setHora(e.target.value)}
-                    className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans"
-                  />
+              )}
+              <div className="pt-2">
+                <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold mb-2">Cambiar Estado</p>
+                <div className="flex flex-wrap gap-2">
+                  {(['confirmado', 'en_sala', 'completado', 'cancelado'] as EstadoCita[]).map(est => (
+                    <button
+                      key={est}
+                      onClick={() => actualizarEstadoMutation.mutate({ id: selectedCita.id, estado: est })}
+                      disabled={actualizarEstadoMutation.isPending || selectedCita.estado === est}
+                      className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider border transition-all cursor-pointer disabled:opacity-40 ${
+                        selectedCita.estado === est ? 'opacity-40 cursor-default' : 'hover:scale-105'
+                      } ${ESTADO_STYLES[est]}`}
+                    >
+                      {est === 'confirmado' && <UserCheck size={10} className="inline mr-1" />}
+                      {est === 'completado' && <CheckCircle size={10} className="inline mr-1" />}
+                      {est === 'cancelado'  && <XCircle size={10} className="inline mr-1" />}
+                      {ESTADO_LABEL[est]}
+                    </button>
+                  ))}
                 </div>
               </div>
-
-              {/* Notas */}
-              <div className="flex flex-col space-y-1">
-                <label htmlFor="notas" className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Notas de la Cita</label>
-                <textarea
-                  id="notas"
-                  value={notas}
-                  onChange={(e) => setNotas(e.target.value)}
-                  placeholder="Ej. Recordar traer ficha firmada / Paciente solicita anestesia tópica"
-                  rows={3}
-                  className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper resize-none placeholder:text-slate-light/60 font-sans"
-                />
-              </div>
-
-              {/* Acciones */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-satin-copper/15 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-5 py-2.5 rounded-xl border border-satin-copper/25 text-[10px] font-bold uppercase tracking-wider text-slate-dark hover:bg-pure-white/40 transition-all cursor-pointer font-sans"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="satin-button text-pure-white text-[10px] font-bold tracking-wider uppercase py-2.5 px-6 rounded-xl cursor-pointer font-sans"
-                >
-                  Programar Cita
-                </button>
-              </div>
-            </form>
+            </div>
+            <div className="px-5 py-3.5 bg-pure-white/20 border-t border-satin-copper/10 flex justify-between items-center">
+              <button
+                onClick={() => {
+                  if (confirm('¿Eliminar esta cita permanentemente?')) {
+                    eliminarMutation.mutate(selectedCita.id);
+                  }
+                }}
+                disabled={eliminarMutation.isPending}
+                className="text-red-500 hover:text-red-700 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer disabled:opacity-50"
+              >
+                <XCircle size={13} /> Eliminar Cita
+              </button>
+              <button onClick={() => setSelectedCita(null)}
+                className="px-4 py-2 border border-slate-medium/20 text-slate-medium hover:bg-slate-medium/5 rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer">
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}
