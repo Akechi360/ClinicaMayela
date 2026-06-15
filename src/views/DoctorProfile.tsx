@@ -16,16 +16,15 @@ export const DoctorProfile: React.FC = () => {
     mutationFn: dbDoctor.actualizar,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['doctor'] });
-      setSuccessMessage('\u00a1Perfil guardado correctamente!');
+      setSuccessMessage('¡Perfil guardado correctamente!');
       setTimeout(() => setSuccessMessage(''), 4000);
     },
     onError: (err: any) => {
-      setErrorMessage('Ocurri\u00f3 un error al guardar los cambios: ' + (err?.message || ''));
+      setErrorMessage('Ocurrió un error al guardar los cambios: ' + (err?.message || ''));
       setTimeout(() => setErrorMessage(''), 5000);
     }
   });
 
-  // Estados del formulario — nombres internos de UI (no de BD)
   const [nombre, setNombre] = useState('');
   const [especialidad, setEspecialidad] = useState('');
   const [cedulaProf, setCedulaProf] = useState('');
@@ -36,10 +35,8 @@ export const DoctorProfile: React.FC = () => {
   const [horario, setHorario] = useState('');
   const [mpps, setMpps] = useState('');
   const [col, setCol] = useState('');
-  // linkedin e instagram se guardan solo en estado local (no en BD todav\u00eda)
   const [linkedin, setLinkedin] = useState('');
   const [instagram, setInstagram] = useState('');
-
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -52,15 +49,10 @@ export const DoctorProfile: React.FC = () => {
       setTelefono(doctor.telefono || '');
       setFoto(doctor.foto || '');
       setBiografia(doctor.biografia || '');
-      // horario puede ser JSONB o string
       const h = doctor.horario;
-      if (!h) {
-        setHorario('');
-      } else if (typeof h === 'object') {
-        setHorario(Object.entries(h).map(([k, v]) => `${k}: ${v}`).join(', '));
-      } else {
-        setHorario(String(h));
-      }
+      if (!h) setHorario('');
+      else if (typeof h === 'object') setHorario(Object.entries(h).map(([k, v]) => `${k}: ${v}`).join(', '));
+      else setHorario(String(h));
       setMpps(doctor.mpps || '');
       setCol(doctor.col || '');
     }
@@ -70,13 +62,11 @@ export const DoctorProfile: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 1.5 * 1024 * 1024) {
-      alert('La imagen supera el l\u00edmite de 1.5 MB. Por favor selecciona una imagen m\u00e1s liviana.');
+      alert('La imagen supera el límite de 1.5 MB.');
       return;
     }
     const reader = new FileReader();
-    reader.onloadend = () => {
-      if (typeof reader.result === 'string') setFoto(reader.result);
-    };
+    reader.onloadend = () => { if (typeof reader.result === 'string') setFoto(reader.result); };
     reader.readAsDataURL(file);
   };
 
@@ -87,8 +77,6 @@ export const DoctorProfile: React.FC = () => {
       setTimeout(() => setErrorMessage(''), 3000);
       return;
     }
-
-    // Payload con los nombres EXACTOS de columnas de doctor_profile en Supabase
     updateMutation.mutate({
       id: doctor?.id,
       nombre,
@@ -105,24 +93,23 @@ export const DoctorProfile: React.FC = () => {
     });
   };
 
-  if (isLoading) {
-    return <div className="py-12 text-center text-xs text-slate-light">Cargando perfil profesional...</div>;
-  }
+  if (isLoading) return <div className="py-12 text-center text-xs text-slate-light">Cargando perfil profesional...</div>;
 
   return (
     <div className="space-y-8 px-2 max-w-6xl mx-auto font-sans">
+
       {/* Header */}
       <div>
         <h2 className="text-3xl font-display font-light text-slate-dark tracking-wide">
           Perfil <span className="italic font-normal text-satin-copper">Profesional</span>
         </h2>
-        <p className="text-xs text-slate-light mt-0.5">Administra tu identidad cl\u00ednica, credenciales de especialidad y redes sociales.</p>
+        {/* CORREGIDO: eliminado “clínica” */}
+        <p className="text-xs text-slate-light mt-0.5">Administra tu identidad, credenciales de especialidad y redes sociales.</p>
       </div>
 
-      {/* Alertas */}
       {successMessage && (
         <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 text-xs font-semibold animate-fade-in shadow-sm flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           {successMessage}
         </div>
       )}
@@ -133,29 +120,29 @@ export const DoctorProfile: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Formulario */}
         <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-6">
 
-          {/* Informaci\u00f3n B\u00e1sica */}
+          {/* Información General — CORREGIDO desde “Información Básica” */}
           <section className="glass-panel p-6 rounded-3xl border border-pure-white/40 shadow-luxury space-y-5">
             <h3 className="text-sm font-display font-semibold text-slate-dark border-b border-satin-copper/10 pb-3 flex items-center gap-2">
-              <User size={15} className="text-satin-copper" /> Informaci\u00f3n B\u00e1sica
+              <User size={15} className="text-satin-copper" /> Información General
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col space-y-1">
                 <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Nombre Completo *</label>
                 <input type="text" required value={nombre} onChange={(e) => setNombre(e.target.value)}
-                  placeholder="Ej. Dra. Mayela Gonz\u00e1lez"
+                  placeholder="Ej. Dra. Mayela González"
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
               </div>
               <div className="flex flex-col space-y-1">
                 <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Especialidad *</label>
                 <input type="text" required value={especialidad} onChange={(e) => setEspecialidad(e.target.value)}
-                  placeholder="Ej. Medicina Est\u00e9tica"
+                  placeholder="Ej. Medicina Estética"
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
               </div>
+              {/* CORREGIDO: label dice Cédula Profesional, Tailwind uppercase lo renderiza en mayúsculas */}
               <div className="flex flex-col space-y-1">
-                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">C\u00e9dula Profesional *</label>
+                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Cédula Profesional *</label>
                 <input type="text" required value={cedulaProf} onChange={(e) => setCedulaProf(e.target.value)}
                   placeholder="Ej. 12345678-A"
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
@@ -167,7 +154,7 @@ export const DoctorProfile: React.FC = () => {
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
               </div>
               <div className="flex flex-col space-y-1">
-                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Colegio de M\u00e9dicos (COL)</label>
+                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Colegio de Médicos (COL)</label>
                 <input type="text" value={col} onChange={(e) => setCol(e.target.value)}
                   placeholder="Ej. COL-67890"
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
@@ -193,13 +180,13 @@ export const DoctorProfile: React.FC = () => {
                   placeholder="doctora@example.com"
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
               </div>
+              {/* CORREGIDO: Teléfono (Tailwind uppercase lo renderiza en mayúsculas visualmente) */}
               <div className="flex flex-col space-y-1">
-                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Tel\u00e9fono *</label>
+                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Teléfono *</label>
                 <input type="text" required value={telefono} onChange={(e) => setTelefono(e.target.value)}
                   placeholder="+58 414 000 0000"
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
               </div>
-              {/* LinkedIn e Instagram: solo UI local, no se persisten en BD */}
               <div className="flex flex-col space-y-1">
                 <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Enlace LinkedIn <span className="text-slate-light/60">(solo vista previa)</span></label>
                 <input type="url" value={linkedin} onChange={(e) => setLinkedin(e.target.value)}
@@ -215,11 +202,11 @@ export const DoctorProfile: React.FC = () => {
             </div>
           </section>
 
-          {/* Biograf\u00eda */}
+          {/* Biografía */}
           <section className="glass-panel p-6 rounded-3xl border border-pure-white/40 shadow-luxury space-y-4">
-            <h3 className="text-sm font-display font-semibold text-slate-dark border-b border-satin-copper/10 pb-3">Biograf\u00eda Profesional</h3>
+            <h3 className="text-sm font-display font-semibold text-slate-dark border-b border-satin-copper/10 pb-3">Biografía Profesional</h3>
             <textarea value={biografia} onChange={(e) => setBiografia(e.target.value)}
-              placeholder="Introduce una breve descripci\u00f3n de tu trayectoria..."
+              placeholder="Introduce una breve descripción de tu trayectoria..."
               rows={4}
               className="w-full bg-pure-white/30 border border-satin-copper/15 rounded-xl p-3 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper resize-none leading-relaxed placeholder:text-slate-light/60 font-sans" />
           </section>
@@ -236,28 +223,28 @@ export const DoctorProfile: React.FC = () => {
         {/* Vista Previa */}
         <div className="lg:col-span-5 space-y-6">
           <div className="sticky top-28 space-y-6">
-            <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold px-1 select-none">Vista Previa de Tarjeta M\u00e9dica</p>
+            <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold px-1 select-none">Vista Previa de Tarjeta Médica</p>
             <div className="glass-panel rounded-3xl border border-pure-white/45 p-6 flex flex-col justify-between h-[450px] relative overflow-hidden group shadow-luxury">
-              <div className="absolute -right-12 -top-12 w-44 h-44 bg-satin-copper/10 rounded-full filter blur-2xl pointer-events-none group-hover:scale-110 duration-700"></div>
-              <div className="absolute -left-12 -bottom-12 w-44 h-44 bg-slate-light/5 rounded-full filter blur-2xl pointer-events-none"></div>
+              <div className="absolute -right-12 -top-12 w-44 h-44 bg-satin-copper/10 rounded-full filter blur-2xl pointer-events-none group-hover:scale-110 duration-700" />
+              <div className="absolute -left-12 -bottom-12 w-44 h-44 bg-slate-light/5 rounded-full filter blur-2xl pointer-events-none" />
               <div className="space-y-6 relative z-10">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-full overflow-hidden border border-satin-copper/25 shadow-md shrink-0 bg-pure-white/20 flex items-center justify-center text-slate-light">
                     {foto ? <img src={foto} alt="Preview" className="w-full h-full object-cover" /> : <User size={30} className="opacity-60" />}
                   </div>
                   <div>
-                    <h4 className="text-lg font-display font-medium text-slate-dark">{nombre || 'Dra. Mayela Gonz\u00e1lez'}</h4>
+                    <h4 className="text-lg font-display font-medium text-slate-dark">{nombre || 'Dra. Mayela González'}</h4>
                     <p className="text-[10px] text-satin-copper font-bold uppercase tracking-wider mt-0.5">{especialidad || 'Especialista'}</p>
                   </div>
                 </div>
                 <div className="space-y-2.5 text-xs text-slate-medium border-t border-satin-copper/10 pt-4">
-                  <p className="flex items-center gap-2"><Shield size={13} className="text-satin-copper-light" /> C\u00e9dula: <span className="font-semibold text-slate-dark">{cedulaProf || 'Pendiente'}</span></p>
+                  <p className="flex items-center gap-2"><Shield size={13} className="text-satin-copper-light" /> Cédula: <span className="font-semibold text-slate-dark">{cedulaProf || 'Pendiente'}</span></p>
                   <p className="flex items-center gap-2"><Calendar size={13} className="text-satin-copper-light" /> Horario: <span className="font-semibold text-slate-dark">{horario || 'Lunes a Viernes'}</span></p>
                   <p className="flex items-center gap-2"><Mail size={13} className="text-satin-copper-light" /> Correo: <span className="font-semibold text-slate-dark truncate max-w-[200px]">{correo || 'doctora@clinica.com'}</span></p>
-                  <p className="flex items-center gap-2"><Phone size={13} className="text-satin-copper-light" /> Tel\u00e9fono: <span className="font-semibold text-slate-dark">{telefono || 'Sin registrar'}</span></p>
+                  <p className="flex items-center gap-2"><Phone size={13} className="text-satin-copper-light" /> Teléfono: <span className="font-semibold text-slate-dark">{telefono || 'Sin registrar'}</span></p>
                 </div>
                 <div className="text-xs text-slate-medium italic leading-relaxed border-t border-satin-copper/10 pt-4">
-                  <p className="line-clamp-4">"{biografia || 'Sin descripci\u00f3n biogr\u00e1fica.'}"</p>
+                  <p className="line-clamp-4">"{biografia || 'Sin descripción biográfica.'}"</p>
                 </div>
               </div>
               <div className="flex justify-between items-center mt-6 pt-4 border-t border-satin-copper/10 relative z-10">
@@ -271,9 +258,11 @@ export const DoctorProfile: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Cuadro inferior derecho — pendiente de instrucción del usuario sobre qué cambiar */}
             <div className="p-4 bg-satin-copper/5 border border-satin-copper/15 rounded-2xl text-[10px] text-slate-medium leading-relaxed font-sans shadow-inner">
-              <p className="font-bold text-satin-copper mb-1 uppercase tracking-wide">Credenciales Cl\u00ednicas</p>
-              La informaci\u00f3n guardada aqu\u00ed se usa en consentimientos informados, Topbar y correos autom\u00e1ticos.
+              <p className="font-bold text-satin-copper mb-1 uppercase tracking-wide">Credenciales Clínicas</p>
+              La información guardada aquí se usa en consentimientos informados, Topbar y correos automáticos.
             </div>
           </div>
         </div>

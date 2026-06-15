@@ -3,9 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Wrench, ArrowLeft, Sparkles } from 'lucide-react';
 
 interface ComingSoonProps {
-  /** Nombre del módulo/componente en construcción */
   moduleName?: string;
-  /** Porcentaje de progreso aproximado (0-100) */
   progress?: number;
 }
 
@@ -17,7 +15,6 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({
   const [animatedProgress, setAnimatedProgress] = useState(0);
   const [visible, setVisible] = useState(false);
 
-  // Entrada con fade + barra animada
   useEffect(() => {
     const t1 = setTimeout(() => setVisible(true), 80);
     const t2 = setTimeout(() => setAnimatedProgress(progress), 400);
@@ -31,22 +28,15 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({
       }`}
       style={{ background: '#FAF7F5' }}
     >
-      {/* Imagen de fondo */}
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: "url('/coming-soon-bg.jpg')",
-          opacity: 0.92,
-        }}
+        style={{ backgroundImage: "url('/coming-soon-bg.jpg')", opacity: 0.92 }}
       />
-
-      {/* Overlay muy sutil para legibilidad */}
       <div className="absolute inset-0 bg-white/20" />
 
-      {/* ── Contenido centrado ── */}
       <div className="relative z-10 flex flex-col items-center gap-6 px-6 max-w-sm w-full text-center">
 
-        {/* Badge de estado */}
+        {/* Badge */}
         <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/60 backdrop-blur-md border border-[#E0A2A2]/40 shadow-sm">
           <span className="w-2 h-2 rounded-full bg-[#E0A2A2] animate-pulse" />
           <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#3A434D]/70">
@@ -55,7 +45,7 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({
           <Wrench size={10} className="text-[#E0A2A2]" />
         </div>
 
-        {/* Título principal */}
+        {/* Título */}
         <div className="space-y-1">
           <h1 className="font-display text-3xl font-light text-[#3A434D] tracking-wide">
             {moduleName}
@@ -84,7 +74,7 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({
           </div>
         </div>
 
-        {/* Chips de detalle */}
+        {/* Chips */}
         <div className="flex flex-wrap justify-center gap-2">
           {['Diseño UI ✓', 'Lógica de negocio', 'Integración BD'].map((step, i) => (
             <span
@@ -114,10 +104,12 @@ export const ComingSoon: React.FC<ComingSoonProps> = ({
           Volver al Panel
         </button>
 
-        {/* Firma discreta */}
+        {/* Firma — actualizada */}
         <div className="flex items-center gap-1.5 mt-2 opacity-40">
           <Sparkles size={10} className="text-[#E0A2A2]" />
-          <span className="text-[8px] uppercase tracking-[0.2em] text-[#3A434D] font-sans">Clínica Mayela · Sistema de Gestión</span>
+          <span className="text-[8px] uppercase tracking-[0.2em] text-[#3A434D] font-sans">
+            En desarrollo por Ing. Manuel López
+          </span>
         </div>
       </div>
     </div>
