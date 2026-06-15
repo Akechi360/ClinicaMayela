@@ -50,12 +50,21 @@ export const DoctorProfile: React.FC = () => {
     if (doctor) {
       setNombre(doctor.nombre);
       setEspecialidad(doctor.especialidad);
-      setCedula(doctor.cedula);
-      setEmail(doctor.email);
+      setCedula(doctor.cedula || doctor.cedula_prof || '');
+      setEmail(doctor.email || doctor.correo || '');
       setTelefono(doctor.telefono);
-      setFotoPerfil(doctor.foto_perfil || '');
+      setFotoPerfil(doctor.foto_perfil || doctor.foto || '');
       setBiografia(doctor.biografia || '');
-      setHorario(doctor.horario || '');
+      
+      const h = doctor.horario;
+      if (!h) {
+        setHorario('');
+      } else if (typeof h === 'object') {
+        setHorario(Object.entries(h).map(([k, v]) => `${k}: ${v}`).join(', '));
+      } else {
+        setHorario(String(h));
+      }
+
       setLinkedin(doctor.linkedin || '');
       setInstagram(doctor.instagram || '');
       setMpps(doctor.mpps || '');
