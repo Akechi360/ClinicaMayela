@@ -4,9 +4,10 @@
   --color-slate-dark: #3A434D;
   --color-slate-medium: #4B5663;
   --color-slate-light: #5F6C7A;
-  --color-satin-copper: #9C6348;
-  --color-satin-copper-hover: #804F36;
-  --color-satin-copper-light: #C28E75;
+  /* Botones y acentos: rose-petal */
+  --color-satin-copper: #E0A2A2;
+  --color-satin-copper-hover: #CC8A8A;
+  --color-satin-copper-light: #EEC4C4;
   --color-rose-gold: #9E5A64;
   --color-rose-champagne: #F2E7E2;
   --color-rose-champagne-light: #FBF8F6;
@@ -18,8 +19,8 @@
   --font-sans: 'Inter', sans-serif;
   --font-display: 'Playfair Display', serif;
 
-  --shadow-luxury: 0 20px 45px -10px rgba(58, 67, 77, 0.06), 0 30px 70px -15px rgba(166, 110, 83, 0.12);
-  --shadow-glass: 0 8px 32px 0 rgba(166, 110, 83, 0.08);
+  --shadow-luxury: 0 20px 45px -10px rgba(58, 67, 77, 0.06), 0 30px 70px -15px rgba(224, 162, 162, 0.12);
+  --shadow-glass: 0 8px 32px 0 rgba(224, 162, 162, 0.08);
 }
 
 @layer base {
@@ -56,22 +57,22 @@
   pointer-events: none;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
-  opacity: 0.15; /* Muy sutil, deja que el tono arena de base domine y añade textura elegante */
-  filter: saturate(40%) contrast(95%); /* Disminuye la saturación cromática para elegancia clínica */
+  opacity: 0.15;
+  filter: saturate(40%) contrast(95%);
 }
 
-/* Patrón de micro-puntos de lujo para textura */
+/* Patrón de micro-puntos */
 .bg-grid-overlay {
   position: fixed;
   inset: 0;
-  background-image: radial-gradient(rgba(166, 110, 83, 0.05) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(224, 162, 162, 0.06) 1px, transparent 1px);
   background-size: 24px 24px;
   pointer-events: none;
   z-index: -1;
   opacity: 0.95;
 }
 
-/* Glassmorphism Ultra Premium altamente traslúcido y limpio */
+/* Glassmorphism Ultra Premium */
 .glass-panel {
   background: rgba(255, 255, 255, 0.45) !important;
   backdrop-filter: blur(12px) saturate(140%) !important;
@@ -83,12 +84,12 @@
     0 4px 30px rgba(58, 67, 77, 0.01),
     0 15px 45px -10px rgba(58, 67, 77, 0.03),
     inset 0 1px 2px rgba(255, 255, 255, 0.7),
-    inset 0 -1px 1px rgba(166, 110, 83, 0.01) !important;
+    inset 0 -1px 1px rgba(224, 162, 162, 0.01) !important;
 }
 
-/* Luxury Card Glow with Satin Copper Outline */
+/* Luxury Card Glow */
 .luxury-card-glow {
-  border: 1px solid rgba(166, 110, 83, 0.12) !important;
+  border: 1px solid rgba(224, 162, 162, 0.14) !important;
   background: rgba(255, 255, 255, 0.45) !important;
   backdrop-filter: blur(12px) saturate(140%) !important;
   -webkit-backdrop-filter: blur(12px) saturate(140%) !important;
@@ -96,16 +97,16 @@
   backface-visibility: hidden;
   box-shadow: 
     0 20px 50px -15px rgba(58, 67, 77, 0.03),
-    0 0 30px 2px rgba(166, 110, 83, 0.02),
+    0 0 30px 2px rgba(224, 162, 162, 0.03),
     inset 0 1px 2px rgba(255, 255, 255, 0.8) !important;
 }
 
-/* Cristal Oscuro Esmerilado Premium (High-Fashion) */
+/* Cristal Oscuro Esmerilado */
 .glass-panel-dark {
   background: rgba(58, 67, 77, 0.85) !important;
   backdrop-filter: blur(12px) saturate(160%) !important;
   -webkit-backdrop-filter: blur(12px) saturate(160%) !important;
-  border: 1px solid rgba(166, 110, 83, 0.25) !important;
+  border: 1px solid rgba(224, 162, 162, 0.2) !important;
   transform: translateZ(0);
   backface-visibility: hidden;
   box-shadow: 
@@ -117,7 +118,7 @@
 .luxury-shadow {
   box-shadow: 
     0 15px 40px -10px rgba(58, 67, 77, 0.03),
-    0 35px 90px -15px rgba(166, 110, 83, 0.1) !important;
+    0 35px 90px -15px rgba(224, 162, 162, 0.1) !important;
 }
 
 .luxury-hover {
@@ -127,40 +128,41 @@
 .luxury-hover:hover {
   transform: translateY(-3px) scale(1.002) !important;
   background: rgba(255, 255, 255, 0.45) !important;
-  border-color: rgba(166, 110, 83, 0.18) !important;
+  border-color: rgba(224, 162, 162, 0.2) !important;
   box-shadow: 
     0 20px 50px -10px rgba(58, 67, 77, 0.06),
-    0 40px 90px -15px rgba(166, 110, 83, 0.14) !important;
+    0 40px 90px -15px rgba(224, 162, 162, 0.14) !important;
 }
 
-/* Acento metálico cobre satinado líquido */
+/* Botón principal: rose-petal con texto slate-dark */
 .satin-button {
-  background: linear-gradient(135deg, #A66E53 0%, #C28E75 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  background: linear-gradient(135deg, #E0A2A2 0%, #EEC4C4 100%) !important;
+  color: #3A434D !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
   box-shadow: 
-    0 8px 25px -5px rgba(166, 110, 83, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    0 8px 25px -5px rgba(224, 162, 162, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .satin-button:hover {
-  background: linear-gradient(135deg, #8E5B43 0%, #A66E53 100%) !important;
+  background: linear-gradient(135deg, #CC8A8A 0%, #E0A2A2 100%) !important;
   box-shadow: 
-    0 12px 30px -5px rgba(166, 110, 83, 0.45),
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.4) !important;
+    0 12px 30px -5px rgba(224, 162, 162, 0.5),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.45) !important;
   transform: translateY(-1.5px) !important;
 }
 
-/* Active Sidebar Item Glass */
+/* Active Sidebar Item */
 .sidebar-active-item {
   background: linear-gradient(135deg, rgba(58, 67, 77, 0.9) 0%, rgba(75, 86, 99, 0.9) 100%) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   box-shadow: 
     0 10px 20px -5px rgba(58, 67, 77, 0.25),
-    0 0 10px rgba(166, 110, 83, 0.05) !important;
+    0 0 10px rgba(224, 162, 162, 0.06) !important;
 }
 
-/* Filas flotantes para sustituir tablas rígidas */
+/* Filas flotantes */
 .floating-row {
   background: rgba(255, 255, 255, 0.32) !important;
   backdrop-filter: blur(12px) !important;
@@ -174,11 +176,11 @@
 
 .floating-row:hover {
   background: rgba(255, 255, 255, 0.6) !important;
-  border-color: rgba(166, 110, 83, 0.2) !important;
+  border-color: rgba(224, 162, 162, 0.22) !important;
   transform: translateY(-2px) scale(1.002) !important;
   box-shadow: 
     0 10px 25px -10px rgba(58, 67, 77, 0.05),
-    0 0 20px 2px rgba(166, 110, 83, 0.04) !important;
+    0 0 20px 2px rgba(224, 162, 162, 0.05) !important;
 }
 
 /* Custom Scrollbar */
@@ -192,33 +194,33 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(166, 110, 83, 0.25);
+  background: rgba(224, 162, 162, 0.3);
   border-radius: 99px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(166, 110, 83, 0.55);
+  background: rgba(224, 162, 162, 0.6);
 }
 
-/* Comparador deslizante */
+/* Slider handle */
 .slider-handle {
-  background: #A66E53;
+  background: #E0A2A2;
   border: 3px solid #FFFFFF;
   box-shadow: 0 4px 20px rgba(58, 67, 77, 0.25);
 }
 
 /* Enfoque accesible visible (WCAG AA) */
 :focus-visible {
-  outline: 2px solid #9E5A64 !important;
+  outline: 2px solid #E0A2A2 !important;
   outline-offset: 3px !important;
-  box-shadow: 0 0 0 4px rgba(158, 90, 100, 0.25) !important;
+  box-shadow: 0 0 0 4px rgba(224, 162, 162, 0.3) !important;
 }
 
-/* Ocultar barra de desplazamiento manteniendo funcionalidad */
+/* Ocultar barra de desplazamiento */
 .no-scrollbar::-webkit-scrollbar {
   display: none !important;
 }
 .no-scrollbar {
-  -ms-overflow-style: none !important;  /* IE y Edge */
-  scrollbar-width: none !important;  /* Firefox */
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
