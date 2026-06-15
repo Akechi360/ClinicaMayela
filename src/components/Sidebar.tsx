@@ -109,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           <div className="flex items-center gap-2.5">
             <span className={`${
-              active ? 'text-satin-copper-light' : 'text-slate-light group-hover:text-satin-copper'
+              active ? 'text-pure-white' : 'text-slate-light group-hover:text-rosa-petalo'
             } transition-colors duration-300`}>
               {item.icon}
             </span>
@@ -117,8 +117,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           {!collapsed && (
             active
-              ? <span className="w-1.5 h-1.5 rounded-full bg-satin-copper-light shadow-[0_0_8px_#C28E75]" />
-              : <span className="w-1 h-1 rounded-full bg-transparent group-hover:bg-satin-copper/40 transition-all duration-300" />
+              ? <span className="w-1.5 h-1.5 rounded-full bg-pure-white shadow-[0_0_8px_#EEC4C4]" />
+              : <span className="w-1 h-1 rounded-full bg-transparent group-hover:bg-rosa-petalo/40 transition-all duration-300" />
           )}
         </Link>
       );
@@ -142,7 +142,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <button
         onClick={onToggleCollapse}
         aria-label={collapsed ? 'Expandir menú lateral' : 'Colapsar menú lateral'}
-        className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 rounded-full bg-satin-copper hover:bg-satin-copper-hover text-pure-white items-center justify-center border border-pure-white/20 shadow-md cursor-pointer z-50 hover:scale-105 transition-all"
+        className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 rounded-full rosa-button items-center justify-center border border-pure-white/20 shadow-md cursor-pointer z-50 hover:scale-105 transition-all"
       >
         {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
       </button>
@@ -150,25 +150,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="space-y-6 overflow-y-auto no-scrollbar pr-1">
         {/* Brand */}
         <div className="flex flex-col items-center mb-6 text-center select-none group">
-          <div className="w-10 h-10 rounded-full bg-satin-copper/10 border border-satin-copper/20 flex items-center justify-center transition-transform duration-700 group-hover:rotate-180">
-            <span className="material-symbols-outlined text-satin-copper text-lg font-light">spa</span>
+          <div className="w-10 h-10 rounded-full bg-rosa-petalo/10 border border-rosa-petalo/20 flex items-center justify-center transition-transform duration-700 group-hover:rotate-180">
+            <span className="material-symbols-outlined text-rosa-petalo text-lg font-light">spa</span>
           </div>
           {!collapsed && (
             <>
-              <h1 className="text-sm font-display font-light text-slate-dark tracking-[0.3em] uppercase mt-3 transition-colors group-hover:text-satin-copper duration-500">Rejuvenece</h1>
-              <div className="w-6 h-[1px] bg-satin-copper/30 my-2" />
-              <p className="text-[8px] uppercase tracking-[0.2em] text-satin-copper font-bold truncate max-w-full">
+              <h1 className="text-sm font-display font-light text-slate-dark tracking-[0.3em] uppercase mt-3 transition-colors group-hover:text-rosa-petalo duration-500">Rejuvenece</h1>
+              <div className="w-6 h-[1px] bg-rosa-petalo/30 my-2" />
+              <p className="text-[8px] uppercase tracking-[0.2em] text-rosa-petalo font-bold truncate max-w-full">
                 {doctor?.nombre || 'Dra. Mayela González'}
               </p>
             </>
           )}
         </div>
 
-        {/* Nueva Cita */}
+        {/* Nueva Cita — rosa pétalo */}
         <button
           onClick={onNewCitaClick}
           aria-label="Programar nueva cita"
-          className="w-full satin-button text-slate-dark py-3 rounded-xl transition-all duration-300 mb-6 flex items-center justify-center gap-1.5 font-sans font-bold text-[10px] tracking-[0.15em] uppercase cursor-pointer"
+          className="w-full rosa-button py-3 rounded-xl transition-all duration-300 mb-6 flex items-center justify-center gap-1.5 font-sans font-bold text-[10px] tracking-[0.15em] uppercase cursor-pointer"
         >
           <Plus size={14} />
           {!collapsed && <span>Nueva Cita</span>}
@@ -188,17 +188,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Footer */}
-      <div className="border-t border-satin-copper/15 pt-5 space-y-2">
+      <div className="border-t border-rosa-petalo/15 pt-5 space-y-2">
         <nav className="space-y-1">{renderNavItems(accountItems)}</nav>
 
         {!collapsed && doctor && (
-          <div className="flex items-center gap-3 p-2 bg-pure-white/20 rounded-xl border border-satin-copper/10 select-none">
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-satin-copper/25 shadow-sm shrink-0">
+          <div className="flex items-center gap-3 p-2 bg-pure-white/20 rounded-xl border border-rosa-petalo/10 select-none">
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-rosa-petalo/25 shadow-sm shrink-0">
               <img src={doctor.foto || ''} alt={doctor.nombre || ''} className="w-full h-full object-cover" />
             </div>
             <div className="truncate min-w-0 flex-1">
               <p className="text-[9px] font-semibold text-slate-dark truncate leading-tight">{doctor.nombre}</p>
-              <p className="text-[7px] text-satin-copper font-bold uppercase tracking-wider truncate mt-0.5">{doctor.especialidad}</p>
+              <p className="text-[7px] text-rosa-petalo font-bold uppercase tracking-wider truncate mt-0.5">{doctor.especialidad}</p>
             </div>
           </div>
         )}
