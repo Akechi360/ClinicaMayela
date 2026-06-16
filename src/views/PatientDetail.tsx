@@ -5,6 +5,7 @@ import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRec
 import { supabase } from '../services/supabase';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 import { FaceCanvas } from '../components/FaceCanvas';
+import { ComposicionCorporalTab } from '../components/ComposicionCorporalTab';
 import { useToast } from '../components/Toast';
 import type { ExamenLaboratorio, RecipeMedico, Consentimiento, Paciente, DoctorProfile, MapaFacialCoordenada } from '../types/database.types';
 import {
@@ -24,11 +25,13 @@ import {
   X
 } from 'lucide-react';
 
+type ActiveTab = 'historial' | 'mapa' | 'citas' | 'finanzas' | 'examenes' | 'recipes' | 'consentimientos' | 'composicion';
+
 export const PatientDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useToast();
-  const [activeTab, setActiveTab] = useState<'historial' | 'mapa' | 'citas' | 'finanzas' | 'examenes' | 'recipes' | 'consentimientos'>('historial');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('historial');
   const queryClient = useQueryClient();
 
   const [showExamenModal, setShowExamenModal] = useState(false);
@@ -134,7 +137,6 @@ export const PatientDetail: React.FC = () => {
     onError: (err: Error) => toast.error(`Error al eliminar: ${err.message}`)
   });
 
-  // Focus trap — Examen Modal
   useEffect(() => {
     if (!showExamenModal || !examModalRef.current) return;
     const modal = examModalRef.current;
@@ -158,7 +160,6 @@ export const PatientDetail: React.FC = () => {
     return () => { window.removeEventListener('keydown', handleKeyDown); previouslyFocused?.focus(); };
   }, [showExamenModal]);
 
-  // Focus trap — Recipe Modal
   useEffect(() => {
     if (!showRecipeModal || !recipeModalRef.current) return;
     const modal = recipeModalRef.current;
@@ -318,6 +319,17 @@ export const PatientDetail: React.FC = () => {
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('es-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
 
+  const TABS: { id: ActiveTab; label: string }[] = [
+    { id: 'historial',       label: 'Historial Clínico' },
+    { id: 'composicion',     label: 'Composición Corporal' },
+    { id: 'mapa',            label: 'Mapa Facial' },
+    { id: 'citas',           label: 'Citas' },
+    { id: 'finanzas',        label: 'Finanzas' },
+    { id: 'examenes',        label: 'Exámenes de Lab.' },
+    { id: 'recipes',         label: 'Récipes' },
+    { id: 'consentimientos', label: 'Consentimientos' },
+  ];
+
   return (
     <div className="space-y-8 px-2">
       {/* Back & Title */}
@@ -373,18 +385,10 @@ export const PatientDetail: React.FC = () => {
 
       {/* Navigation Tabs */}
       <div className="border-b border-rose-champagne flex flex-wrap gap-x-6 gap-y-2 font-sans">
-        {[
-          { id: 'historial', label: 'Historial Clínico' },
-          { id: 'mapa', label: 'Mapa Facial' },
-          { id: 'citas', label: 'Citas' },
-          { id: 'finanzas', label: 'Finanzas' },
-          { id: 'examenes', label: 'Exámenes de Laboratorio' },
-          { id: 'recipes', label: 'Récipes Médicos' },
-          { id: 'consentimientos', label: 'Consentimientos' }
-        ].map((tab) => (
+        {TABS.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as typeof activeTab)}
+            onClick={() => setActiveTab(tab.id)}
             className={`pb-3.5 text-[10px] font-bold tracking-[0.15em] uppercase border-b-2 transition-all duration-300 ${
               activeTab === tab.id
                 ? 'border-satin-copper text-satin-copper'
@@ -398,6 +402,7 @@ export const PatientDetail: React.FC = () => {
 
       {/* Tab Content */}
       <div className="min-h-[300px] font-sans">
+
         {/* Historial */}
         {activeTab === 'historial' && (
           <div className="space-y-8">
@@ -468,6 +473,11 @@ export const PatientDetail: React.FC = () => {
               ))
             )}
           </div>
+        )}
+
+        {/* Composición Corporal */}
+        {activeTab === 'composicion' && id && (
+          <ComposicionCorporalTab pacienteId={id} />
         )}
 
         {/* Mapa Facial */}
