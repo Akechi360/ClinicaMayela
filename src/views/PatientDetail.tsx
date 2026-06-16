@@ -386,12 +386,12 @@ export const PatientDetail: React.FC = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="border-b border-rose-champagne flex flex-wrap gap-x-6 gap-y-2 font-sans">
+      <div className="border-b border-rose-champagne flex gap-x-6 overflow-x-auto whitespace-nowrap scrollbar-none font-sans pb-px">
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`pb-3.5 text-[10px] font-bold tracking-[0.15em] uppercase border-b-2 transition-all duration-300 ${
+            className={`pb-3.5 text-[10px] font-bold tracking-[0.15em] uppercase border-b-2 transition-all duration-300 shrink-0 ${
               activeTab === tab.id
                 ? 'border-satin-copper text-satin-copper'
                 : 'border-transparent text-slate-light hover:text-slate-dark'

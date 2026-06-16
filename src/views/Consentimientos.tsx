@@ -230,7 +230,7 @@ export const Consentimientos: React.FC = () => {
       {/* Contenedor principal con filtros */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Listado de Documentos (Lado izquierdo) */}
-        <div className="lg:col-span-7 space-y-4">
+        <div className={`lg:col-span-7 space-y-4 ${selectedDoc ? 'hidden lg:block' : 'block'}`}>
           {/* Barra de Filtros */}
           <div className="glass-panel p-4 rounded-2xl border border-pure-white/40 flex flex-col sm:flex-row gap-3 items-center">
             {/* Input Buscar */}
@@ -343,7 +343,7 @@ export const Consentimientos: React.FC = () => {
         </div>
 
         {/* Panel de Vista Previa y Acciones (Lado derecho) */}
-        <div className="lg:col-span-5">
+        <div className={`lg:col-span-5 ${selectedDoc ? 'block' : 'hidden lg:block'}`}>
           {selectedDocFromList ? (
             <div className="glass-panel p-5 rounded-3xl border border-pure-white/40 shadow-luxury space-y-5">
               {/* Encabezado Detalle */}

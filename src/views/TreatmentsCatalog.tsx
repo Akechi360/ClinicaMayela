@@ -212,7 +212,7 @@ const TreatmentGrid: React.FC<{ title: string; items: Tratamiento[]; onEdit: (t:
             </div>
             <button
               onClick={() => onEdit(t)}
-              className="opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8 rounded-full bg-satin-copper/10 hover:bg-satin-copper/20 flex items-center justify-center text-satin-copper cursor-pointer"
+              className="lg:opacity-0 lg:group-hover:opacity-100 opacity-100 transition-opacity w-8 h-8 rounded-full bg-satin-copper/10 hover:bg-satin-copper/20 flex items-center justify-center text-satin-copper cursor-pointer"
               aria-label={`Editar ${t.nombre}`}
             >
               <Edit2 size={13} />

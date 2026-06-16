@@ -224,7 +224,7 @@ export const DoctorProfile: React.FC = () => {
 
         {/* Vista Previa */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="sticky top-28 space-y-6">
+          <div className="lg:sticky lg:top-28 space-y-6">
             <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold px-1 select-none">Vista Previa de Tarjeta Médica</p>
             <div className="glass-panel rounded-3xl border border-pure-white/45 p-6 flex flex-col justify-between h-[450px] relative overflow-hidden group shadow-luxury">
               <div className="absolute -right-12 -top-12 w-44 h-44 bg-satin-copper/10 rounded-full filter blur-2xl pointer-events-none group-hover:scale-110 duration-700" />
