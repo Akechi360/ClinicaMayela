@@ -223,3 +223,17 @@ VALUES ('examenes','examenes',false,5242880,
 CREATE POLICY "Allow uploads" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'examenes');
 CREATE POLICY "Allow reads"   ON storage.objects FOR SELECT USING (bucket_id = 'examenes');
 CREATE POLICY "Allow deletes" ON storage.objects FOR DELETE USING (bucket_id = 'examenes');
+
+-- 2.13 composicion_corporal
+CREATE TABLE IF NOT EXISTS composicion_corporal (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  paciente_id    UUID NOT NULL REFERENCES pacientes(id) ON DELETE CASCADE,
+  fecha          DATE NOT NULL,
+  peso_kg        NUMERIC(5,2) NOT NULL,
+  grasa_pct      NUMERIC(5,2) NOT NULL,
+  masa_magra_kg  NUMERIC(5,2) GENERATED ALWAYS AS (peso_kg * (1 - grasa_pct / 100)) STORED,
+  notas          TEXT,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE composicion_corporal ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all" ON composicion_corporal FOR ALL USING (true);

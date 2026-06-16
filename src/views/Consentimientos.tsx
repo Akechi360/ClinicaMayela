@@ -4,6 +4,7 @@ import { SignaturePadModal } from '../components/SignaturePadModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbDoctor, dbPacientes, dbConsentimientos } from '../services/db';
 import type { Consentimiento } from '../types/database.types';
+import { useToast } from '../components/Toast';
 
 // Clausulado base por tipo de tratamiento
 const CLAUSULAS_POR_TRATAMIENTO: Record<string, string[]> = {
@@ -34,6 +35,7 @@ const CLAUSULAS_POR_TRATAMIENTO: Record<string, string[]> = {
 
 export const Consentimientos: React.FC = () => {
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   // Consultar consentimientos reales
   const { data: documentos = [], isLoading: loadingDocumentos } = useQuery({
@@ -60,6 +62,7 @@ export const Consentimientos: React.FC = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSignPad, setShowSignPad] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Formulario nuevo consentimiento
   const [selectedPacienteId, setSelectedPacienteId] = useState('');
@@ -138,7 +141,7 @@ export const Consentimientos: React.FC = () => {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error al generar el PDF:', error);
-      alert('Hubo un error al generar el PDF. Por favor intente de nuevo.');
+      toast.error('Hubo un error al generar el PDF. Por favor intente de nuevo.');
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -154,6 +157,16 @@ export const Consentimientos: React.FC = () => {
       return matchesSearch && matchesStatus;
     });
   }, [documentos, searchQuery, statusFilter]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusFilter]);
+
+  const itemsPerPage = 10;
+  const paginatedDocumentos = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return documentosFiltrados.slice(startIndex, startIndex + itemsPerPage);
+  }, [documentosFiltrados, currentPage]);
 
   // Guardar nueva firma y cambiar estado del documento
   const handleSaveSignature = (signatureBase64: string) => {
@@ -171,7 +184,7 @@ export const Consentimientos: React.FC = () => {
   const handleCreateDocument = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPacienteId || !nuevoPaciente || !nuevoDni) {
-      alert('Por favor seleccione un paciente.');
+      toast.warning('Por favor seleccione un paciente.');
       return;
     }
 
@@ -254,7 +267,7 @@ export const Consentimientos: React.FC = () => {
             {loadingDocumentos ? (
               <div className="text-center py-8 text-xs text-slate-medium">Cargando consentimientos...</div>
             ) : documentosFiltrados.length > 0 ? (
-              documentosFiltrados.map((doc) => (
+              paginatedDocumentos.map((doc) => (
                 <div
                   key={doc.id}
                   onClick={() => setSelectedDoc(doc)}
@@ -301,6 +314,29 @@ export const Consentimientos: React.FC = () => {
               <div className="glass-panel p-8 text-center rounded-2xl border border-pure-white/40">
                 <FileText className="mx-auto text-slate-light/50 mb-3" size={32} />
                 <p className="text-xs font-semibold text-slate-medium uppercase tracking-wider">No se encontraron documentos</p>
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {documentosFiltrados.length > itemsPerPage && (
+              <div className="flex justify-between items-center mt-6 p-4 glass-panel border border-pure-white/40 rounded-2xl font-sans">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border border-satin-copper/20 rounded-xl text-[9px] font-bold uppercase tracking-wider text-slate-medium hover:text-slate-dark disabled:opacity-50 disabled:cursor-not-allowed bg-pure-white/20 transition-all cursor-pointer"
+                >
+                  Anterior
+                </button>
+                <span className="text-[9px] font-bold text-slate-medium uppercase tracking-widest font-sans">
+                  Página {currentPage} de {Math.ceil(documentosFiltrados.length / itemsPerPage)}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(documentosFiltrados.length / itemsPerPage)))}
+                  disabled={currentPage === Math.ceil(documentosFiltrados.length / itemsPerPage)}
+                  className="px-4 py-2 border border-satin-copper/20 rounded-xl text-[9px] font-bold uppercase tracking-wider text-slate-medium hover:text-slate-dark disabled:opacity-50 disabled:cursor-not-allowed bg-pure-white/20 transition-all cursor-pointer"
+                >
+                  Siguiente
+                </button>
               </div>
             )}
           </div>

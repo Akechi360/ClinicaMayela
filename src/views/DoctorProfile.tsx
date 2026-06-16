@@ -3,9 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbDoctor } from '../services/db';
 import { Save, Upload, User, Globe, Mail, Phone, Calendar, Shield, Camera } from 'lucide-react';
+import { useToast } from '../components/Toast';
 
 export const DoctorProfile: React.FC = () => {
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const { data: doctor, isLoading } = useQuery({
     queryKey: ['doctor'],
@@ -62,7 +64,7 @@ export const DoctorProfile: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 1.5 * 1024 * 1024) {
-      alert('La imagen supera el límite de 1.5 MB.');
+      toast.error('La imagen supera el límite de 1.5 MB.');
       return;
     }
     const reader = new FileReader();

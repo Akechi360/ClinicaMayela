@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbTransacciones } from '../services/db';
 import type { Transaccion } from '../types/database.types';
@@ -17,7 +17,9 @@ import {
   CheckCircle,
   FileText,
   Search,
-  Check
+  Check,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
 
@@ -28,6 +30,7 @@ export const Finances: React.FC = () => {
   const toast = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: transacciones = [], isLoading } = useQuery<Transaccion[]>({
     queryKey: ['transacciones'],
@@ -111,6 +114,17 @@ export const Finances: React.FC = () => {
       );
     })
   , [transacciones, searchQuery]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(transaccionesFiltradas.length / itemsPerPage);
+  const paginatedTransacciones = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return transaccionesFiltradas.slice(startIndex, startIndex + itemsPerPage);
+  }, [transaccionesFiltradas, currentPage]);
 
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('es-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
@@ -261,7 +275,7 @@ export const Finances: React.FC = () => {
             <div className="py-12 text-center text-xs text-slate-light glass-panel rounded-3xl border border-pure-white/40">No hay transacciones registradas.</div>
           ) : (
             <div className="space-y-3">
-              {transaccionesFiltradas.map((tr) => (
+              {paginatedTransacciones.map((tr) => (
                 <div key={tr.id} className="floating-row rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden group border border-pure-white/40 animate-fadeIn">
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pure-white to-rose-champagne/60 border border-satin-copper/20 flex items-center justify-center text-xs text-satin-copper font-bold shadow-sm">
@@ -318,6 +332,29 @@ export const Finances: React.FC = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {transaccionesFiltradas.length > itemsPerPage && (
+            <div className="flex justify-between items-center mt-6 p-4 glass-panel border border-pure-white/40 rounded-2xl font-sans">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 border border-satin-copper/20 rounded-xl text-[9px] font-bold uppercase tracking-wider text-slate-medium hover:text-slate-dark disabled:opacity-50 disabled:cursor-not-allowed bg-pure-white/20 transition-all cursor-pointer flex items-center gap-1"
+              >
+                <ChevronLeft size={12} /> Anterior
+              </button>
+              <span className="text-[9px] font-bold text-slate-medium uppercase tracking-widest font-sans">
+                Página {currentPage} de {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 border border-satin-copper/20 rounded-xl text-[9px] font-bold uppercase tracking-wider text-slate-medium hover:text-slate-dark disabled:opacity-50 disabled:cursor-not-allowed bg-pure-white/20 transition-all cursor-pointer flex items-center gap-1"
+              >
+                Siguiente <ChevronRight size={12} />
+              </button>
             </div>
           )}
         </div>

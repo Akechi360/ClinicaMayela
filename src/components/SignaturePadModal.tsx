@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import SignaturePad from 'signature_pad';
 import { X } from 'lucide-react';
+import { useToast } from './Toast';
 
 interface SignaturePadModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
   onClose,
   onSave
 }) => {
+  const toast = useToast();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const signaturePadRef = useRef<SignaturePad | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
@@ -112,7 +114,7 @@ export const SignaturePadModal: React.FC<SignaturePadModalProps> = ({
   const handleSave = () => {
     if (!signaturePadRef.current) return;
     if (signaturePadRef.current.isEmpty()) {
-      alert('Por favor, dibuje su firma antes de guardar.');
+      toast.warning('Por favor, dibuje su firma antes de guardar.');
       return;
     }
     const dataUrl = signaturePadRef.current.toDataURL('image/png');

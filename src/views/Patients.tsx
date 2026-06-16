@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbPacientes, dbCitas } from '../services/db';
 import { Search, UserPlus, Phone, Mail, Award, Calendar, Eye, X } from 'lucide-react';
@@ -9,6 +9,7 @@ export const Patients: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterVip, setFilterVip] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
@@ -89,6 +90,16 @@ export const Patients: React.FC = () => {
     return matchesSearch;
   });
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterVip]);
+
+  const itemsPerPage = 10;
+  const paginatedPacientes = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return pacientesFiltrados.slice(startIndex, startIndex + itemsPerPage);
+  }, [pacientesFiltrados, currentPage]);
+
   return (
     <div className="space-y-8 px-2 font-sans">
       {/* Header */}
@@ -147,7 +158,7 @@ export const Patients: React.FC = () => {
             <p className="text-xs text-slate-medium">Intenta cambiar los filtros o el término de búsqueda.</p>
           </div>
         ) : (
-          pacientesFiltrados.map((paciente) => (
+          paginatedPacientes.map((paciente) => (
             <div key={paciente.id} className="floating-row rounded-2xl p-4.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative overflow-hidden group border border-pure-white/40">
               
               {/* Avatar and Name */}
@@ -201,6 +212,29 @@ export const Patients: React.FC = () => {
 
             </div>
           ))
+        )}
+
+        {/* Pagination Controls */}
+        {pacientesFiltrados.length > itemsPerPage && (
+          <div className="flex justify-between items-center mt-6 p-4 glass-panel border border-pure-white/40 rounded-2xl font-sans">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4.5 py-2 border border-satin-copper/20 rounded-xl text-[10px] font-bold uppercase tracking-wider text-slate-medium hover:text-slate-dark disabled:opacity-50 disabled:cursor-not-allowed bg-pure-white/20 transition-all cursor-pointer"
+            >
+              Anterior
+            </button>
+            <span className="text-[10px] font-bold text-slate-medium uppercase tracking-widest font-sans">
+              Página {currentPage} de {Math.ceil(pacientesFiltrados.length / itemsPerPage)}
+            </span>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(pacientesFiltrados.length / itemsPerPage)))}
+              disabled={currentPage === Math.ceil(pacientesFiltrados.length / itemsPerPage)}
+              className="px-4.5 py-2 border border-satin-copper/20 rounded-xl text-[10px] font-bold uppercase tracking-wider text-slate-medium hover:text-slate-dark disabled:opacity-50 disabled:cursor-not-allowed bg-pure-white/20 transition-all cursor-pointer"
+            >
+              Siguiente
+            </button>
+          </div>
         )}
       </div>
 

@@ -13,6 +13,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
+import { useConfirm } from '../components/ConfirmDialog';
 
 type EstadoCita = 'pendiente' | 'confirmado' | 'en_sala' | 'completado' | 'cancelado';
 
@@ -48,6 +49,7 @@ const ESTADO_LABEL: Record<EstadoCita, string> = {
 export const Agenda: React.FC = () => {
   const queryClient = useQueryClient();
   const toast = useToast();
+  const confirm = useConfirm();
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
@@ -193,56 +195,61 @@ export const Agenda: React.FC = () => {
           </button>
         </div>
 
-        {/* Day Headers */}
-        <div className="grid grid-cols-8 border-b border-satin-copper/10">
-          <div className="py-3 px-2 text-center">
-            <Clock size={12} className="mx-auto text-slate-light" />
-          </div>
-          {weekDays.map((day, i) => {
-            const isToday = day.toDateString() === new Date().toDateString();
-            return (
-              <div key={i} className={`py-3 text-center border-l border-satin-copper/8 ${isToday ? 'bg-satin-copper/5' : ''}`}>
-                <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold">{dayNames[i]}</p>
-                <p className={`text-lg font-display font-medium mt-0.5 ${
-                  isToday ? 'text-satin-copper' : 'text-slate-dark'
-                }`}>{day.getDate()}</p>
+        {/* Scrollable Container for Grid */}
+        <div className="overflow-x-auto">
+          <div className="min-w-[760px]">
+            {/* Day Headers */}
+            <div className="grid grid-cols-8 border-b border-satin-copper/10">
+              <div className="py-3 px-2 text-center">
+                <Clock size={12} className="mx-auto text-slate-light" />
               </div>
-            );
-          })}
-        </div>
-
-        {/* Time Grid */}
-        <div className="overflow-y-auto max-h-[520px]">
-          {isLoading ? (
-            <div className="py-16 flex items-center justify-center gap-2 text-xs text-slate-light">
-              <Loader2 size={16} className="animate-spin text-satin-copper" /> Cargando agenda...
+              {weekDays.map((day, i) => {
+                const isToday = day.toDateString() === new Date().toDateString();
+                return (
+                  <div key={i} className={`py-3 text-center border-l border-satin-copper/8 ${isToday ? 'bg-satin-copper/5' : ''}`}>
+                    <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold">{dayNames[i]}</p>
+                    <p className={`text-lg font-display font-medium mt-0.5 ${
+                      isToday ? 'text-satin-copper' : 'text-slate-dark'
+                    }`}>{day.getDate()}</p>
+                  </div>
+                );
+              })}
             </div>
-          ) : (
-            HOURS.map(hour => (
-              <div key={hour} className="grid grid-cols-8 border-b border-satin-copper/6 min-h-[64px] hover:bg-pure-white/10 transition-colors">
-                <div className="py-2 px-3 text-right">
-                  <span className="text-[10px] text-slate-light font-bold">{String(hour).padStart(2, '0')}:00</span>
+
+            {/* Time Grid */}
+            <div className="overflow-y-auto max-h-[520px]">
+              {isLoading ? (
+                <div className="py-16 flex items-center justify-center gap-2 text-xs text-slate-light">
+                  <Loader2 size={16} className="animate-spin text-satin-copper" /> Cargando agenda...
                 </div>
-                {weekDays.map((day, di) => {
-                  const slotCitas = getCitasForSlot(day, hour);
-                  return (
-                    <div key={di} className="py-1 px-1 border-l border-satin-copper/6 space-y-1">
-                      {slotCitas.map(cita => (
-                        <button
-                          key={cita.id}
-                          onClick={() => setSelectedCita(cita)}
-                          className={`w-full text-left px-2 py-1.5 rounded-lg border text-[9px] font-bold uppercase tracking-wide transition-all hover:scale-[1.02] cursor-pointer leading-tight ${ESTADO_STYLES[cita.estado]}`}
-                        >
-                          <span className="block truncate">{cita.paciente?.nombre?.split(' ')[0]}</span>
-                          <span className="block truncate font-normal normal-case text-[8px] opacity-80">{cita.tratamiento?.nombre}</span>
-                        </button>
-                      ))}
+              ) : (
+                HOURS.map(hour => (
+                  <div key={hour} className="grid grid-cols-8 border-b border-satin-copper/6 min-h-[64px] hover:bg-pure-white/10 transition-colors">
+                    <div className="py-2 px-3 text-right">
+                      <span className="text-[10px] text-slate-light font-bold">{String(hour).padStart(2, '0')}:00</span>
                     </div>
-                  );
-                })}
-              </div>
-            ))
-          )}
+                    {weekDays.map((day, di) => {
+                      const slotCitas = getCitasForSlot(day, hour);
+                      return (
+                        <div key={di} className="py-1 px-1 border-l border-satin-copper/6 space-y-1">
+                          {slotCitas.map(cita => (
+                            <button
+                              key={cita.id}
+                              onClick={() => setSelectedCita(cita)}
+                              className={`w-full text-left px-2 py-1.5 rounded-lg border text-[9px] font-bold uppercase tracking-wide transition-all hover:scale-[1.02] cursor-pointer leading-tight ${ESTADO_STYLES[cita.estado]}`}
+                            >
+                              <span className="block truncate">{cita.paciente?.nombre?.split(' ')[0]}</span>
+                              <span className="block truncate font-normal normal-case text-[8px] opacity-80">{cita.tratamiento?.nombre}</span>
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -367,8 +374,15 @@ export const Agenda: React.FC = () => {
             </div>
             <div className="px-5 py-3.5 bg-pure-white/20 border-t border-satin-copper/10 flex justify-between items-center">
               <button
-                onClick={() => {
-                  if (confirm('¿Eliminar esta cita permanentemente?')) {
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: '¿Eliminar Cita?',
+                    message: '¿Estás seguro de que deseas eliminar esta cita permanentemente?',
+                    confirmLabel: 'Sí, eliminar',
+                    cancelLabel: 'Cancelar',
+                    severity: 'danger'
+                  });
+                  if (ok) {
                     eliminarMutation.mutate(selectedCita.id);
                   }
                 }}

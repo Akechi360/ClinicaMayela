@@ -4,9 +4,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Settings, Save, Shield, Database, RefreshCw, MessageSquare, QrCode } from 'lucide-react';
 import { getClinicSettings, updateClinicSettings } from '../services/db';
 import type { ClinicSettings as ClinicSettingsType } from '../types/database.types';
+import { useToast } from '../components/Toast';
+import { useConfirm } from '../components/ConfirmDialog';
 
 export const ClinicSettings: React.FC = () => {
   const queryClient = useQueryClient();
+  const toast = useToast();
+  const confirm = useConfirm();
 
   // Settings from Supabase
   const { data: dbSettings, isLoading } = useQuery({
@@ -19,7 +23,7 @@ export const ClinicSettings: React.FC = () => {
     mutationFn: updateClinicSettings,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clinicSettings'] });
-      alert('Ajustes guardados correctamente.');
+      toast.success('Ajustes guardados correctamente.');
     }
   });
 
@@ -46,9 +50,16 @@ export const ClinicSettings: React.FC = () => {
     });
   };
 
-  const handleClearCache = () => {
-    if (confirm('¿Deseas restaurar la base de datos a sus valores iniciales? Esto ejecutará el script de migración en la base de datos de producción.')) {
-      alert('Esta acción ahora se gestiona directamente desde la consola o el script migrate_db.js.');
+  const handleClearCache = async () => {
+    const ok = await confirm({
+      title: '¿Restaurar Base de Datos?',
+      message: '¿Deseas restaurar la base de datos a sus valores iniciales? Esto ejecutará el script de migración en la base de datos de producción.',
+      confirmLabel: 'Sí, restaurar',
+      cancelLabel: 'Cancelar',
+      severity: 'danger'
+    });
+    if (ok) {
+      toast.warning('Esta acción ahora se gestiona directamente desde la consola o el script migrate_db.js.');
     }
   };
 

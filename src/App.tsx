@@ -7,6 +7,7 @@ import { WhatsappSimulator } from './components/WhatsappSimulator';
 import { PageLoadSkeleton } from './components/PageLoadSkeleton';
 import { ComingSoon } from './views/ComingSoon';
 import { ToastProvider } from './components/Toast';
+import { ConfirmProvider } from './components/ConfirmDialog';
 
 // Vistas con Lazy Loading
 const Dashboard = lazy(() => import('./views/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -116,9 +117,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <Router>
-          <AppLayout />
-        </Router>
+        <ConfirmProvider>
+          <Router>
+            <AppLayout />
+          </Router>
+        </ConfirmProvider>
       </ToastProvider>
     </QueryClientProvider>
   );

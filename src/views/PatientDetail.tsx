@@ -7,6 +7,7 @@ import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 import { FaceCanvas } from '../components/FaceCanvas';
 import { ComposicionCorporalTab } from '../components/ComposicionCorporalTab';
 import { useToast } from '../components/Toast';
+import { useConfirm } from '../components/ConfirmDialog';
 import type { ExamenLaboratorio, RecipeMedico, Consentimiento, Paciente, DoctorProfile, MapaFacialCoordenada } from '../types/database.types';
 import {
   ArrowLeft,
@@ -31,6 +32,7 @@ export const PatientDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useToast();
+  const confirm = useConfirm();
   const [activeTab, setActiveTab] = useState<ActiveTab>('historial');
   const queryClient = useQueryClient();
 
@@ -613,8 +615,13 @@ export const PatientDetail: React.FC = () => {
                           {new Date(examen.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </span>
                         <button
-                          onClick={() => {
-                            if (confirm('¿Desea eliminar este examen?')) deleteExamenMutation.mutate(examen.id);
+                          onClick={async () => {
+                            const ok = await confirm({
+                              title: 'Eliminar Examen',
+                              message: '¿Desea eliminar este examen?',
+                              severity: 'danger'
+                            });
+                            if (ok) deleteExamenMutation.mutate(examen.id);
                           }}
                           className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 cursor-pointer"
                         >
@@ -663,8 +670,13 @@ export const PatientDetail: React.FC = () => {
                           {new Date(recipe.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </span>
                         <button
-                          onClick={() => {
-                            if (confirm('¿Desea eliminar este récipe?')) deleteRecipeMutation.mutate(recipe.id);
+                          onClick={async () => {
+                            const ok = await confirm({
+                              title: 'Eliminar Récipe',
+                              message: '¿Desea eliminar este récipe?',
+                              severity: 'danger'
+                            });
+                            if (ok) deleteRecipeMutation.mutate(recipe.id);
                           }}
                           className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 cursor-pointer"
                         >

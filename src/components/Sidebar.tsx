@@ -15,7 +15,8 @@ import {
   Plus,
   User,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  X
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -52,13 +53,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const adminItems = [
     { name: 'Tratamientos', path: '/tratamientos', icon: <Sparkles size={18} /> },
-    { name: 'Galería', path: '/galeria', icon: <Image size={18} /> },
+    { name: 'Galería', path: '/galeria', icon: <Image size={18} />, badge: 'BETA' },
     { name: 'Finanzas', path: '/finanzas', icon: <DollarSign size={18} /> },
   ];
 
   const accountItems = [
     { name: 'Mi Perfil', path: '/perfil', icon: <User size={18} /> },
-    { name: 'Ajustes', path: '/ajustes', icon: <Settings size={18} /> },
+    { name: 'Ajustes', path: '/ajustes', icon: <Settings size={18} />, badge: 'BETA' },
   ];
 
   const isActive = (path: string) => {
@@ -96,7 +97,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }`;
 
   const renderNavItems = (items: typeof clinicalItems) =>
-    items.map((item) => {
+    items.map((item: any) => {
       const active = isActive(item.path);
       return (
         <Link
@@ -113,7 +114,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             } transition-colors duration-300`}>
               {item.icon}
             </span>
-            {!collapsed && <span className="uppercase tracking-[0.1em]">{item.name}</span>}
+            {!collapsed && (
+              <span className="uppercase tracking-[0.1em] flex items-center gap-1.5">
+                {item.name}
+                {item.badge && (
+                  <span className="px-1.5 py-0.5 rounded-md text-[6px] font-bold tracking-wider uppercase bg-rosa-petalo/25 text-rosa-petalo border border-rosa-petalo/45 shrink-0 animate-fadeIn">
+                    {item.badge}
+                  </span>
+                )}
+              </span>
+            )}
           </div>
           {!collapsed && (
             active
@@ -149,7 +159,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <div className="space-y-6 overflow-y-auto no-scrollbar pr-1">
         {/* Brand */}
-        <div className="flex flex-col items-center mb-6 text-center select-none group">
+        <div className="flex flex-col items-center mb-6 text-center select-none group relative">
+          {/* Mobile close button */}
+          <button
+            onClick={onCloseMobile}
+            className="lg:hidden absolute left-0 top-0 text-slate-medium hover:text-slate-dark p-1 rounded-xl transition-all cursor-pointer hover:bg-pure-white/45"
+            aria-label="Cerrar menú"
+          >
+            <X size={15} />
+          </button>
+
           <div className="w-10 h-10 rounded-full bg-rosa-petalo/10 border border-rosa-petalo/20 flex items-center justify-center transition-transform duration-700 group-hover:rotate-180">
             <span className="material-symbols-outlined text-rosa-petalo text-lg font-light">spa</span>
           </div>

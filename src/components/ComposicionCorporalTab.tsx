@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { Plus, Trash2, X, Activity } from 'lucide-react';
 import { useToast } from './Toast';
+import { useConfirm } from './ConfirmDialog';
 
 interface Props {
   pacienteId: string;
@@ -42,7 +43,19 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export const ComposicionCorporalTab: React.FC<Props> = ({ pacienteId }) => {
   const toast        = useToast();
+  const confirm      = useConfirm();
   const queryClient  = useQueryClient();
+
+  const handleEliminar = async (id: string) => {
+    const ok = await confirm({
+      title: '¿Eliminar Medición?',
+      message: '¿Estás seguro de que deseas eliminar esta medición de composición corporal permanentemente?',
+      confirmLabel: 'Sí, eliminar',
+      cancelLabel: 'Cancelar',
+      severity: 'danger'
+    });
+    if (ok) eliminarMutation.mutate(id);
+  };
   const [showModal, setShowModal] = useState(false);
 
   const [formFecha,   setFormFecha]   = useState(new Date().toISOString().split('T')[0]);
@@ -242,7 +255,7 @@ export const ComposicionCorporalTab: React.FC<Props> = ({ pacienteId }) => {
                       <p className="text-[8px] text-slate-light font-normal">Magra</p>
                     </div>
                     <button
-                      onClick={() => { if (confirm('¿Eliminar esta medición?')) eliminarMutation.mutate(m.id); }}
+                      onClick={() => handleEliminar(m.id)}
                       className="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50 cursor-pointer transition-colors"
                     >
                       <Trash2 size={13} />
