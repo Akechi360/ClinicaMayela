@@ -4,7 +4,8 @@ import type {
   DoctorProfile,
   ClinicSettings,
   Tratamiento,
-  Consentimiento
+  Consentimiento,
+  ComposicionCorporal
 } from '../types/database.types';
 
 // ─────────────────────────────────────────────
@@ -105,23 +106,18 @@ export const dbCitas = {
     return data ?? [];
   },
   insertar: async (datos: any): Promise<any> => {
-    // 1. Fetch treatment price
     const { data: treatment, error: tErr } = await supabase
       .from('tratamientos')
       .select('precio')
       .eq('id', datos.tratamiento_id)
       .single();
     if (tErr) throw new Error(tErr.message);
-
-    // 2. Insert appointment
     const { data: appointment, error: aErr } = await supabase
       .from('citas')
       .insert(datos)
       .select()
       .single();
     if (aErr) throw new Error(aErr.message);
-
-    // 3. Create pending transaction
     const transaction = {
       paciente_id: appointment.paciente_id,
       cita_id: appointment.id,
@@ -134,7 +130,6 @@ export const dbCitas = {
       .from('transacciones')
       .insert(transaction);
     if (trErr) throw new Error(trErr.message);
-
     return appointment;
   },
   actualizarEstado: async (id: string, estado: string): Promise<any> => {
@@ -320,7 +315,7 @@ export const dbExamenes = {
 };
 
 // ─────────────────────────────────────────────
-// CONSENTIMIENTOS (NUEVO)
+// CONSENTIMIENTOS
 // ─────────────────────────────────────────────
 
 export const dbConsentimientos = {
@@ -394,6 +389,38 @@ export const dbRecipes = {
   eliminar: async (id: string): Promise<void> => {
     const { error } = await supabase
       .from('recipes_medicos')
+      .delete()
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+};
+
+// ─────────────────────────────────────────────
+// COMPOSICIÓN CORPORAL
+// ─────────────────────────────────────────────
+
+export const dbComposicionCorporal = {
+  listarPorPaciente: async (pacienteId: string): Promise<ComposicionCorporal[]> => {
+    const { data, error } = await supabase
+      .from('composicion_corporal')
+      .select('*')
+      .eq('paciente_id', pacienteId)
+      .order('fecha', { ascending: true });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  },
+  insertar: async (datos: Omit<ComposicionCorporal, 'id' | 'masa_magra_kg' | 'created_at'>): Promise<ComposicionCorporal> => {
+    const { data, error } = await supabase
+      .from('composicion_corporal')
+      .insert(datos)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data;
+  },
+  eliminar: async (id: string): Promise<void> => {
+    const { error } = await supabase
+      .from('composicion_corporal')
       .delete()
       .eq('id', id);
     if (error) throw new Error(error.message);

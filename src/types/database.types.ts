@@ -61,11 +61,10 @@ export interface Cita {
   paciente_id?: string;
   fecha_hora:  string;
   tipo?:       string;
-  estado:      string; // allow 'pendiente' | 'completada' | 'cancelada' | 'en_sala' | 'confirmado' | 'cancelado'
+  estado:      string;
   notas?:      string;
   origen?:     'manual' | 'whatsapp';
   created_at?: string;
-  // join y retrocompatibilidad
   pacientes?:  Pick<Paciente, 'nombre' | 'apellido' | 'telefono'>;
   tratamiento?: any;
   tratamiento_id?: string;
@@ -114,7 +113,6 @@ export interface ClinicSettings {
   updated_at?:         string;
 }
 
-// Retrocompatibilidad
 export interface Tratamiento {
   id: string;
   nombre: string;
@@ -145,7 +143,7 @@ export interface ExamenLaboratorio {
   paciente_id: string;
   titulo: string;
   fecha: string;
-  archivo_url?: string; // Base64
+  archivo_url?: string;
   notas?: string;
   created_at?: string;
 }
@@ -172,4 +170,15 @@ export interface Consentimiento {
   version: number;
   clausulas: string[];
   created_at: string;
+}
+
+export interface ComposicionCorporal {
+  id: string;
+  paciente_id: string;
+  fecha: string;
+  peso_kg: number;
+  grasa_pct: number;
+  masa_magra_kg: number; // columna generada en Supabase
+  notas?: string;
+  created_at?: string;
 }
