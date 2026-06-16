@@ -342,10 +342,10 @@ export const PatientDetail: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
           <div className="flex items-center gap-4">
             <span className="w-14 h-14 rounded-full bg-satin-copper/10 border border-satin-copper/15 flex items-center justify-center text-lg text-satin-copper font-bold shadow-md">
-              {paciente.nombre.split(' ').map((n: string) => n[0]).join('')}
+              {paciente.nombre.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
             </span>
             <div>
-              <h2 className="text-2xl md:text-3xl font-display font-medium text-slate-dark flex items-center gap-2 leading-none">
+              <h2 className="text-xl md:text-3xl font-display font-medium text-slate-dark flex flex-wrap items-center gap-2 leading-tight">
                 {paciente.nombre}
                 {paciente.es_vip && (
                   <span className="text-[9px] bg-satin-copper/10 border border-satin-copper/20 text-satin-copper font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">VIP</span>
@@ -356,7 +356,7 @@ export const PatientDetail: React.FC = () => {
           </div>
           <button
             onClick={() => navigate(`/nueva-entrada?pacienteId=${paciente.id}`)}
-            className="bg-satin-copper hover:bg-satin-copper-hover text-pure-white text-xs font-semibold py-2.5 px-5 rounded-xl transition-all flex items-center gap-2"
+            className="w-full sm:w-auto bg-satin-copper hover:bg-satin-copper-hover text-pure-white text-xs font-semibold py-2.5 px-5 rounded-xl transition-all flex items-center justify-center gap-2"
           >
             <Plus size={15} /> Registrar Procedimiento
           </button>
@@ -364,11 +364,11 @@ export const PatientDetail: React.FC = () => {
       </div>
 
       {/* Patient Overview Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 glass-panel p-6 rounded-3xl shadow-luxury border border-pure-white/40 font-sans">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 glass-panel p-6 rounded-3xl shadow-luxury border border-pure-white/40 font-sans">
         <div className="space-y-1">
           <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold">Contacto</p>
           <p className="text-xs text-slate-dark font-semibold flex items-center gap-1.5"><Phone size={11} className="text-slate-light" /> {paciente.telefono}</p>
-          <p className="text-xs text-slate-dark font-semibold flex items-center gap-1.5"><Mail size={11} className="text-slate-light" /> {paciente.email}</p>
+          <p className="text-xs text-slate-dark font-semibold flex items-center gap-1.5 break-all"><Mail size={11} className="text-slate-light" /> {paciente.email}</p>
         </div>
         <div className="space-y-1">
           <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold">Datos Personales</p>

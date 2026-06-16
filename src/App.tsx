@@ -5,9 +5,11 @@ import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
 import { WhatsappSimulator } from './components/WhatsappSimulator';
 import { PageLoadSkeleton } from './components/PageLoadSkeleton';
-import { ComingSoon } from './views/ComingSoon';
 import { ToastProvider } from './components/Toast';
 import { ConfirmProvider } from './components/ConfirmDialog';
+import { Login } from './views/Login';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { supabase } from './services/supabase';
 
 // Vistas con Lazy Loading
 const Dashboard = lazy(() => import('./views/Dashboard').then(m => ({ default: m.Dashboard })));
@@ -36,8 +38,13 @@ const AppLayout: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = () => {
-    navigate('/sesion-cerrada');
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Error signing out:', err);
+    }
+    navigate('/login');
   };
 
   return (
@@ -94,15 +101,6 @@ const AppLayout: React.FC = () => {
               <Route path="/ajustes" element={<ClinicSettings />} />
               <Route path="/consentimientos" element={<Consentimientos />} />
               <Route path="/perfil" element={<DoctorProfile />} />
-              <Route
-                path="/sesion-cerrada"
-                element={
-                  <ComingSoon
-                    moduleName="Sesión Cerrada"
-                    progress={40}
-                  />
-                }
-              />
             </Routes>
           </Suspense>
         </main>
@@ -119,7 +117,17 @@ function App() {
       <ToastProvider>
         <ConfirmProvider>
           <Router>
-            <AppLayout />
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/*"
+                element={
+                  <ProtectedRoute>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
           </Router>
         </ConfirmProvider>
       </ToastProvider>

@@ -74,14 +74,13 @@ export const BeforeAfterSlider: React.FC<BeforeAfterSliderProps> = ({
 
       {/* Before Image (Overlay clipped by slider position) */}
       <div 
-        className="absolute inset-0 overflow-hidden pointer-events-none z-10"
-        style={{ width: `${sliderPosition}%` }}
+        className="absolute inset-0 overflow-hidden pointer-events-none z-10 w-full h-full"
+        style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
       >
         <img 
           src={beforeImage} 
           alt="Antes" 
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none max-w-none"
-          style={{ width: containerRef.current ? containerRef.current.getBoundingClientRect().width : '100%' }}
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
         />
       </div>
       <div className="absolute top-4 left-4 bg-pure-white/90 backdrop-blur-sm text-slate-dark text-[10px] font-sans font-semibold uppercase tracking-widest px-3 py-1 rounded shadow-sm z-20">

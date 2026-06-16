@@ -147,7 +147,7 @@ export const ComposicionCorporalTab: React.FC<Props> = ({ pacienteId }) => {
         <>
           {/* KPIs */}
           {mediciones.length >= 2 && (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 { label: 'Δ Peso',       val: deltaPeso,  unit: 'kg',  invertido: true },
                 { label: 'Δ % Grasa',    val: deltaGrasa, unit: '%',   invertido: true },
@@ -229,7 +229,7 @@ export const ComposicionCorporalTab: React.FC<Props> = ({ pacienteId }) => {
             </div>
             <div className="divide-y divide-rosa-petalo/8">
               {mediciones.map((m, i) => (
-                <div key={m.id} className="px-5 py-3.5 flex items-center justify-between hover:bg-pure-white/20 transition-colors">
+                <div key={m.id} className="px-5 py-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:bg-pure-white/20 transition-colors">
                   <div className="flex items-center gap-3">
                     <span className="w-6 h-6 rounded-full bg-rosa-petalo/10 text-rosa-petalo text-[9px] font-bold flex items-center justify-center border border-rosa-petalo/20">
                       {i + 1}
@@ -241,7 +241,7 @@ export const ComposicionCorporalTab: React.FC<Props> = ({ pacienteId }) => {
                       {m.notas && <p className="text-[9px] text-slate-light italic mt-0.5">{m.notas}</p>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-6 text-[10px] font-bold">
+                  <div className="flex items-center justify-between sm:justify-end gap-6 text-[10px] font-bold w-full sm:w-auto">
                     <div className="text-center">
                       <p className="text-slate-dark">{m.peso_kg} kg</p>
                       <p className="text-[8px] text-slate-light font-normal">Peso</p>

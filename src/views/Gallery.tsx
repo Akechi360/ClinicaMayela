@@ -40,7 +40,7 @@ export const Gallery: React.FC = () => {
       </div>
 
       {/* Filter bar */}
-      <div className="flex items-center gap-3 glass-panel p-4 rounded-2xl shadow-luxury border border-pure-white/40 w-full">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-3 glass-panel p-4 rounded-2xl shadow-luxury border border-pure-white/40 w-full">
         <span className="text-xs text-slate-medium flex items-center gap-1.5 font-semibold"><ListFilter size={14} className="text-satin-copper" /> Filtrar por procedimiento:</span>
         <select
           value={selectedTratamientoId}
