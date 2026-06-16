@@ -25,7 +25,6 @@ const ROSA     = '#E0A2A2';
 const ROSA_OSC = '#CC8A8A';
 const SLATE    = '#3A434D';
 const OLIVE    = '#6B7A5E';
-const BLANCO   = '#FDFAF8';
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
