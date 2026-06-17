@@ -108,7 +108,7 @@ export const Finances: React.FC = () => {
     transacciones.filter(t => {
       const query = searchQuery.toLowerCase();
       return (
-        t.paciente?.nombre?.toLowerCase().includes(query) ||
+        [t.paciente?.nombre, t.paciente?.apellido].filter(Boolean).join(' ').toLowerCase().includes(query) ||
         String(t.monto).includes(query) ||
         t.estado?.toLowerCase().includes(query)
       );
@@ -282,7 +282,7 @@ export const Finances: React.FC = () => {
                       {tr.paciente?.nombre?.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
                     </div>
                     <div>
-                      <h4 className="font-display font-medium text-sm text-slate-dark">{tr.paciente?.nombre}</h4>
+                      <h4 className="font-display font-medium text-sm text-slate-dark">{[tr.paciente?.nombre, tr.paciente?.apellido].filter(Boolean).join(' ')}</h4>
                       <p className="text-[9px] text-slate-light mt-0.5 font-bold tracking-wider uppercase">
                         {new Date(tr.fecha.includes('T') ? tr.fecha : `${tr.fecha}T00:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>

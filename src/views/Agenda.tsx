@@ -279,7 +279,7 @@ export const Agenda: React.FC = () => {
                 <select required value={newPacienteId} onChange={e => setNewPacienteId(e.target.value)}
                   className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold">
                   <option value="">Seleccionar paciente...</option>
-                  {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                  {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido || ''}</option>)}
                 </select>
               </div>
               <div>
@@ -333,7 +333,7 @@ export const Agenda: React.FC = () => {
             <div className="p-5 space-y-3 text-xs">
               <div className="space-y-1">
                 <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold">Paciente</p>
-                <p className="font-display font-medium text-slate-dark text-sm">{selectedCita.paciente?.nombre}</p>
+                <p className="font-display font-medium text-slate-dark text-sm">{[selectedCita.paciente?.nombre, selectedCita.paciente?.apellido].filter(Boolean).join(' ')}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold">Tratamiento</p>

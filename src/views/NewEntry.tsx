@@ -83,7 +83,7 @@ export const NewEntry: React.FC = () => {
       if (consentAccepted && selectedPaciente && selectedTratamiento) {
         await dbConsentimientos.insertar({
           paciente_id:       pacienteId,
-          paciente_nombre:   selectedPaciente.nombre,
+          paciente_nombre:   [selectedPaciente.nombre, selectedPaciente.apellido].filter(Boolean).join(' '),
           paciente_dni:      selectedPaciente.cedula ?? '',
           tratamiento_nombre: selectedTratamiento.nombre,
           doctor_nombre:     'Dra. Mayela González',
@@ -183,7 +183,7 @@ export const NewEntry: React.FC = () => {
                 <select required value={pacienteId} onChange={e => setPacienteId(e.target.value)}
                   className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-xl px-3 py-2.5 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold">
                   <option value="">Seleccionar paciente...</option>
-                  {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                  {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido || ''}</option>)}
                 </select>
               </div>
               <div>

@@ -448,7 +448,7 @@ export async function getDashboardStats() {
     supabase.from('citas').select('*', { count: 'exact', head: true })
       .eq('estado', 'pendiente'),
     supabase.from('historial_clinico')
-      .select('tratamiento, fecha, paciente:pacientes(nombre)')
+      .select('fecha, tratamiento:tratamientos(nombre), paciente:pacientes(nombre, apellido)')
       .order('fecha', { ascending: false })
       .limit(5),
   ]);
@@ -459,10 +459,12 @@ export async function getDashboardStats() {
     citasPendientes: citasPendientes ?? 0,
     ultimosHistoriales: (ultimoHistorial ?? []).map(h => {
       const p = Array.isArray(h.paciente) ? h.paciente[0] : h.paciente;
+      const t = Array.isArray(h.tratamiento) ? h.tratamiento[0] : h.tratamiento;
+      const fullPacienteName = p ? [p.nombre, p.apellido].filter(Boolean).join(' ') : 'Paciente';
       return {
-        tratamiento: h.tratamiento || 'Tratamiento',
+        tratamiento: t?.nombre || 'Tratamiento',
         fecha: h.fecha,
-        pacientes: p ? { nombre: p.nombre, apellido: '' } : { nombre: 'Paciente', apellido: '' }
+        pacientes: { nombre: fullPacienteName, apellido: '' }
       };
     })
   };

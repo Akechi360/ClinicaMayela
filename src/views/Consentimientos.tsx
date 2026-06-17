@@ -474,7 +474,7 @@ export const Consentimientos: React.FC = () => {
                     setSelectedPacienteId(pId);
                     const p = pacientes.find(item => item.id === pId);
                     if (p) {
-                      setNuevoPaciente(p.nombre);
+                      setNuevoPaciente([p.nombre, p.apellido].filter(Boolean).join(' '));
                       setNuevoDni(p.cedula || '');
                     } else {
                       setNuevoPaciente('');
@@ -485,7 +485,7 @@ export const Consentimientos: React.FC = () => {
                 >
                   <option value="">Selecciona un paciente</option>
                   {pacientes.map(p => (
-                    <option key={p.id} value={p.id}>{p.nombre} ({p.cedula || 'Sin DNI'})</option>
+                    <option key={p.id} value={p.id}>{p.nombre} {p.apellido || ''} ({p.cedula || 'Sin DNI'})</option>
                   ))}
                 </select>
               </div>
