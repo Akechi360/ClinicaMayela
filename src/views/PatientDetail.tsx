@@ -364,7 +364,7 @@ export const PatientDetail: React.FC = () => {
       </div>
 
       {/* Patient Overview Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 glass-panel p-6 rounded-3xl shadow-luxury border border-pure-white/40 font-sans">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 glass-panel p-6 rounded-3xl shadow-luxury border border-pure-white/40 font-sans">
         <div className="space-y-1">
           <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold">Contacto</p>
           <p className="text-xs text-slate-dark font-semibold flex items-center gap-1.5"><Phone size={11} className="text-slate-light" /> {paciente.telefono}</p>
@@ -382,6 +382,10 @@ export const PatientDetail: React.FC = () => {
         <div className="space-y-1">
           <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold">Antecedentes Médicos</p>
           <p className="text-xs text-slate-medium italic line-clamp-2 leading-relaxed">{paciente.antecedentes || 'Sin registrar'}</p>
+        </div>
+        <div className="space-y-1">
+          <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold">Notas Generales</p>
+          <p className="text-xs text-slate-medium italic line-clamp-2 leading-relaxed">{paciente.notas || 'Sin registrar'}</p>
         </div>
       </div>
 

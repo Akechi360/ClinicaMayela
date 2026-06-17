@@ -1,61 +1,36 @@
-// scripts/migrate_db.js
-// Ejecutar con: node scripts/migrate_db.js
 import { createClient } from '@supabase/supabase-js';
 import 'dotenv/config';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY // service_role key (no la anon)
-);
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
-// ─────────────────────────────────────────────
-// DATOS DE PRUEBA
-// ─────────────────────────────────────────────
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('❌ SUPABASE_URL o SUPABASE_SERVICE_KEY no están definidos en las variables de entorno (.env)');
+  process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
 const PACIENTE_PRUEBA = {
-  nombre:     'Ana',
-  apellido:   'García López',
-  cedula:     'V-12345678',
-  telefono:   '584141234567',
-  correo:     'ana.garcia@email.com',
-  fecha_nac:  '1990-05-14',
-  notas:      'Paciente de prueba generada por migración inicial.',
+  nombre:           'Ana',
+  apellido:         'García López',
+  cedula:           'V-12345678',
+  telefono:         '584141234567',
+  email:            'ana.garcia@email.com',
+  fecha_nacimiento: '1990-05-14',
+  notas:            'Paciente de prueba generada por migración inicial.',
+  antecedentes:     'Ninguno relevante.',
+  alergias:         'Ninguna conocida.'
 };
 
-const HISTORIAL_PRUEBA = (paciente_id) => ([
-  {
-    paciente_id,
-    tratamiento:             'Toxina Botulínica — Frente',
-    notas_medicas:           'Primera aplicación. Sin antecedentes alérgicos.',
-    antecedentes:            'Ninguno relevante.',
-    foto_antes:              null,
-    foto_despues:            null,
-    mapa_facial_coordenadas: [
-      { x: 0.12, y: 0.72, z: 0.18, zona: 'Frontal', producto: 'Toxina Botulínica (Botox)', dosis: 10 },
-      { x: -0.10, y: 0.68, z: 0.20, zona: 'Glabela', producto: 'Toxina Botulínica (Botox)', dosis: 8 },
-    ],
-    productos_usados: [
-      { nombre: 'Toxina Botulínica (Botox)', dosis: 18, unidad: 'U' }
-    ],
-  }
-]);
-
-const CITA_PRUEBA = (paciente_id) => ({
-  paciente_id,
-  fecha_hora: new Date(Date.now() + 86400000 * 3).toISOString(), // en 3 días
-  tipo:       'Seguimiento Botox',
-  estado:     'pendiente',
-  origen:     'manual',
-  notas:      'Primera cita de seguimiento post-migración.',
-});
-
 const DOCTOR_PROFILE = {
-  nombre:      'Dra. Mayela',
-  especialidad:'Medicina Estética',
-  cedula_prof: 'ME-00001',
-  correo:      'dra.mayela@clinicamayela.com',
-  telefono:    '584140000000',
-  biografia:   'Especialista en medicina estética y tratamientos no invasivos.',
-  horario:     { lunes: '09:00-17:00', martes: '09:00-17:00', miercoles: '09:00-14:00', jueves: '09:00-17:00', viernes: '09:00-15:00' },
+  nombre:       'Dra. Mayela Silva',
+  especialidad: 'Medicina Estética & Bienestar',
+  cedula:       'ME-00001',
+  email:        'dra.mayela@clinicamayela.com',
+  telefono:     '584140000000',
+  biografia:    'Especialista en medicina estética y tratamientos no invasivos.',
+  horario:      'Lunes a Viernes de 9:00 a 17:00, Sábados de 9:00 a 14:00',
 };
 
 const CLINIC_SETTINGS = {
@@ -66,17 +41,14 @@ const CLINIC_SETTINGS = {
   mensaje_bienvenida:  '👋 Hola, soy el asistente de *Clínica Mayela*. ¿En qué te puedo ayudar?',
 };
 
-// ─────────────────────────────────────────────
-// MIGRACIÓN
-// ─────────────────────────────────────────────
 async function migrate() {
   console.log('\n🚀 Iniciando migración a Supabase...\n');
 
   // 1. Doctor Profile
-  console.log('👩⚕️  Insertando perfil de doctora...');
+  console.log('👩‍⚕️  Insertando perfil de doctora...');
   const { error: eDoc } = await supabase
     .from('doctor_profile')
-    .upsert(DOCTOR_PROFILE, { onConflict: 'cedula_prof' });
+    .upsert(DOCTOR_PROFILE, { onConflict: 'cedula' });
   if (eDoc) throw new Error(`doctor_profile: ${eDoc.message}`);
   console.log('   ✅ Perfil de doctora insertado.');
 
@@ -97,7 +69,21 @@ async function migrate() {
     console.log('   ⚠️  Configuración ya existe, omitiendo.');
   }
 
-  // 3. Paciente de prueba
+  // 3. Obtener tratamiento semilla para asociar FKs
+  console.log('💊  Obteniendo ID de tratamiento semilla...');
+  const { data: treatments, error: eTreat } = await supabase
+    .from('tratamientos')
+    .select('id')
+    .eq('nombre', 'Toxina Botulínica (Botox)')
+    .limit(1);
+  if (eTreat) throw new Error(`tratamientos query: ${eTreat.message}`);
+  if (!treatments || treatments.length === 0) {
+    throw new Error("No se encontró el tratamiento 'Toxina Botulínica (Botox)' en Supabase. Corre schema.sql primero.");
+  }
+  const tratamientoId = treatments[0].id;
+  console.log(`   ✅ ID de Tratamiento obtenido: ${tratamientoId}`);
+
+  // 4. Paciente de prueba
   console.log('👤  Insertando paciente de prueba...');
   const { data: pacienteData, error: ePac } = await supabase
     .from('pacientes')
@@ -108,19 +94,40 @@ async function migrate() {
   const pacienteId = pacienteData.id;
   console.log(`   ✅ Paciente creado con UUID: ${pacienteId}`);
 
-  // 4. Historial clínico
+  // 5. Historial clínico
   console.log('📋  Insertando historial clínico...');
+  const coordenadas = [
+    { x: 0.12, y: 0.72, z: 0.18, zona: 'Frontal', producto: 'Toxina Botulínica (Botox)', dosis: 10 },
+    { x: -0.10, y: 0.68, z: 0.20, zona: 'Glabela', producto: 'Toxina Botulínica (Botox)', dosis: 8 },
+  ];
+
   const { error: eHis } = await supabase
     .from('historial_clinico')
-    .insert(HISTORIAL_PRUEBA(pacienteId));
+    .insert({
+      paciente_id: pacienteId,
+      tratamiento_id: tratamientoId,
+      fecha: new Date().toISOString().split('T')[0],
+      producto: 'Toxina Botulínica (Botox)',
+      cantidad: '18 U',
+      lote: 'LOTE-BOTOX-2026',
+      tecnica: 'Técnica rusa / 3 puntos',
+      notas_medicas: 'Primera aplicación. Sin antecedentes alérgicos.',
+      mapa_facial_coordenadas: coordenadas
+    });
   if (eHis) throw new Error(`historial_clinico: ${eHis.message}`);
   console.log('   ✅ Historial clínico insertado.');
 
-  // 5. Cita de prueba
+  // 6. Cita de prueba
   console.log('📅  Insertando cita de prueba...');
   const { error: eCit } = await supabase
     .from('citas')
-    .insert(CITA_PRUEBA(pacienteId));
+    .insert({
+      paciente_id: pacienteId,
+      tratamiento_id: tratamientoId,
+      fecha_hora: new Date(Date.now() + 86400000 * 3).toISOString(),
+      estado: 'pendiente',
+      notas: 'Primera cita de seguimiento post-migración.'
+    });
   if (eCit) throw new Error(`citas: ${eCit.message}`);
   console.log('   ✅ Cita de prueba insertada.');
 

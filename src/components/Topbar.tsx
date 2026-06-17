@@ -37,7 +37,7 @@ export const Topbar: React.FC<TopbarProps> = ({
     if (path.startsWith('/ajustes')) return 'Ajustes del Sistema';
     if (path.startsWith('/nueva-entrada')) return 'Registro de Tratamiento';
     if (path.startsWith('/perfil')) return 'Perfil Profesional';
-    return 'Rejuvenece';
+    return 'Clínica Mayela';
   };
 
   return (

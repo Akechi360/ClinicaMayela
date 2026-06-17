@@ -100,8 +100,8 @@ export const Login: React.FC = () => {
                 </svg>
               </div>
               <div>
-                <h1 className="text-base font-display font-light text-slate-dark tracking-[0.3em] uppercase leading-none">Rejuvenece</h1>
-                <p className="text-[8px] uppercase tracking-[0.2em] text-rosa-petalo font-bold mt-1">MIND · GYNAE</p>
+                <h1 className="text-base font-display font-light text-slate-dark tracking-[0.3em] uppercase leading-none">Clínica Mayela</h1>
+                <p className="text-[8px] uppercase tracking-[0.2em] text-rosa-petalo font-bold mt-1">MEDICINA ESTÉTICA · BIENESTAR</p>
               </div>
             </div>
           </div>
@@ -109,8 +109,8 @@ export const Login: React.FC = () => {
           {/* Textos centrales */}
           <div className="my-10 md:my-0 space-y-4 max-w-sm relative z-10">
             <h2 className="text-2xl md:text-3.5xl font-display font-light text-slate-dark leading-tight tracking-wide">
-              Bienestar integral <br />
-              <span className="italic text-rosa-petalo font-normal">para cada etapa de tu vida</span>
+              Tu belleza natural, <br />
+              <span className="italic text-rosa-petalo font-normal">potenciada por la ciencia</span>
             </h2>
             <div className="flex items-center gap-3 w-1/3 py-1">
               <div className="h-[1px] bg-rosa-petalo/30 flex-1" />
@@ -118,7 +118,7 @@ export const Login: React.FC = () => {
               <div className="h-[1px] bg-rosa-petalo/30 flex-1" />
             </div>
             <p className="text-xs text-slate-medium leading-relaxed font-sans font-light">
-              Plataforma clínica especializada en ginecología y bienestar femenino, combinando ciencia, tecnología y acompañamiento humano.
+              Plataforma clínica especializada en tratamientos estéticos faciales, corporales y medicina de bienestar integral.
             </p>
           </div>
 
@@ -153,8 +153,8 @@ export const Login: React.FC = () => {
               </svg>
             </div>
             <div>
-              <h1 className="text-sm font-display font-light text-pure-white tracking-[0.25em] uppercase">Rejuvenece</h1>
-              <p className="text-[7px] uppercase tracking-[0.2em] text-rosa-petalo font-bold mt-0.5">MIND · GYNAE</p>
+              <h1 className="text-sm font-display font-light text-pure-white tracking-[0.25em] uppercase">Clínica Mayela</h1>
+              <p className="text-[7px] uppercase tracking-[0.2em] text-rosa-petalo font-bold mt-0.5">MEDICINA ESTÉTICA · BIENESTAR</p>
             </div>
           </div>
 

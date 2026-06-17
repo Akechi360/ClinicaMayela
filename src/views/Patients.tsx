@@ -15,8 +15,8 @@ export const Patients: React.FC = () => {
   const [apellido, setApellido] = useState('');
   const [cedula, setCedula] = useState('');
   const [telefono, setTelefono] = useState('');
-  const [correo, setCorreo] = useState('');
-  const [fechaNac, setFechaNac] = useState('');
+  const [email, setEmail] = useState('');
+  const [fecha_nacimiento, setFechaNacimiento] = useState('');
   const [notas, setNotas] = useState('');
 
   // Consultar pacientes
@@ -46,8 +46,8 @@ export const Patients: React.FC = () => {
     setApellido('');
     setCedula('');
     setTelefono('');
-    setCorreo('');
-    setFechaNac('');
+    setEmail('');
+    setFechaNacimiento('');
     setNotas('');
   };
 
@@ -58,8 +58,8 @@ export const Patients: React.FC = () => {
       apellido,
       cedula,
       telefono,
-      correo,
-      fecha_nac: fechaNac,
+      email,
+      fecha_nacimiento,
       notas,
     });
   };
@@ -84,7 +84,7 @@ export const Patients: React.FC = () => {
       (p.apellido && p.apellido.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (p.cedula && p.cedula.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (p.telefono && p.telefono.includes(searchQuery)) ||
-      (p.correo && p.correo.toLowerCase().includes(searchQuery.toLowerCase()));
+      (p.email && p.email.toLowerCase().includes(searchQuery.toLowerCase()));
     
     // Filtro VIP removido por schema
     return matchesSearch;
@@ -176,7 +176,7 @@ export const Patients: React.FC = () => {
 
               <div className="flex flex-col gap-0.5 text-xs text-slate-medium md:max-w-xs w-full font-sans">
                 {paciente.telefono && <span className="flex items-center gap-1.5 font-semibold"><Phone size={11} className="text-satin-copper-light" /> {paciente.telefono}</span>}
-                {paciente.correo && <span className="flex items-center gap-1.5 text-[11px]"><Mail size={11} className="text-satin-copper-light" /> {paciente.correo}</span>}
+                {paciente.email && <span className="flex items-center gap-1.5 text-[11px]"><Mail size={11} className="text-satin-copper-light" /> {paciente.email}</span>}
               </div>
 
               {/* Last Visit */}
@@ -304,15 +304,13 @@ export const Patients: React.FC = () => {
                     placeholder="Ej. +34 600 000 000"
                     className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans"
                   />
-                </div>
-
-                {/* Correo */}
+                       {/* Email */}
                 <div className="flex flex-col space-y-1">
                   <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Correo Electrónico</label>
                   <input
                     type="email"
-                    value={correo}
-                    onChange={(e) => setCorreo(e.target.value)}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="maria.lopez@example.com"
                     className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans"
                   />
@@ -323,11 +321,11 @@ export const Patients: React.FC = () => {
                   <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Fecha de Nacimiento</label>
                   <input
                     type="date"
-                    value={fechaNac}
-                    onChange={(e) => setFechaNac(e.target.value)}
+                    value={fecha_nacimiento}
+                    onChange={(e) => setFechaNacimiento(e.target.value)}
                     className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans"
                   />
-                </div>
+                </div>             </div>
               </div>
 
               {/* Notas */}

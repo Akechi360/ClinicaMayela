@@ -174,7 +174,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           {!collapsed && (
             <>
-              <h1 className="text-sm font-display font-light text-slate-dark tracking-[0.3em] uppercase mt-3 transition-colors group-hover:text-rosa-petalo duration-500">Rejuvenece</h1>
+              <h1 className="text-sm font-display font-light text-slate-dark tracking-[0.3em] uppercase mt-3 transition-colors group-hover:text-rosa-petalo duration-500">Clínica Mayela</h1>
               <div className="w-6 h-[1px] bg-rosa-petalo/30 my-2" />
               <p className="text-[8px] uppercase tracking-[0.2em] text-rosa-petalo font-bold truncate max-w-full">
                 {doctor?.nombre || 'Dra. Mayela González'}
