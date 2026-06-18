@@ -42,7 +42,7 @@ export const Topbar: React.FC<TopbarProps> = ({
 
   return (
     <header
-      className={`fixed top-3 sm:top-5 right-3 sm:right-5
+      className={`fixed top-3 sm:top-5 right-3 sm:right-5 left-3 sm:left-5 lg:right-5
         h-14 sm:h-16
         glass-panel rounded-2xl z-40
         px-3 sm:px-6
@@ -51,10 +51,9 @@ export const Topbar: React.FC<TopbarProps> = ({
         transition-all duration-300
         ${
           sidebarCollapsed
-            ? 'lg:w-[calc(100%-8.5rem)]'
-            : 'lg:w-[calc(100%-19.5rem)]'
-        }
-        w-[calc(100%-1.5rem)] sm:w-[calc(100%-2.5rem)]`}
+            ? 'lg:left-[7.25rem]'
+            : 'lg:left-[18.25rem]'
+        }`}
     >
       {/* Título */}
       <div className="flex items-center gap-2 min-w-0">
@@ -65,7 +64,7 @@ export const Topbar: React.FC<TopbarProps> = ({
         >
           <Menu size={18} />
         </button>
-        <h2 className="text-[11px] sm:text-xs md:text-sm font-display font-light text-slate-dark tracking-[0.2em] uppercase truncate max-w-[100px] sm:max-w-[180px] md:max-w-xs lg:max-w-none">
+        <h2 className="text-[11px] sm:text-xs md:text-sm font-display font-light text-slate-dark tracking-[0.15em] sm:tracking-[0.2em] uppercase truncate max-w-[160px] sm:max-w-xs md:max-w-md lg:max-w-none">
           {getTitle()}
         </h2>
       </div>

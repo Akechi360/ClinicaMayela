@@ -45,7 +45,7 @@ export const Gallery: React.FC = () => {
         <select
           value={selectedTratamientoId}
           onChange={(e) => setSelectedTratamientoId(e.target.value)}
-          className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-1.5 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold cursor-pointer"
+          className="w-full sm:w-auto bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-1.5 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold cursor-pointer"
         >
           <option value="todos">Todos los tratamientos</option>
           {tratamientos.map(t => (
@@ -64,7 +64,7 @@ export const Gallery: React.FC = () => {
           <p className="text-xs text-slate-medium">No se encontraron historiales clínicos con fotos para este filtro.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {historialesFiltrados.map((item) => (
             <div 
               key={item.id} 

@@ -99,7 +99,7 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="space-y-8 px-2">
       {/* Welcome Header (Luxury Editorial Style) */}
-      <div className="relative overflow-hidden rounded-3xl p-10 glass-panel-dark text-pure-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-satin-copper/30">
+      <div className="relative overflow-hidden rounded-3xl p-6 sm:p-10 glass-panel-dark text-pure-white flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-satin-copper/30">
         {/* Glow de fondo interno */}
         <div className="absolute -right-10 -top-20 w-80 h-80 bg-satin-copper/20 rounded-full filter blur-[90px] pointer-events-none"></div>
         <div className="absolute -left-20 -bottom-20 w-80 h-80 bg-slate-light/10 rounded-full filter blur-[90px] pointer-events-none"></div>

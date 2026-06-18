@@ -183,14 +183,14 @@ export const Agenda: React.FC = () => {
       {/* Calendar */}
       <div className="glass-panel rounded-3xl border border-pure-white/40 shadow-luxury overflow-hidden">
         {/* Calendar Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-satin-copper/10 bg-pure-white/20">
-          <button onClick={prevWeek} className="w-8 h-8 rounded-full hover:bg-satin-copper/10 flex items-center justify-center transition-all cursor-pointer">
+        <div className="flex items-center justify-between px-3 sm:px-6 py-4 border-b border-satin-copper/10 bg-pure-white/20">
+          <button onClick={prevWeek} className="w-8 h-8 rounded-full hover:bg-satin-copper/10 flex items-center justify-center transition-all cursor-pointer shrink-0">
             <ChevronLeft size={16} className="text-slate-medium" />
           </button>
-          <h3 className="text-sm font-display font-medium text-slate-dark tracking-wide">
-            {weekDays[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} – {weekDays[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+          <h3 className="text-xs sm:text-sm font-display font-medium text-slate-dark tracking-wide text-center truncate px-2">
+            {weekDays[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} – {weekDays[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
           </h3>
-          <button onClick={nextWeek} className="w-8 h-8 rounded-full hover:bg-satin-copper/10 flex items-center justify-center transition-all cursor-pointer">
+          <button onClick={nextWeek} className="w-8 h-8 rounded-full hover:bg-satin-copper/10 flex items-center justify-center transition-all cursor-pointer shrink-0">
             <ChevronRight size={16} className="text-slate-medium" />
           </button>
         </div>

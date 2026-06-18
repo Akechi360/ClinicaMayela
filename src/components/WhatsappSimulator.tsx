@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Send, X, MessageCircle, Calendar } from 'lucide-react';
 import { dbCitas, dbPacientes } from '../services/db';
+import Swal from 'sweetalert2';
 
 interface Mensaje {
   sender: 'bot' | 'paciente';
@@ -172,7 +173,16 @@ export const WhatsappSimulator: React.FC = () => {
       {!isOpen && (
         <button
           onClick={() => {
-            setIsOpen(true);
+            Swal.fire({
+              title: 'Integración de WhatsApp',
+              text: 'El canal de automatización y recordatorios mediante WhatsApp se activará próximamente.',
+              icon: 'info',
+              confirmButtonText: 'Entendido',
+              buttonsStyling: false,
+              customClass: {
+                confirmButton: 'swal2-confirm'
+              }
+            });
             setUnreadCount(0);
           }}
           className="fixed bottom-6 right-6 w-14 h-14 bg-[#5D7D65] hover:bg-[#4E6B55] text-pure-white rounded-full flex items-center justify-center shadow-2xl z-50 transition-all duration-300 hover:scale-110 active:scale-95 group border border-pure-white/25 cursor-pointer"

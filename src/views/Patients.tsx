@@ -304,7 +304,9 @@ export const Patients: React.FC = () => {
                     placeholder="Ej. +34 600 000 000"
                     className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans"
                   />
-                       {/* Email */}
+                </div>
+
+                {/* Email */}
                 <div className="flex flex-col space-y-1">
                   <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Correo Electrónico</label>
                   <input
@@ -315,7 +317,7 @@ export const Patients: React.FC = () => {
                     className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans"
                   />
                 </div>
-
+ 
                 {/* Fecha Nacimiento */}
                 <div className="flex flex-col space-y-1">
                   <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Fecha de Nacimiento</label>
@@ -325,7 +327,7 @@ export const Patients: React.FC = () => {
                     onChange={(e) => setFechaNacimiento(e.target.value)}
                     className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans"
                   />
-                </div>             </div>
+                </div>
               </div>
 
               {/* Notas */}

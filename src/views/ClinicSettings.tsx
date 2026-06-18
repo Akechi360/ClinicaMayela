@@ -115,7 +115,7 @@ export const ClinicSettings: React.FC = () => {
               </div>
 
               {/* Lector QR en tiempo real */}
-              <div className="w-full md:w-48 aspect-square bg-pure-white/40 rounded-xl border border-dashed border-satin-copper/30 flex items-center justify-center p-2">
+              <div className="w-full max-w-[200px] md:w-48 mx-auto md:mx-0 aspect-square bg-pure-white/40 rounded-xl border border-dashed border-satin-copper/30 flex items-center justify-center p-2">
                 {dbSettings?.bot_qr_base64 && !dbSettings?.bot_conectado ? (
                   <div className="text-center">
                     <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(dbSettings.bot_qr_base64)}`} alt="WhatsApp QR" className="w-full h-full rounded-lg" />

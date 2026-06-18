@@ -72,7 +72,7 @@ const AppLayout: React.FC = () => {
       />
 
       <div
-        className={`flex-1 transition-all duration-300
+        className={`flex-1 min-w-0 transition-all duration-300
           ${
             sidebarCollapsed
               ? 'lg:ml-[7.25rem]'
@@ -87,7 +87,7 @@ const AppLayout: React.FC = () => {
           sidebarCollapsed={sidebarCollapsed}
         />
 
-        <main className="flex-1 pt-24 sm:pt-28 pb-16 sm:pb-20 max-w-screen-2xl w-full mx-auto">
+        <main className="flex-1 min-w-0 pt-24 sm:pt-28 pb-16 sm:pb-20 max-w-screen-2xl w-full mx-auto">
           <Suspense fallback={<PageLoadSkeleton />}>
             <Routes>
               <Route path="/" element={<Dashboard />} />

@@ -289,7 +289,7 @@ export const Finances: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6 w-full md:w-auto justify-between md:justify-end">
                     <div className="text-xs font-semibold text-slate-medium capitalize tracking-wide font-sans">
                       {tr.metodo_pago ? `Vía ${tr.metodo_pago}` : 'Pendiente de cobro'}
                     </div>
