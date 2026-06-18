@@ -7,15 +7,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        "slate-dark": "#3A434D",
-        "slate-medium": "#4B5663",
-        "slate-light": "#8E9AA6",
-        // Botones y acentos ahora en rose-petal
-        "satin-copper": "#E0A2A2",
-        "satin-copper-hover": "#CC8A8A",
-        "satin-copper-light": "#EEC4C4",
-        "rose-champagne": "#F2E7E2",
-        "rose-champagne-light": "#FBF8F6",
+        "slate-dark": "#4A2E1A",
+        "slate-medium": "#8C6550",
+        "slate-light": "#A08271",
+        // Botones y acentos ahora en rose-petal / satin-copper
+        "satin-copper": "#9B5E45",
+        "satin-copper-hover": "#824E38",
+        "satin-copper-light": "#C4845A",
+        "rose-champagne": "#C4845A",
+        "rose-champagne-light": "#F0E4D8",
         "pure-white": "#FFFFFF",
         "muted-olive": "#7A8068",
         "error": "#BA1A1A",
