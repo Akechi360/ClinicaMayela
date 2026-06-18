@@ -61,6 +61,7 @@ export const Agenda: React.FC = () => {
   const [newFecha, setNewFecha]               = useState(new Date().toISOString().split('T')[0]);
   const [newHora, setNewHora]                 = useState('09:00');
   const [newNotas, setNewNotas]               = useState('');
+  const [newPrecioOverride, setNewPrecioOverride] = useState('');
 
   const { data: citas = [], isLoading } = useQuery<Cita[]>({
     queryKey: ['citas'],
@@ -77,7 +78,7 @@ export const Agenda: React.FC = () => {
     queryFn: dbTratamientos.listar
   });
 
-  const crearMutation = useMutation<Cita, Error, Partial<Cita>>({
+  const crearMutation = useMutation<Cita, Error, any>({
     mutationFn: (datos) => dbCitas.insertar(datos),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['citas'] });
@@ -115,6 +116,7 @@ export const Agenda: React.FC = () => {
     setNewFecha(new Date().toISOString().split('T')[0]);
     setNewHora('09:00');
     setNewNotas('');
+    setNewPrecioOverride('');
   };
 
   // Semana actual
@@ -264,7 +266,8 @@ export const Agenda: React.FC = () => {
                 tratamiento_id: newTratamientoId,
                 fecha_hora: `${newFecha}T${newHora}:00`,
                 notas: newNotas,
-                estado: 'pendiente'
+                estado: 'pendiente',
+                precio: newPrecioOverride ? parseFloat(newPrecioOverride) : undefined
               });
             }}
             className="glass-panel w-full max-w-sm rounded-2xl shadow-luxury border border-pure-white/50 overflow-hidden flex flex-col"
@@ -284,12 +287,28 @@ export const Agenda: React.FC = () => {
               </div>
               <div>
                 <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Tratamiento</label>
-                <select required value={newTratamientoId} onChange={e => setNewTratamientoId(e.target.value)}
+                <select required value={newTratamientoId} onChange={e => {
+                  const val = e.target.value;
+                  setNewTratamientoId(val);
+                  const treat = tratamientos.find(t => t.id === val);
+                  if (treat) {
+                    setNewPrecioOverride(String(treat.precio));
+                  } else {
+                    setNewPrecioOverride('');
+                  }
+                }}
                   className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold">
                   <option value="">Seleccionar tratamiento...</option>
                   {tratamientos.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
                 </select>
               </div>
+              {newTratamientoId && (
+                <div>
+                  <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Costo del Procedimiento (USD)</label>
+                  <input type="number" required value={newPrecioOverride} onChange={e => setNewPrecioOverride(e.target.value)}
+                    className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold" />
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Fecha</label>

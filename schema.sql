@@ -132,7 +132,7 @@ CREATE TABLE transacciones (
   estado      TEXT NOT NULL DEFAULT 'pendiente'
               CHECK (estado IN ('pendiente','completado','cancelado')),
   metodo_pago TEXT DEFAULT 'efectivo'
-              CHECK (metodo_pago IN ('efectivo','tarjeta','transferencia','zelle','binance')),
+              CHECK (metodo_pago IN ('efectivo','tarjeta','transferencia','zelle','binance','pago_movil')),
   creado_en   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ALTER TABLE transacciones ENABLE ROW LEVEL SECURITY;

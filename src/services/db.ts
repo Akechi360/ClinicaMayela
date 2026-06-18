@@ -106,23 +106,31 @@ export const dbCitas = {
     return data ?? [];
   },
   insertar: async (datos: any): Promise<any> => {
-    const { data: treatment, error: tErr } = await supabase
-      .from('tratamientos')
-      .select('precio')
-      .eq('id', datos.tratamiento_id)
-      .single();
-    if (tErr) throw new Error(tErr.message);
+    const { precio, ...citaDatos } = datos;
+    
+    let finalPrecio = precio;
+    if (finalPrecio === undefined || finalPrecio === null) {
+      const { data: treatment, error: tErr } = await supabase
+        .from('tratamientos')
+        .select('precio')
+        .eq('id', datos.tratamiento_id)
+        .single();
+      if (tErr) throw new Error(tErr.message);
+      finalPrecio = treatment.precio;
+    }
+
     const { data: appointment, error: aErr } = await supabase
       .from('citas')
-      .insert(datos)
+      .insert(citaDatos)
       .select()
       .single();
     if (aErr) throw new Error(aErr.message);
+
     const transaction = {
       paciente_id: appointment.paciente_id,
       cita_id: appointment.id,
       fecha: appointment.fecha_hora.split('T')[0],
-      monto: treatment.precio,
+      monto: finalPrecio,
       estado: 'pendiente',
       metodo_pago: 'efectivo'
     };
@@ -211,6 +219,16 @@ export const dbTransacciones = {
     const { data, error } = await supabase
       .from('transacciones')
       .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data;
+  },
+  actualizarMonto: async (id: string, monto: number): Promise<any> => {
+    const { data, error } = await supabase
+      .from('transacciones')
+      .update({ monto })
       .eq('id', id)
       .select()
       .single();

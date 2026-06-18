@@ -205,7 +205,7 @@ export const ReporteFinancieroPDF: React.FC<ReporteFinancieroPDFProps> = ({
             <View key={tr.id} style={styles.tableRow}>
               <Text style={styles.colPatient}>{tr.paciente?.nombre || 'Paciente Desconocido'}</Text>
               <Text style={styles.colDate}>{tr.fecha}</Text>
-              <Text style={styles.colMethod}>{tr.metodo_pago ? tr.metodo_pago.toUpperCase() : 'N/A'}</Text>
+              <Text style={styles.colMethod}>{tr.metodo_pago ? (tr.metodo_pago === 'pago_movil' ? 'PAGO MÓVIL' : tr.metodo_pago.toUpperCase()) : 'N/A'}</Text>
               <Text style={styles.colStatus}>{tr.estado === 'completado' ? 'PAGADO' : 'PENDIENTE'}</Text>
               <Text style={styles.colAmount}>{formatCurrency(tr.monto)}</Text>
             </View>
