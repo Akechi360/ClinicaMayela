@@ -12,6 +12,7 @@ export interface Paciente {
   notas?:           string;
   es_vip?:          boolean;
   foto_perfil?:     string;
+  activo?:          boolean;
   creado_en?:       string;
   created_at?:      string;
 }

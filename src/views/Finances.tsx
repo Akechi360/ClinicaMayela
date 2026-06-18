@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbTransacciones } from '../services/db';
 import type { Transaccion } from '../types/database.types';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import {
   AreaChart,
   Area,
@@ -259,23 +260,25 @@ export const Finances: React.FC = () => {
         <div className="lg:col-span-1 glass-panel rounded-3xl p-6 shadow-luxury border border-pure-white/40 flex flex-col">
           <h3 className="text-xs font-sans font-bold uppercase tracking-wider text-slate-dark mb-6">Evolución de Ingresos</h3>
           <div className="w-full h-56 mt-auto">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#A66E53" stopOpacity={0.35}/>
-                    <stop offset="95%" stopColor="#A66E53" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="name" stroke="#8E9AA6" fontSize={9} tickLine={false} axisLine={false} />
-                <YAxis stroke="#8E9AA6" fontSize={9} tickLine={false} axisLine={false} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#3A434D', border: 'none', borderRadius: '12px', color: '#FFFFFF', fontSize: '11px', fontFamily: 'sans-serif' }}
-                  labelStyle={{ fontWeight: 'bold' }}
-                />
-                <Area type="monotone" dataKey="Ingresos" stroke="#A66E53" strokeWidth={1.8} fillOpacity={1} fill="url(#colorIngresos)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            <ErrorBoundary fallbackText="Error al cargar gráfica de ingresos">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#A66E53" stopOpacity={0.35}/>
+                      <stop offset="95%" stopColor="#A66E53" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="name" stroke="#8E9AA6" fontSize={9} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#8E9AA6" fontSize={9} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#3A434D', border: 'none', borderRadius: '12px', color: '#FFFFFF', fontSize: '11px', fontFamily: 'sans-serif' }}
+                    labelStyle={{ fontWeight: 'bold' }}
+                  />
+                  <Area type="monotone" dataKey="Ingresos" stroke="#A66E53" strokeWidth={1.8} fillOpacity={1} fill="url(#colorIngresos)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ErrorBoundary>
           </div>
         </div>
 

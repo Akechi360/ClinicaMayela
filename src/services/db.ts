@@ -17,6 +17,7 @@ export const dbPacientes = {
     const { data, error } = await supabase
       .from('pacientes')
       .select('*')
+      .eq('activo', true)
       .order('creado_en', { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -52,7 +53,7 @@ export const dbPacientes = {
   eliminar: async (id: string): Promise<void> => {
     const { error } = await supabase
       .from('pacientes')
-      .delete()
+      .update({ activo: false })
       .eq('id', id);
     if (error) throw new Error(error.message);
   }

@@ -5,6 +5,7 @@ import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRec
 import { supabase } from '../services/supabase';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 import { FaceCanvas } from '../components/FaceCanvas';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { ComposicionCorporalTab } from '../components/ComposicionCorporalTab';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
@@ -188,6 +189,12 @@ export const PatientDetail: React.FC = () => {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.warning('Solo se permiten documentos PDF o imágenes.');
+      e.target.value = '';
+      return;
+    }
     if (file.size > 5 * 1024 * 1024) {
       toast.warning('El archivo supera el límite de 5MB.');
       e.target.value = '';
@@ -490,7 +497,9 @@ export const PatientDetail: React.FC = () => {
         {activeTab === 'mapa' && (
           <div className="glass-panel rounded-2xl p-6 md:p-8 luxury-shadow flex flex-col md:flex-row gap-8 items-center justify-center">
             <div className="w-full md:w-1/2">
-              <FaceCanvas coordinates={todosLosPuntos} readOnly={true} />
+              <ErrorBoundary fallbackText="Error al cargar lienzo facial 3D">
+                <FaceCanvas coordinates={todosLosPuntos} readOnly={true} />
+              </ErrorBoundary>
             </div>
             <div className="w-full md:w-1/2 space-y-4">
               <div>

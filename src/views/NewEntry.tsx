@@ -5,6 +5,7 @@ import { dbPacientes, dbTratamientos, dbHistoriales, dbConsentimientos } from '.
 import { supabase } from '../services/supabase';
 import type { Paciente, Tratamiento, Consentimiento, MapaFacialCoordenada } from '../types/database.types';
 import { FaceCanvas } from '../components/FaceCanvas';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { SignaturePadModal } from '../components/SignaturePadModal';
 import { useToast } from '../components/Toast';
 import { Upload, Loader2, CheckCircle, ChevronRight, ChevronLeft, PenLine } from 'lucide-react';
@@ -104,6 +105,10 @@ export const NewEntry: React.FC = () => {
   });
 
   const handlePhotoUpload = async (type: 'antes' | 'despues', file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.warning('Solo se permiten archivos de imagen (PNG, JPG, WEBP).');
+      return;
+    }
     if (file.size > 8 * 1024 * 1024) {
       toast.warning('La imagen supera el límite de 8MB.');
       return;
@@ -274,7 +279,9 @@ export const NewEntry: React.FC = () => {
               <h3 className="text-lg font-display font-medium text-slate-dark">Mapa Facial Interactivo</h3>
               <p className="text-xs text-slate-medium mt-1">Haz clic en el área tratada para marcar los puntos de aplicación.</p>
             </div>
-            <FaceCanvas coordinates={mapaCoords} onChange={setMapaCoords} />
+            <ErrorBoundary fallbackText="Error al cargar lienzo facial 3D">
+              <FaceCanvas coordinates={mapaCoords} onChange={setMapaCoords} />
+            </ErrorBoundary>
           </div>
         )}
 

@@ -12,7 +12,7 @@ CREATE TABLE tratamientos (
   creado_en        TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ALTER TABLE tratamientos ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow authenticated" ON tratamientos FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated staff" ON tratamientos FOR ALL TO authenticated USING (auth.jwt() ->> 'email' LIKE '%@clinicamayela.com');
 
 INSERT INTO tratamientos (nombre, descripcion, precio, duracion_minutos) VALUES
 ('Toxina Botulínica (Botox)', 'Tratamiento de arrugas de expresión en frente, glabela y patas de gallo.', 450, 30),
@@ -83,10 +83,11 @@ CREATE TABLE pacientes (
   notas            TEXT,
   es_vip           BOOLEAN NOT NULL DEFAULT false,
   foto_perfil      TEXT,
+  activo           BOOLEAN NOT NULL DEFAULT true,
   creado_en        TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ALTER TABLE pacientes ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow authenticated" ON pacientes FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated staff" ON pacientes FOR ALL TO authenticated USING (auth.jwt() ->> 'email' LIKE '%@clinicamayela.com');
 
 -- 2.4 citas
 CREATE TABLE citas (
@@ -100,7 +101,7 @@ CREATE TABLE citas (
   creado_en      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ALTER TABLE citas ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow authenticated" ON citas FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated staff" ON citas FOR ALL TO authenticated USING (auth.jwt() ->> 'email' LIKE '%@clinicamayela.com');
 
 -- 2.5 historial_clinico
 CREATE TABLE historial_clinico (
@@ -120,7 +121,7 @@ CREATE TABLE historial_clinico (
   creado_en               TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ALTER TABLE historial_clinico ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow authenticated" ON historial_clinico FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated staff" ON historial_clinico FOR ALL TO authenticated USING (auth.jwt() ->> 'email' LIKE '%@clinicamayela.com');
 
 -- 2.6 transacciones
 CREATE TABLE transacciones (
@@ -136,7 +137,7 @@ CREATE TABLE transacciones (
   creado_en   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ALTER TABLE transacciones ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow authenticated" ON transacciones FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated staff" ON transacciones FOR ALL TO authenticated USING (auth.jwt() ->> 'email' LIKE '%@clinicamayela.com');
 
 -- 2.7 doctor_profile
 CREATE TABLE doctor_profile (
@@ -158,7 +159,7 @@ CREATE TABLE doctor_profile (
 INSERT INTO doctor_profile (nombre, especialidad, cedula, mpps, col, horario, instagram)
 VALUES ('Dra. Mayela González','Medicina Estética & Bienestar','12345678-A','MPPS-98765','COL-12345','Lunes a Viernes de 9:00 a 18:30','https://instagram.com/dra.mayelagonzalez');
 ALTER TABLE doctor_profile ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow authenticated" ON doctor_profile FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated staff" ON doctor_profile FOR ALL TO authenticated USING (auth.jwt() ->> 'email' LIKE '%@clinicamayela.com');
 
 -- 2.8 clinic_settings
 CREATE TABLE clinic_settings (
@@ -172,7 +173,7 @@ CREATE TABLE clinic_settings (
 );
 INSERT INTO clinic_settings (bot_activo, bot_conectado) VALUES (false, false);
 ALTER TABLE clinic_settings ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow authenticated" ON clinic_settings FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated staff" ON clinic_settings FOR ALL TO authenticated USING (auth.jwt() ->> 'email' LIKE '%@clinicamayela.com');
 
 -- 2.9 examenes_laboratorio (TABLA NUEVA)
 CREATE TABLE examenes_laboratorio (
@@ -185,7 +186,7 @@ CREATE TABLE examenes_laboratorio (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ALTER TABLE examenes_laboratorio ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow authenticated" ON examenes_laboratorio FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated staff" ON examenes_laboratorio FOR ALL TO authenticated USING (auth.jwt() ->> 'email' LIKE '%@clinicamayela.com');
 
 -- 2.10 recipes_medicos (TABLA NUEVA)
 CREATE TABLE recipes_medicos (
@@ -197,7 +198,7 @@ CREATE TABLE recipes_medicos (
   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ALTER TABLE recipes_medicos ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow authenticated" ON recipes_medicos FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated staff" ON recipes_medicos FOR ALL TO authenticated USING (auth.jwt() ->> 'email' LIKE '%@clinicamayela.com');
 
 -- 2.11 consentimientos (TABLA NUEVA)
 CREATE TABLE consentimientos (
@@ -216,7 +217,7 @@ CREATE TABLE consentimientos (
   created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ALTER TABLE consentimientos ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow authenticated" ON consentimientos FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated staff" ON consentimientos FOR ALL TO authenticated USING (auth.jwt() ->> 'email' LIKE '%@clinicamayela.com');
 
 -- 2.12 Storage buckets para exámenes y fotos de pacientes
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
@@ -224,9 +225,9 @@ VALUES
   ('examenes','examenes',true,5242880, ARRAY['image/jpeg','image/png','image/webp','application/pdf']),
   ('pacientes-fotos','pacientes-fotos',true,8388608, ARRAY['image/jpeg','image/png','image/webp']);
 
-CREATE POLICY "Allow authenticated uploads" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id IN ('examenes', 'pacientes-fotos'));
+CREATE POLICY "Allow authenticated uploads" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id IN ('examenes', 'pacientes-fotos') AND auth.jwt() ->> 'email' LIKE '%@clinicamayela.com');
 CREATE POLICY "Allow public reads" ON storage.objects FOR SELECT USING (bucket_id IN ('examenes', 'pacientes-fotos'));
-CREATE POLICY "Allow authenticated deletes" ON storage.objects FOR DELETE TO authenticated USING (bucket_id IN ('examenes', 'pacientes-fotos'));
+CREATE POLICY "Allow authenticated deletes" ON storage.objects FOR DELETE TO authenticated USING (bucket_id IN ('examenes', 'pacientes-fotos') AND auth.jwt() ->> 'email' LIKE '%@clinicamayela.com');
 
 -- 2.13 composicion_corporal
 CREATE TABLE IF NOT EXISTS composicion_corporal (
@@ -240,4 +241,4 @@ CREATE TABLE IF NOT EXISTS composicion_corporal (
   created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ALTER TABLE composicion_corporal ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow authenticated" ON composicion_corporal FOR ALL TO authenticated USING (true);
+CREATE POLICY "Allow authenticated staff" ON composicion_corporal FOR ALL TO authenticated USING (auth.jwt() ->> 'email' LIKE '%@clinicamayela.com');
