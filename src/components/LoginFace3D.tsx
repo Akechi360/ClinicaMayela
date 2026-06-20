@@ -1,4 +1,4 @@
-import React, { Suspense, useMemo, useRef, useState, useEffect, lazy } from 'react';
+import React, { Suspense, useMemo, useRef, useState, useEffect } from 'react';
 import { Canvas, useLoader, useFrame } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import * as THREE from 'three';
