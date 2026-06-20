@@ -92,8 +92,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItemClass = (active: boolean) =>
     `flex items-center justify-between px-3 py-2.5 rounded-xl text-[10px] font-semibold tracking-wider font-sans transition-all duration-300 relative group ${
       active
-        ? 'sidebar-active-item text-pure-white shadow-sm'
-        : 'text-slate-medium hover:text-slate-dark hover:bg-pure-white/40 border border-transparent'
+        ? 'sidebar-active-item text-white shadow-sm'
+        : 'text-slate-medium hover:text-slate-dark hover:bg-[#F7F8FA] border border-transparent'
     }`;
 
   const renderNavItems = (items: typeof clinicalItems) =>
@@ -110,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           <div className="flex items-center gap-2.5">
             <span className={`${
-              active ? 'text-pure-white' : 'text-slate-light group-hover:text-rosa-petalo'
+              active ? 'text-white' : 'text-slate-light group-hover:text-rosa-petalo'
             } transition-colors duration-300`}>
               {item.icon}
             </span>
@@ -118,7 +118,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className="uppercase tracking-[0.1em] flex items-center gap-1.5">
                 {item.name}
                 {item.badge && (
-                  <span className="px-1.5 py-0.5 rounded-md text-[6px] font-bold tracking-wider uppercase bg-rosa-petalo/25 text-rosa-petalo border border-rosa-petalo/45 shrink-0 animate-fadeIn">
+                  <span className="px-1.5 py-0.5 rounded-md text-[6px] font-bold tracking-wider uppercase bg-rosa-petalo/15 text-rosa-petalo border border-rosa-petalo/25 shrink-0 animate-fadeIn">
                     {item.badge}
                   </span>
                 )}
@@ -127,7 +127,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           {!collapsed && (
             active
-              ? <span className="w-1.5 h-1.5 rounded-full bg-pure-white shadow-[0_0_8px_#EEC4C4]" />
+              ? <span className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
               : <span className="w-1 h-1 rounded-full bg-transparent group-hover:bg-rosa-petalo/40 transition-all duration-300" />
           )}
         </Link>
@@ -137,7 +137,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       ref={sidebarRef}
-      className={`fixed transition-all duration-300 z-50 shadow-luxury border border-pure-white/40 glass-panel
+      className={`fixed transition-all duration-300 z-50 bg-white shadow-luxury
         rounded-r-3xl lg:rounded-3xl
         left-0 top-0 h-screen
         md:left-3 md:top-3 md:h-[calc(100vh-1.5rem)] md:rounded-3xl
@@ -152,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <button
         onClick={onToggleCollapse}
         aria-label={collapsed ? 'Expandir menú lateral' : 'Colapsar menú lateral'}
-        className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 rounded-full rosa-button items-center justify-center border border-pure-white/20 shadow-md cursor-pointer z-50 hover:scale-105 transition-all"
+        className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 rounded-full rosa-button items-center justify-center shadow-md cursor-pointer z-50 hover:scale-105 transition-all"
       >
         {collapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
       </button>
@@ -163,31 +163,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Mobile close button */}
           <button
             onClick={onCloseMobile}
-            className="lg:hidden absolute left-0 top-0 text-slate-medium hover:text-slate-dark p-1 rounded-xl transition-all cursor-pointer hover:bg-pure-white/45"
+            className="lg:hidden absolute left-0 top-0 text-slate-light hover:text-slate-dark p-1 rounded-xl transition-all cursor-pointer hover:bg-[#F7F8FA]"
             aria-label="Cerrar menú"
           >
             <X size={15} />
           </button>
 
-          <div className="w-10 h-10 rounded-full bg-rosa-petalo/10 border border-rosa-petalo/20 flex items-center justify-center transition-transform duration-700 group-hover:rotate-180">
-            <span className="material-symbols-outlined text-rosa-petalo text-lg font-light">spa</span>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rosa-petalo to-satin-copper-light flex items-center justify-center transition-transform duration-700 group-hover:rotate-12">
+            <span className="material-symbols-outlined text-white text-lg font-light">spa</span>
           </div>
           {!collapsed && (
             <>
-              <h1 className="text-sm font-display font-light text-slate-dark tracking-[0.3em] uppercase mt-3 transition-colors group-hover:text-rosa-petalo duration-500">Clínica Mayela</h1>
-              <div className="w-6 h-[1px] bg-rosa-petalo/30 my-2" />
-              <p className="text-[8px] uppercase tracking-[0.2em] text-rosa-petalo font-bold truncate max-w-full">
+              <h1 className="text-sm font-display font-medium text-slate-dark tracking-[0.15em] uppercase mt-3 transition-colors group-hover:text-rosa-petalo duration-500">Rejuvenece</h1>
+              <div className="w-6 h-[1px] bg-gradient-to-r from-transparent via-rosa-petalo/30 to-transparent my-2" />
+              <p className="text-[8px] uppercase tracking-[0.15em] text-rosa-petalo font-medium truncate max-w-full">
                 {doctor?.nombre || 'Dra. Mayela González'}
               </p>
             </>
           )}
         </div>
 
-        {/* Nueva Cita — rosa pétalo */}
+        {/* Nueva Cita */}
         <button
           onClick={onNewCitaClick}
           aria-label="Programar nueva cita"
-          className="w-full rosa-button py-3 rounded-xl transition-all duration-300 mb-6 flex items-center justify-center gap-1.5 font-sans font-bold text-[10px] tracking-[0.15em] uppercase cursor-pointer"
+          className="w-full rosa-button py-3 rounded-xl transition-all duration-300 mb-6 flex items-center justify-center gap-1.5 font-sans font-semibold text-[10px] tracking-[0.12em] uppercase cursor-pointer"
         >
           <Plus size={14} />
           {!collapsed && <span>Nueva Cita</span>}
@@ -196,28 +196,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Nav clínica */}
         <div className="space-y-5">
           <div className="space-y-1.5">
-            {!collapsed && <p className="text-[8px] uppercase tracking-[0.2em] text-slate-light font-bold px-3">Clínica</p>}
+            {!collapsed && <p className="text-[8px] uppercase tracking-[0.15em] text-[#C0C4CC] font-medium px-3">Clínica</p>}
             <nav className="space-y-1">{renderNavItems(clinicalItems)}</nav>
           </div>
           <div className="space-y-1.5">
-            {!collapsed && <p className="text-[8px] uppercase tracking-[0.2em] text-slate-light font-bold px-3">Gestión</p>}
+            {!collapsed && <p className="text-[8px] uppercase tracking-[0.15em] text-[#C0C4CC] font-medium px-3">Gestión</p>}
             <nav className="space-y-1">{renderNavItems(adminItems)}</nav>
           </div>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="border-t border-rosa-petalo/15 pt-5 space-y-2">
+      <div className="border-t border-[#EEEEF0] pt-5 space-y-2">
         <nav className="space-y-1">{renderNavItems(accountItems)}</nav>
 
         {!collapsed && doctor && (
-          <div className="flex items-center gap-3 p-2 bg-pure-white/20 rounded-xl border border-rosa-petalo/10 select-none">
-            <div className="w-8 h-8 rounded-full overflow-hidden border border-rosa-petalo/25 shadow-sm shrink-0">
+          <div className="flex items-center gap-3 p-2 bg-[#F7F8FA] rounded-xl select-none">
+            <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#EEEEF0] shadow-sm shrink-0">
               <img src={doctor.foto || ''} alt={doctor.nombre || ''} className="w-full h-full object-cover" />
             </div>
             <div className="truncate min-w-0 flex-1">
               <p className="text-[9px] font-semibold text-slate-dark truncate leading-tight">{doctor.nombre}</p>
-              <p className="text-[7px] text-rosa-petalo font-bold uppercase tracking-wider truncate mt-0.5">{doctor.especialidad}</p>
+              <p className="text-[7px] text-slate-light uppercase tracking-wider truncate mt-0.5">{doctor.especialidad}</p>
             </div>
           </div>
         )}
@@ -226,9 +226,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           onClick={onLogout}
           title={collapsed ? 'Cerrar Sesión' : undefined}
           aria-label="Cerrar sesión"
-          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[10px] font-semibold tracking-wider font-sans text-slate-medium hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 text-left uppercase cursor-pointer"
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[10px] font-semibold tracking-wider font-sans text-[#C0C4CC] hover:text-red-400 hover:bg-red-500/5 transition-all duration-300 text-left uppercase cursor-pointer"
         >
-          <LogOut size={15} className="text-slate-light" />
+          <LogOut size={15} />
           {!collapsed && <span className="tracking-[0.1em]">Cerrar Sesión</span>}
         </button>
       </div>
