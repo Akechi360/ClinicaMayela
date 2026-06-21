@@ -221,7 +221,7 @@ export const Consentimientos: React.FC = () => {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="satin-button flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider text-pure-white cursor-pointer shadow-lg"
+          className="rosa-button flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-semibold uppercase tracking-wider cursor-pointer"
         >
           <Plus size={14} /> Nuevo Consentimiento
         </button>
@@ -403,7 +403,7 @@ export const Consentimientos: React.FC = () => {
                     <p className="text-[9px] text-red-500 font-bold uppercase tracking-wider mb-3">Este consentimiento no está firmado</p>
                     <button
                       onClick={() => setShowSignPad(true)}
-                      className="satin-button w-full flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider text-pure-white cursor-pointer animate-pulse"
+                      className="rosa-button w-full flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-semibold uppercase tracking-wider cursor-pointer animate-pulse"
                     >
                       <PenTool size={12} /> Firmar Consentimiento
                     </button>
@@ -539,7 +539,7 @@ export const Consentimientos: React.FC = () => {
               <button
                 type="submit"
                 disabled={addConsentimientoMutation.isPending}
-                className="px-5 py-2 satin-button text-pure-white rounded-xl text-[10px] uppercase tracking-wider font-bold transition-all cursor-pointer"
+                className="px-5 py-2 rosa-button rounded-xl text-[10px] uppercase tracking-wider font-semibold transition-all cursor-pointer"
               >
                 {addConsentimientoMutation.isPending ? 'Creando...' : 'Crear Documento'}
               </button>

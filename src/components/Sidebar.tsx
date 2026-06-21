@@ -137,7 +137,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       ref={sidebarRef}
-      className={`fixed transition-all duration-300 z-50 bg-white shadow-luxury
+      className={`fixed transition-all duration-300 z-50 shadow-luxury
+        bg-white/70 backdrop-blur-xl border border-white/40
         rounded-r-3xl lg:rounded-3xl
         left-0 top-0 h-screen
         md:left-3 md:top-3 md:h-[calc(100vh-1.5rem)] md:rounded-3xl

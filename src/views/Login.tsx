@@ -146,15 +146,15 @@ export const Login: React.FC = () => {
 
         {/* ── PANEL DERECHO: Form con glass effect ── */}
         <div className="w-full md:w-1/2 relative overflow-hidden">
-          {/* Base background */}
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(145deg, #1a1f2e 0%, #1e2538 40%, #1a2030 100%)' }} />
+          {/* Base background - dark gradient matching hero banner */}
+          <div className="absolute inset-0 glass-panel-dark" />
           {/* Glass layer */}
           <div className="absolute inset-0 bg-white/[0.03] backdrop-blur-[1px]" />
           {/* Glows */}
           <div className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
-            style={{ background: 'radial-gradient(circle, rgba(224,186,168,0.08) 0%, transparent 70%)' }} />
+            style={{ background: 'radial-gradient(circle, rgba(224,186,168,0.10) 0%, transparent 70%)' }} />
           <div className="absolute -bottom-10 -left-6 w-28 h-28 rounded-full pointer-events-none"
-            style={{ background: 'radial-gradient(circle, rgba(100,140,200,0.05) 0%, transparent 70%)' }} />
+            style={{ background: 'radial-gradient(circle, rgba(160,170,190,0.06) 0%, transparent 70%)' }} />
           {/* Top light border */}
           <div className="absolute top-0 left-8 right-8 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)' }} />
 

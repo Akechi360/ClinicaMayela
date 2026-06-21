@@ -215,7 +215,7 @@ export const DoctorProfile: React.FC = () => {
 
           <div className="flex justify-end pt-2">
             <button type="submit" disabled={updateMutation.isPending}
-              className="satin-button text-slate-dark text-[10px] font-bold tracking-[0.15em] uppercase py-3.5 px-8 rounded-xl shadow-lg flex items-center gap-1.5 cursor-pointer">
+              className="rosa-button text-[10px] font-semibold tracking-[0.12em] uppercase py-3.5 px-8 rounded-xl flex items-center gap-1.5 cursor-pointer">
               <Save size={14} />
               {updateMutation.isPending ? 'Guardando...' : 'Guardar Perfil'}
             </button>
