@@ -150,13 +150,16 @@ export const Login: React.FC = () => {
           <div className="absolute inset-0 glass-panel-dark" />
           {/* Glass layer */}
           <div className="absolute inset-0 bg-white/[0.03] backdrop-blur-[1px]" />
-          {/* Glows */}
-          <div className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
-            style={{ background: 'radial-gradient(circle, rgba(224,186,168,0.10) 0%, transparent 70%)' }} />
-          <div className="absolute -bottom-10 -left-6 w-28 h-28 rounded-full pointer-events-none"
-            style={{ background: 'radial-gradient(circle, rgba(160,170,190,0.06) 0%, transparent 70%)' }} />
-          {/* Top light border */}
-          <div className="absolute top-0 left-8 right-8 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)' }} />
+          {/* Glows — amplios y difusos */}
+          <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(224,186,168,0.10) 0%, rgba(224,186,168,0.04) 40%, transparent 70%)' }} />
+          <div className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(160,170,190,0.07) 0%, rgba(160,170,190,0.03) 40%, transparent 70%)' }} />
+          <div className="absolute top-1/3 -left-10 w-56 h-56 rounded-full pointer-events-none"
+            style={{ background: 'radial-gradient(circle, rgba(226,204,163,0.05) 0%, transparent 65%)' }} />
+          {/* Top + left light borders */}
+          <div className="absolute top-0 left-8 right-8 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent)' }} />
+          <div className="absolute top-8 bottom-8 left-0 w-px" style={{ background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.04), transparent)' }} />
 
           <div className="relative z-10 p-8 md:p-12 flex flex-col justify-center min-h-full text-white">
 
