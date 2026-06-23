@@ -28,10 +28,4 @@ const isPlaceholderKey = !supabaseKey || supabaseKey.includes('placeholder') || 
 
 export const isSupabaseActive = true;
 
-console.log("🔌 Antigravity Supabase Config:", {
-  supabaseUrl,
-  isPlaceholderUrl,
-  isPlaceholderKey,
-  isSupabaseActive
-});
 

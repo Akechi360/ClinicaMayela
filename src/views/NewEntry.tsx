@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { dbPacientes, dbTratamientos, dbHistoriales, dbConsentimientos } from '../services/db';
+import { dbPacientes, dbTratamientos, dbHistoriales, dbConsentimientos, dbDoctor } from '../services/db';
 import { supabase } from '../services/supabase';
 import type { Paciente, Tratamiento, Consentimiento, MapaFacialCoordenada } from '../types/database.types';
 import { FaceCanvas } from '../components/FaceCanvas';
@@ -59,6 +59,11 @@ export const NewEntry: React.FC = () => {
     queryFn: dbTratamientos.listar
   });
 
+  const { data: doctor } = useQuery({
+    queryKey: ['doctor'],
+    queryFn: dbDoctor.obtener
+  });
+
   const selectedPaciente    = pacientes.find(p => p.id === pacienteId);
   const selectedTratamiento = tratamientos.find(t => t.id === tratamientoId);
 
@@ -86,7 +91,7 @@ export const NewEntry: React.FC = () => {
           paciente_nombre:   selectedPaciente.nombre,
           paciente_dni:      selectedPaciente.cedula ?? '',
           tratamiento_nombre: selectedTratamiento.nombre,
-          doctor_nombre:     'Dra. Mayela González',
+          doctor_nombre:     doctor?.nombre ?? 'Doctora',
           fecha,
           firma_base64:      firmaBase64,
           estado:            'Activo',
