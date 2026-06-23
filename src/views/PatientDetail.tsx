@@ -260,8 +260,9 @@ export const PatientDetail: React.FC = () => {
         .from('examenes')
         .upload(`${id}/${Date.now()}_${file.name}`, file, { cacheControl: '3600', upsert: false });
       if (storageError) throw new Error(storageError.message);
-      const { data: { publicUrl } } = supabase.storage.from('examenes').getPublicUrl(storageData.path);
-      setExamenArchivoUrl(publicUrl);
+      const { data: signedUrlData, error: signedError } = await supabase.storage.from('examenes').createSignedUrl(storageData.path, 3600);
+      if (signedError) throw new Error(signedError.message);
+      setExamenArchivoUrl(signedUrlData.signedUrl);
       toast.dismiss(uploadToastId);
       toast.success('Archivo subido correctamente.');
     } catch (err) {

@@ -126,9 +126,11 @@ export const NewEntry: React.FC = () => {
         .from('pacientes-fotos')
         .upload(path, file, { cacheControl: '3600', upsert: false });
       if (error) throw new Error(error.message);
-      const { data: { publicUrl } } = supabase.storage.from('pacientes-fotos').getPublicUrl(data.path);
-      if (type === 'antes') setFotoAntes(publicUrl);
-      else setFotoDespues(publicUrl);
+      const { data: signedUrlData, error: signedError } = await supabase.storage.from('pacientes-fotos').createSignedUrl(data.path, 3600);
+      if (signedError) throw new Error(signedError.message);
+      const signedUrl = signedUrlData.signedUrl;
+      if (type === 'antes') setFotoAntes(signedUrl);
+      else setFotoDespues(signedUrl);
       toast.dismiss(uploadId);
       toast.success(`Foto ${type === 'antes' ? 'antes' : 'después'} cargada.`);
     } catch (err) {

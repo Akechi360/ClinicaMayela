@@ -1,30 +1,52 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { dbDoctor } from '../services/db';
-import { Search, Bell, HelpCircle, Menu } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { dbDoctor, dbNotificaciones } from '../services/db';
+import type { Notificacion } from '../services/db';
+import { supabase } from '../services/supabase';
+import { Bell, HelpCircle, Menu, Check } from 'lucide-react';
+import { GlobalSearch } from './GlobalSearch';
 
 interface TopbarProps {
-  onSearchChange?: (query: string) => void;
-  searchPlaceholder?: string;
-  showSearch?: boolean;
   onToggleMobileMenu: () => void;
   sidebarCollapsed: boolean;
 }
 
 export const Topbar: React.FC<TopbarProps> = ({
-  onSearchChange,
-  searchPlaceholder = "Buscar paciente...",
-  showSearch = true,
   onToggleMobileMenu,
   sidebarCollapsed
 }) => {
   const location = useLocation();
+  const queryClient = useQueryClient();
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const { data: doctor } = useQuery({
     queryKey: ['doctor'],
     queryFn: dbDoctor.obtener
   });
+
+  const { data: notificaciones = [] } = useQuery<Notificacion[]>({
+    queryKey: ['notificaciones'],
+    queryFn: dbNotificaciones.listarNoLeidas,
+    refetchInterval: 30000,
+  });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('notificaciones-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notificaciones' }, () => {
+        queryClient.invalidateQueries({ queryKey: ['notificaciones'] });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
+
+  const handleMarkAllRead = async () => {
+    await dbNotificaciones.marcarTodasLeidas();
+    queryClient.invalidateQueries({ queryKey: ['notificaciones'] });
+    setShowNotifications(false);
+  };
 
   const getTitle = () => {
     const path = location.pathname;
@@ -37,8 +59,12 @@ export const Topbar: React.FC<TopbarProps> = ({
     if (path.startsWith('/ajustes')) return 'Ajustes del Sistema';
     if (path.startsWith('/nueva-entrada')) return 'Registro de Tratamiento';
     if (path.startsWith('/perfil')) return 'Perfil Profesional';
+    if (path.startsWith('/consentimientos')) return 'Consentimientos';
+    if (path.startsWith('/peptides')) return 'Protocolos de Péptidos';
     return 'Clínica Mayela';
   };
+
+  const unreadCount = notificaciones.length;
 
   return (
     <header
@@ -55,7 +81,6 @@ export const Topbar: React.FC<TopbarProps> = ({
             : 'lg:left-[18.25rem]'
         }`}
     >
-      {/* Título */}
       <div className="flex items-center gap-2 min-w-0">
         <button
           onClick={onToggleMobileMenu}
@@ -69,24 +94,54 @@ export const Topbar: React.FC<TopbarProps> = ({
         </h2>
       </div>
 
-      {/* Acciones */}
       <div className="flex items-center gap-2 sm:gap-3 md:gap-5 shrink-0">
-        {showSearch && (
-          <div className="hidden sm:flex relative focus-within:ring-1 focus-within:ring-rosa-petalo/30 rounded-xl bg-[#F7F8FA] border border-[#EEEEF0] px-3 py-1.5 items-center transition-all">
-            <input
-              type="text"
-              placeholder={searchPlaceholder}
-              onChange={(e) => onSearchChange?.(e.target.value)}
-              className="bg-transparent border-none outline-none focus:ring-0 text-[10px] md:text-xs text-slate-dark placeholder-slate-light w-28 sm:w-36 md:w-44 lg:w-52 font-sans tracking-wide"
-            />
-            <Search size={12} className="text-slate-light shrink-0" />
-          </div>
-        )}
+        <GlobalSearch />
 
         <div className="flex items-center gap-0.5 sm:gap-1 border-r border-[#EEEEF0] pr-2 sm:pr-4 shrink-0">
-          <button aria-label="Notificaciones" className="text-slate-light hover:text-rosa-petalo p-1 sm:p-1.5 rounded-xl hover:bg-[#F7F8FA] transition-colors cursor-pointer">
-            <Bell size={15} />
-          </button>
+          <div className="relative">
+            <button
+              aria-label="Notificaciones"
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="text-slate-light hover:text-rosa-petalo p-1 sm:p-1.5 rounded-xl hover:bg-[#F7F8FA] transition-colors cursor-pointer relative"
+            >
+              <Bell size={15} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-rosa-petalo text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <div className="absolute right-0 top-full mt-2 w-72 bg-white rounded-xl shadow-luxury border border-[#EEEEF0] overflow-hidden z-50">
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-[#EEEEF0]">
+                  <span className="text-xs font-medium text-slate-dark">Notificaciones</span>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={handleMarkAllRead}
+                      className="text-[10px] text-rosa-petalo hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <Check size={10} /> Marcar todas leídas
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  {notificaciones.length === 0 ? (
+                    <p className="text-xs text-slate-light text-center py-6">Sin notificaciones nuevas</p>
+                  ) : (
+                    notificaciones.map((n) => (
+                      <div key={n.id} className="px-4 py-2.5 border-b border-[#EEEEF0] last:border-0 hover:bg-[#F7F8FA]">
+                        <p className="text-[11px] text-slate-dark">{n.mensaje}</p>
+                        <p className="text-[9px] text-slate-light mt-0.5">
+                          {new Date(n.created_at).toLocaleString('es-MX')}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
           <button aria-label="Ayuda" className="hidden sm:block text-slate-light hover:text-rosa-petalo p-1.5 rounded-xl hover:bg-[#F7F8FA] transition-colors cursor-pointer">
             <HelpCircle size={15} />
           </button>

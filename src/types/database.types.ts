@@ -61,7 +61,7 @@ export interface Cita {
   creado_en?:     string;
   created_at?:    string;
   pacientes?:     Pick<Paciente, 'nombre' | 'apellido' | 'telefono'>;
-  tratamiento?:   any;
+  tratamiento?:   Tratamiento;
 }
 
 export interface DoctorProfile {
@@ -76,7 +76,7 @@ export interface DoctorProfile {
   foto?:        string;
   foto_perfil?: string;
   biografia:    string;
-  horario:      any;
+  horario:      string;
   linkedin?:    string;
   instagram?:   string;
   mpps?:        string;
@@ -92,7 +92,7 @@ export interface Transaccion {
   monto: number;
   estado: string;
   metodo_pago: string;
-  paciente?: any;
+  paciente?: Paciente;
   creado_en?: string;
 }
 
@@ -123,7 +123,7 @@ export interface CitaRelacional extends Cita {
 
 export interface HistorialClinicoRelacional extends HistorialClinico {
   paciente?: Paciente;
-  tratamiento?: any;
+  tratamiento?: Tratamiento;
 }
 
 export interface TransaccionRelacional extends Transaccion {

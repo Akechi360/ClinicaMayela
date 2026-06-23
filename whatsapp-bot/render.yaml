@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: clinica-mayela-whatsapp-bot
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: PORT
+        value: 3000
+    healthCheckPath: /health
+    disk:
+      name: baileys-session
+      mountPath: /app/auth_session
+      sizeGB: 1

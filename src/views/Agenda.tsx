@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbCitas, dbPacientes, dbTratamientos } from '../services/db';
+import type { CrearCitaParams } from '../services/db';
 import type { Paciente, Tratamiento } from '../types/database.types';
 import {
   ChevronLeft,
@@ -78,8 +79,8 @@ export const Agenda: React.FC = () => {
     queryFn: dbTratamientos.listar
   });
 
-  const crearMutation = useMutation<Cita, Error, any>({
-    mutationFn: (datos) => dbCitas.insertar(datos),
+  const crearMutation = useMutation<{ cita_id: string }, Error, CrearCitaParams>({
+    mutationFn: (datos: CrearCitaParams) => dbCitas.insertar(datos),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['citas'] });
       queryClient.invalidateQueries({ queryKey: ['transacciones'] });

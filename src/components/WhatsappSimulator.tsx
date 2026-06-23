@@ -113,7 +113,6 @@ export const WhatsappSimulator: React.FC = () => {
           paciente_id: paciente.id,
           tratamiento_id: selectedTratamientoId,
           fecha_hora: fechaHoraCita,
-          estado: 'pendiente',
           notas: 'Cita agendada por bot de WhatsApp de forma autónoma.'
         });
 

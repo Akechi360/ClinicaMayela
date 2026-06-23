@@ -52,8 +52,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!session) {
-    // Redirect to login, but save the current location to redirect back to
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Validar que el email pertenezca al dominio de la clínica
+  // ESCALABILIDAD: cuando se implementen roles de paciente, agregar aquí
+  // la verificación de user_profiles.role para redirigir al portal correspondiente
+  const email = session.user?.email ?? '';
+  if (!email.endsWith('@clinicamayela.com')) {
+    supabase.auth.signOut();
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;
