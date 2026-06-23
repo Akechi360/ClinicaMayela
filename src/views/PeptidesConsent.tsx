@@ -305,12 +305,11 @@ export const PeptidesConsent: React.FC = () => {
         </button>
       </div>
 
-      {showSignModal && (
-        <SignaturePadModal
-          onSave={handleSign}
-          onClose={() => setShowSignModal(false)}
-        />
-      )}
+      <SignaturePadModal
+        isOpen={showSignModal}
+        onSave={handleSign}
+        onClose={() => setShowSignModal(false)}
+      />
     </div>
   );
 };
