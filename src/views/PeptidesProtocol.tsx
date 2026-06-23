@@ -25,6 +25,7 @@ import {
   ShieldAlert,
   FlaskConical,
   X,
+  Trash2,
 } from 'lucide-react';
 
 const CANCER_KEYWORDS = ['cáncer', 'cancer', 'neoplasia', 'tumor', 'carcinoma', 'linfoma', 'leucemia', 'melanoma', 'sarcoma', 'metástasis'];
@@ -41,11 +42,12 @@ export const PeptidesProtocol: React.FC = () => {
   const toast = useToast();
 
   const preselectedPatientId = searchParams.get('pacienteId') ?? '';
+  const editingProtocolId = searchParams.get('protocolId') ?? '';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedPatientId, setSelectedPatientId] = useState(preselectedPatientId);
-  const [showPatientSearch, setShowPatientSearch] = useState(!preselectedPatientId);
+  const [showPatientSearch, setShowPatientSearch] = useState(!preselectedPatientId && !editingProtocolId);
 
   const [selectedPeptides, setSelectedPeptides] = useState<SelectedPeptide[]>([]);
   const [expandedPeptide, setExpandedPeptide] = useState<string | null>(null);
@@ -54,6 +56,28 @@ export const PeptidesProtocol: React.FC = () => {
   const [duracionSemanas, setDuracionSemanas] = useState(8);
   const [intervaloSeguimiento, setIntervaloSeguimiento] = useState(15);
   const [notasMedico, setNotasMedico] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editLoaded, setEditLoaded] = useState(false);
+
+  const { data: existingProtocol } = useQuery({
+    queryKey: ['protocolo-peptido', editingProtocolId],
+    queryFn: () => dbProtocolosPeptidos.obtener(editingProtocolId),
+    enabled: !!editingProtocolId,
+  });
+
+  useEffect(() => {
+    if (existingProtocol && !editLoaded) {
+      setSelectedPatientId(existingProtocol.paciente_id);
+      setSelectedPeptides(existingProtocol.peptidos_seleccionados);
+      setFechaInicio(existingProtocol.fecha_inicio);
+      setDuracionSemanas(existingProtocol.duracion_semanas);
+      setIntervaloSeguimiento(existingProtocol.intervalo_seguimiento);
+      setNotasMedico(existingProtocol.notas_medico);
+      setShowPatientSearch(false);
+      setIsEditing(true);
+      setEditLoaded(true);
+    }
+  }, [existingProtocol, editLoaded]);
 
   const { data: pacientes = [] } = useQuery<Paciente[]>({
     queryKey: ['pacientes'],
@@ -112,40 +136,71 @@ export const PeptidesProtocol: React.FC = () => {
 
   const isPeptideSelected = useCallback((id: string) => selectedPeptides.some(sp => sp.peptide.id === id), [selectedPeptides]);
 
-  const saveMutation = useMutation({
+  const createMutation = useMutation({
     mutationFn: (data: Omit<PeptideProtocol, 'id' | 'created_at'>) =>
       dbProtocolosPeptidos.insertar(data),
-    onSuccess: (saved) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['protocolos-peptidos'] });
-      toast.success('Protocolo peptídico guardado correctamente.');
-      navigate(`/peptides/consent/${saved.id}`);
+      toast.success('Protocolo peptídico creado correctamente.');
     },
     onError: (err: Error) => toast.error(`Error al guardar: ${err.message}`),
   });
+
+  const updateMutation = useMutation({
+    mutationFn: (data: Partial<PeptideProtocol>) =>
+      dbProtocolosPeptidos.actualizar(editingProtocolId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['protocolos-peptidos'] });
+      queryClient.invalidateQueries({ queryKey: ['protocolo-peptido', editingProtocolId] });
+      toast.success('Protocolo actualizado correctamente.');
+    },
+    onError: (err: Error) => toast.error(`Error al actualizar: ${err.message}`),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => dbProtocolosPeptidos.eliminar(editingProtocolId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['protocolos-peptidos'] });
+      toast.success('Protocolo eliminado.');
+      navigate(selectedPatientId ? `/pacientes/${selectedPatientId}` : '/peptides');
+    },
+    onError: (err: Error) => toast.error(`Error al eliminar: ${err.message}`),
+  });
+
+  const isSaving = createMutation.isPending || updateMutation.isPending;
 
   const handleSave = (andNavigate?: 'consent' | 'report') => {
     if (!selectedPatientId) { toast.warning('Selecciona un paciente.'); return; }
     if (selectedPeptides.length === 0) { toast.warning('Selecciona al menos un péptido.'); return; }
     if (hasCancer) { toast.error('No se puede crear protocolo: paciente con diagnóstico de cáncer activo.'); return; }
 
-    const protocol: Omit<PeptideProtocol, 'id' | 'created_at'> = {
+    const protocolData = {
       paciente_id: selectedPatientId,
       doctor_id: doctor?.id ?? '',
       fecha_inicio: fechaInicio,
       peptidos_seleccionados: selectedPeptides,
       intervalo_seguimiento: intervaloSeguimiento,
       notas_medico: notasMedico,
-      estado: 'borrador',
-      consentimiento_firmado: false,
+      estado: existingProtocol?.estado ?? 'borrador' as const,
+      consentimiento_firmado: existingProtocol?.consentimiento_firmado ?? false,
       duracion_semanas: duracionSemanas,
     };
 
-    saveMutation.mutate(protocol, {
-      onSuccess: (saved) => {
-        if (andNavigate === 'consent') navigate(`/peptides/consent/${saved.id}`);
-        else if (andNavigate === 'report') navigate(`/peptides/report/${saved.id}`);
-      },
-    });
+    if (isEditing) {
+      updateMutation.mutate(protocolData, {
+        onSuccess: (saved) => {
+          if (andNavigate === 'consent') navigate(`/peptides/consent/${saved.id}`);
+          else if (andNavigate === 'report') navigate(`/peptides/report/${saved.id}`);
+        },
+      });
+    } else {
+      createMutation.mutate(protocolData, {
+        onSuccess: (saved) => {
+          if (andNavigate === 'consent') navigate(`/peptides/consent/${saved.id}`);
+          else if (andNavigate === 'report') navigate(`/peptides/report/${saved.id}`);
+        },
+      });
+    }
   };
 
   const selectPatient = (p: Paciente) => {
@@ -163,7 +218,9 @@ export const PeptidesProtocol: React.FC = () => {
             <FlaskConical size={20} className="text-violet-600" />
           </div>
           <div>
-            <h2 className="text-3xl font-display font-medium text-slate-dark tracking-wide">Protocolos Peptídicos</h2>
+            <h2 className="text-3xl font-display font-medium text-slate-dark tracking-wide">
+              {isEditing ? 'Editar Protocolo' : 'Protocolos Peptídicos'}
+            </h2>
             <p className="text-sm text-slate-medium">Medicina regenerativa y optimización biológica</p>
           </div>
         </div>
@@ -512,25 +569,38 @@ export const PeptidesProtocol: React.FC = () => {
           <div className="flex flex-wrap gap-3 pt-2">
             <button
               onClick={() => handleSave('consent')}
-              disabled={saveMutation.isPending || hasCancer}
+              disabled={isSaving || hasCancer}
               className="rosa-button px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer disabled:opacity-50 transition-all"
             >
               <FilePlus size={14} /> Generar Consentimiento
             </button>
             <button
               onClick={() => handleSave('report')}
-              disabled={saveMutation.isPending || hasCancer}
+              disabled={isSaving || hasCancer}
               className="satin-button px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer disabled:opacity-50 transition-all"
             >
               <FileText size={14} /> Generar Informe PDF
             </button>
             <button
               onClick={() => handleSave()}
-              disabled={saveMutation.isPending || hasCancer}
+              disabled={isSaving || hasCancer}
               className="px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer disabled:opacity-50 transition-all border border-rosa-petalo/30 text-rosa-petalo hover:bg-rosa-petalo/5 bg-white"
             >
-              <Save size={14} /> Guardar Protocolo
+              <Save size={14} /> {isEditing ? 'Actualizar Protocolo' : 'Guardar Protocolo'}
             </button>
+            {isEditing && (
+              <button
+                onClick={() => {
+                  if (window.confirm('¿Eliminar este protocolo? Esta acción no se puede deshacer.')) {
+                    deleteMutation.mutate();
+                  }
+                }}
+                disabled={deleteMutation.isPending}
+                className="px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer disabled:opacity-50 transition-all border border-red-300 text-red-500 hover:bg-red-50 bg-white"
+              >
+                <Trash2 size={14} /> Eliminar
+              </button>
+            )}
           </div>
         </section>
       )}

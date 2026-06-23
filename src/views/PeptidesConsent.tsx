@@ -11,6 +11,8 @@ import {
   ArrowLeft,
   CheckCircle,
   PenLine,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 
 export const PeptidesConsent: React.FC = () => {
@@ -54,6 +56,16 @@ export const PeptidesConsent: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['protocolo-peptido', protocolId] });
       queryClient.invalidateQueries({ queryKey: ['protocolos-peptidos'] });
       toast.success('Consentimiento firmado correctamente.');
+    },
+    onError: (err: Error) => toast.error(`Error: ${err.message}`),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => dbProtocolosPeptidos.eliminar(protocolId!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['protocolos-peptidos'] });
+      toast.success('Protocolo eliminado.');
+      navigate('/peptides');
     },
     onError: (err: Error) => toast.error(`Error: ${err.message}`),
   });
@@ -102,12 +114,31 @@ export const PeptidesConsent: React.FC = () => {
         >
           <ArrowLeft size={16} /> Volver
         </button>
-        <button
-          onClick={handlePrint}
-          className="flex items-center gap-2 rosa-button px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer"
-        >
-          <Printer size={14} /> Imprimir / PDF
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate(`/peptides?protocolId=${protocolId}`)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer border border-rosa-petalo/30 text-rosa-petalo hover:bg-rosa-petalo/5 bg-white transition-all"
+          >
+            <Pencil size={13} /> Editar
+          </button>
+          <button
+            onClick={() => {
+              if (window.confirm('¿Eliminar este protocolo? Esta acción no se puede deshacer.')) {
+                deleteMutation.mutate();
+              }
+            }}
+            disabled={deleteMutation.isPending}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer border border-red-300 text-red-500 hover:bg-red-50 bg-white transition-all disabled:opacity-50"
+          >
+            <Trash2 size={13} /> Eliminar
+          </button>
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-2 rosa-button px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+          >
+            <Printer size={14} /> Imprimir / PDF
+          </button>
+        </div>
       </div>
 
       {/* Document */}

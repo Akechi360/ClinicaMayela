@@ -27,7 +27,8 @@ import {
   Download,
   Printer,
   X,
-  FlaskConical
+  FlaskConical,
+  Pencil
 } from 'lucide-react';
 
 type ActiveTab = 'historial' | 'mapa' | 'citas' | 'finanzas' | 'examenes' | 'recipes' | 'consentimientos' | 'composicion' | 'peptidos';
@@ -101,6 +102,15 @@ export const PatientDetail: React.FC = () => {
   const { data: protocolosPeptidos = [] } = useQuery<PeptideProtocol[]>({
     queryKey: ['protocolos-peptidos', id],
     queryFn: () => dbProtocolosPeptidos.listarPorPaciente(id ?? '')
+  });
+
+  const deleteProtocolMutation = useMutation({
+    mutationFn: dbProtocolosPeptidos.eliminar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['protocolos-peptidos', id] });
+      toast.success('Protocolo eliminado.');
+    },
+    onError: (err: Error) => toast.error(`Error al eliminar: ${err.message}`)
   });
 
   const addExamenMutation = useMutation({
@@ -827,20 +837,45 @@ export const PatientDetail: React.FC = () => {
                         {proto.duracion_semanas} semanas — Seguimiento cada {proto.intervalo_seguimiento} días
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Link
-                        to={`/peptides/consent/${proto.id}`}
-                        className="text-[9px] text-satin-copper font-bold uppercase tracking-wider hover:underline"
-                      >
-                        Consentimiento
-                      </Link>
-                      <span className="text-slate-light">•</span>
-                      <Link
-                        to={`/peptides/report/${proto.id}`}
-                        className="text-[9px] text-satin-copper font-bold uppercase tracking-wider hover:underline"
-                      >
-                        Informe
-                      </Link>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Link
+                          to={`/peptides/consent/${proto.id}`}
+                          className="text-[9px] text-satin-copper font-bold uppercase tracking-wider hover:underline"
+                        >
+                          Consentimiento
+                        </Link>
+                        <span className="text-slate-light">•</span>
+                        <Link
+                          to={`/peptides/report/${proto.id}`}
+                          className="text-[9px] text-satin-copper font-bold uppercase tracking-wider hover:underline"
+                        >
+                          Informe
+                        </Link>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Link
+                          to={`/peptides?protocolId=${proto.id}`}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-light hover:text-satin-copper hover:bg-satin-copper/10 transition-all"
+                          title="Editar protocolo"
+                        >
+                          <Pencil size={13} />
+                        </Link>
+                        <button
+                          onClick={async () => {
+                            const ok = await confirm({
+                              title: 'Eliminar Protocolo',
+                              message: '¿Desea eliminar este protocolo peptídico? Esta acción no se puede deshacer.',
+                              severity: 'danger'
+                            });
+                            if (ok) deleteProtocolMutation.mutate(proto.id);
+                          }}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-light hover:text-red-500 hover:bg-red-500/10 transition-all cursor-pointer border-none bg-transparent"
+                          title="Eliminar protocolo"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}

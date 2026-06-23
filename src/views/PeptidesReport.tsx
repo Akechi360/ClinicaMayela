@@ -1,14 +1,17 @@
 import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbPacientes, dbDoctor } from '../services/db';
 import { dbProtocolosPeptidos } from '../services/peptidesService';
+import { useToast } from '../components/Toast';
 import { CATEGORY_LABELS, ROUTE_LABELS } from '../types/peptides';
 import {
   Printer,
   ArrowLeft,
   Calendar,
   FlaskConical,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 
 function generateFollowUpDates(startDate: string, intervalDays: number, durationWeeks: number): string[] {
@@ -28,6 +31,8 @@ function generateFollowUpDates(startDate: string, intervalDays: number, duration
 export const PeptidesReport: React.FC = () => {
   const { protocolId } = useParams<{ protocolId: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const toast = useToast();
 
   const { data: protocol, isLoading } = useQuery({
     queryKey: ['protocolo-peptido', protocolId],
@@ -44,6 +49,16 @@ export const PeptidesReport: React.FC = () => {
   const { data: doctor } = useQuery({
     queryKey: ['doctor'],
     queryFn: dbDoctor.obtener,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => dbProtocolosPeptidos.eliminar(protocolId!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['protocolos-peptidos'] });
+      toast.success('Protocolo eliminado.');
+      navigate('/peptides');
+    },
+    onError: (err: Error) => toast.error(`Error: ${err.message}`),
   });
 
   const followUpDates = useMemo(() => {
@@ -85,12 +100,31 @@ export const PeptidesReport: React.FC = () => {
         >
           <ArrowLeft size={16} /> Volver
         </button>
-        <button
-          onClick={() => window.print()}
-          className="flex items-center gap-2 rosa-button px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer"
-        >
-          <Printer size={14} /> Imprimir / PDF
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate(`/peptides?protocolId=${protocolId}`)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer border border-rosa-petalo/30 text-rosa-petalo hover:bg-rosa-petalo/5 bg-white transition-all"
+          >
+            <Pencil size={13} /> Editar
+          </button>
+          <button
+            onClick={() => {
+              if (window.confirm('¿Eliminar este protocolo? Esta acción no se puede deshacer.')) {
+                deleteMutation.mutate();
+              }
+            }}
+            disabled={deleteMutation.isPending}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer border border-red-300 text-red-500 hover:bg-red-50 bg-white transition-all disabled:opacity-50"
+          >
+            <Trash2 size={13} /> Eliminar
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-2 rosa-button px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+          >
+            <Printer size={14} /> Imprimir / PDF
+          </button>
+        </div>
       </div>
 
       {/* Report document */}
