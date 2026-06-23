@@ -1,44 +1,38 @@
 export interface Paciente {
-  id:          string;   // UUID
-  nombre:      string;
-  apellido?:   string;
-  cedula?:     string;
-  telefono?:   string;
-  correo?:     string;
-  fecha_nac?:  string;
-  foto_perfil?: string;
-  notas?:      string;
-  created_at?: string;
-  // Retrocompatibilidad
-  email?:      string;
+  id:               string;   // UUID
+  nombre:           string;
+  apellido?:        string;
+  cedula?:          string;
+  telefono?:        string;
+  email?:           string;
   fecha_nacimiento?: string;
-  es_vip?:     boolean;
-  antecedentes?: string;
-  alergias?:   string;
-  creado_en?:  string;
-  genero?:     string;
+  genero?:          string;
+  antecedentes?:    string;
+  alergias?:        string;
+  notas?:           string;
+  es_vip?:          boolean;
+  foto_perfil?:     string;
+  activo?:          boolean;
+  creado_en?:       string;
+  created_at?:      string;
 }
 
 export interface HistorialClinico {
   id:                      string;
   paciente_id:             string;
+  cita_id?:                string;
+  tratamiento_id?:         string;
   fecha:                   string;
-  tratamiento?:            string;
+  producto?:               string;
+  cantidad?:               string;
+  lote?:                   string;
+  tecnica?:                string;
   notas_medicas?:          string;
-  antecedentes?:           string;
+  mapa_facial_coordenadas: MapaFacialCoordenada[];
   foto_antes?:             string;
   foto_despues?:           string;
-  mapa_facial_coordenadas: MapaFacialCoordenada[];
-  productos_usados?:       ProductoUsado[];
+  creado_en?:              string;
   created_at?:             string;
-  // Retrocompatibilidad
-  producto?: string;
-  cantidad?: string;
-  lote?: string;
-  tecnica?: string;
-  cita_id?: string;
-  creado_en?: string;
-  tratamiento_id?: string;
 }
 
 export interface MapaFacialCoordenada {
@@ -53,22 +47,21 @@ export interface MapaFacialCoordenada {
 export interface ProductoUsado {
   nombre:  string;
   dosis:   number;
+  role?:   string;
   unidad:  string; // 'U' | 'ml'
 }
 
 export interface Cita {
-  id:          string;
-  paciente_id?: string;
-  fecha_hora:  string;
-  tipo?:       string;
-  estado:      string;
-  notas?:      string;
-  origen?:     'manual' | 'whatsapp';
-  created_at?: string;
-  pacientes?:  Pick<Paciente, 'nombre' | 'apellido' | 'telefono'>;
-  tratamiento?: any;
+  id:             string;
+  paciente_id?:   string;
   tratamiento_id?: string;
-  creado_en?: string;
+  fecha_hora:     string;
+  estado:         string;
+  notas?:         string;
+  creado_en?:     string;
+  created_at?:    string;
+  pacientes?:     Pick<Paciente, 'nombre' | 'apellido' | 'telefono'>;
+  tratamiento?:   any;
 }
 
 export interface DoctorProfile {

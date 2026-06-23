@@ -214,7 +214,7 @@ export const DoctorProfile: React.FC = () => {
 
           <div className="flex justify-end pt-2">
             <button type="submit" disabled={updateMutation.isPending}
-              className="satin-button text-slate-dark text-[10px] font-bold tracking-[0.15em] uppercase py-3.5 px-8 rounded-xl shadow-lg flex items-center gap-1.5 cursor-pointer">
+              className="rosa-button text-[10px] font-semibold tracking-[0.12em] uppercase py-3.5 px-8 rounded-xl flex items-center gap-1.5 cursor-pointer">
               <Save size={14} />
               {updateMutation.isPending ? 'Guardando...' : 'Guardar Perfil'}
             </button>
@@ -225,7 +225,7 @@ export const DoctorProfile: React.FC = () => {
         <div className="lg:col-span-5 space-y-6">
           <div className="lg:sticky lg:top-28 space-y-6">
             <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold px-1 select-none">Vista Previa de Tarjeta Médica</p>
-            <div className="glass-panel rounded-3xl border border-pure-white/45 p-6 flex flex-col justify-between h-[450px] relative overflow-hidden group shadow-luxury">
+            <div className="glass-panel rounded-3xl border border-pure-white/45 p-6 flex flex-col justify-between min-h-[450px] h-auto relative overflow-hidden group shadow-luxury">
               <div className="absolute -right-12 -top-12 w-44 h-44 bg-satin-copper/10 rounded-full filter blur-2xl pointer-events-none group-hover:scale-110 duration-700" />
               <div className="absolute -left-12 -bottom-12 w-44 h-44 bg-slate-light/5 rounded-full filter blur-2xl pointer-events-none" />
               <div className="space-y-6 relative z-10">

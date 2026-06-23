@@ -95,7 +95,7 @@ export const TreatmentsCatalog: React.FC = () => {
         </div>
         <button
           onClick={openCreate}
-          className="satin-button text-pure-white text-xs font-bold py-2.5 px-5 rounded-xl shadow-md flex items-center gap-2 cursor-pointer"
+          className="rosa-button text-xs font-semibold py-2.5 px-5 rounded-xl flex items-center gap-2 cursor-pointer"
         >
           <Plus size={15} /> Nuevo Tratamiento
         </button>

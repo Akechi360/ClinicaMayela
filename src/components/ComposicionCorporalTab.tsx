@@ -17,6 +17,7 @@ import {
 import { Plus, Trash2, X, Activity } from 'lucide-react';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface Props {
   pacienteId: string;
@@ -167,59 +168,67 @@ export const ComposicionCorporalTab: React.FC<Props> = ({ pacienteId }) => {
           {/* Gráfica líneas: Peso */}
           <div className="glass-panel rounded-2xl p-5 border border-pure-white/40 shadow-luxury">
             <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold mb-4">Evolución del Peso (kg)</p>
-            <ResponsiveContainer width="100%" height={160}>
-              <LineChart data={chartData} margin={{ top: 4, right: 16, left: -16, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(58,67,77,0.06)" />
-                <XAxis dataKey="sesion" tick={{ fontSize: 9, fill: SLATE }} />
-                <YAxis tick={{ fontSize: 9, fill: SLATE }} domain={['auto', 'auto']} />
-                <Tooltip content={<CustomTooltip />} />
-                <Line type="monotone" dataKey="Peso (kg)" stroke={SLATE} strokeWidth={2} dot={{ r: 4, fill: SLATE }} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ResponsiveContainer>
+            <ErrorBoundary fallbackText="Error al cargar gráfica de peso">
+              <ResponsiveContainer width="100%" height={160}>
+                <LineChart data={chartData} margin={{ top: 4, right: 16, left: -16, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(58,67,77,0.06)" />
+                  <XAxis dataKey="sesion" tick={{ fontSize: 9, fill: SLATE }} />
+                  <YAxis tick={{ fontSize: 9, fill: SLATE }} domain={['auto', 'auto']} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Line type="monotone" dataKey="Peso (kg)" stroke={SLATE} strokeWidth={2} dot={{ r: 4, fill: SLATE }} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </ErrorBoundary>
           </div>
 
           {/* Gráfica líneas: % Grasa */}
           <div className="glass-panel rounded-2xl p-5 border border-pure-white/40 shadow-luxury">
             <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold mb-4">% Grasa Corporal</p>
-            <ResponsiveContainer width="100%" height={160}>
-              <LineChart data={chartData} margin={{ top: 4, right: 16, left: -16, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(58,67,77,0.06)" />
-                <XAxis dataKey="sesion" tick={{ fontSize: 9, fill: SLATE }} />
-                <YAxis tick={{ fontSize: 9, fill: SLATE }} domain={['auto', 'auto']} />
-                <Tooltip content={<CustomTooltip />} />
-                <Line type="monotone" dataKey="% Grasa" stroke={ROSA_OSC} strokeWidth={2} dot={{ r: 4, fill: ROSA_OSC }} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ResponsiveContainer>
+            <ErrorBoundary fallbackText="Error al cargar gráfica de grasa corporal">
+              <ResponsiveContainer width="100%" height={160}>
+                <LineChart data={chartData} margin={{ top: 4, right: 16, left: -16, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(58,67,77,0.06)" />
+                  <XAxis dataKey="sesion" tick={{ fontSize: 9, fill: SLATE }} />
+                  <YAxis tick={{ fontSize: 9, fill: SLATE }} domain={['auto', 'auto']} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Line type="monotone" dataKey="% Grasa" stroke={ROSA_OSC} strokeWidth={2} dot={{ r: 4, fill: ROSA_OSC }} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </ErrorBoundary>
           </div>
 
           {/* Gráfica líneas: Masa Magra */}
           <div className="glass-panel rounded-2xl p-5 border border-pure-white/40 shadow-luxury">
             <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold mb-4">Masa Magra (kg)</p>
-            <ResponsiveContainer width="100%" height={160}>
-              <LineChart data={chartData} margin={{ top: 4, right: 16, left: -16, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(58,67,77,0.06)" />
-                <XAxis dataKey="sesion" tick={{ fontSize: 9, fill: SLATE }} />
-                <YAxis tick={{ fontSize: 9, fill: SLATE }} domain={['auto', 'auto']} />
-                <Tooltip content={<CustomTooltip />} />
-                <Line type="monotone" dataKey="Masa Magra (kg)" stroke={OLIVE} strokeWidth={2} dot={{ r: 4, fill: OLIVE }} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ResponsiveContainer>
+            <ErrorBoundary fallbackText="Error al cargar gráfica de masa magra">
+              <ResponsiveContainer width="100%" height={160}>
+                <LineChart data={chartData} margin={{ top: 4, right: 16, left: -16, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(58,67,77,0.06)" />
+                  <XAxis dataKey="sesion" tick={{ fontSize: 9, fill: SLATE }} />
+                  <YAxis tick={{ fontSize: 9, fill: SLATE }} domain={['auto', 'auto']} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Line type="monotone" dataKey="Masa Magra (kg)" stroke={OLIVE} strokeWidth={2} dot={{ r: 4, fill: OLIVE }} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </ErrorBoundary>
           </div>
 
           {/* Gráfica barras apiladas */}
           <div className="glass-panel rounded-2xl p-5 border border-pure-white/40 shadow-luxury">
             <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold mb-4">Composición por Sesión</p>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={chartData} margin={{ top: 4, right: 16, left: -16, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(58,67,77,0.06)" />
-                <XAxis dataKey="sesion" tick={{ fontSize: 9, fill: SLATE }} />
-                <YAxis tick={{ fontSize: 9, fill: SLATE }} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ fontSize: '9px', fontFamily: 'Inter, sans-serif' }} />
-                <Bar dataKey="Masa Magra (kg)" stackId="a" fill={OLIVE} radius={[0, 0, 0, 0]} />
-                <Bar dataKey="Kg Grasa"        stackId="a" fill={ROSA}  radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <ErrorBoundary fallbackText="Error al cargar gráfica de barras de composición">
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={chartData} margin={{ top: 4, right: 16, left: -16, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(58,67,77,0.06)" />
+                  <XAxis dataKey="sesion" tick={{ fontSize: 9, fill: SLATE }} />
+                  <YAxis tick={{ fontSize: 9, fill: SLATE }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ fontSize: '9px', fontFamily: 'Inter, sans-serif' }} />
+                  <Bar dataKey="Masa Magra (kg)" stackId="a" fill={OLIVE} radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="Kg Grasa"        stackId="a" fill={ROSA}  radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ErrorBoundary>
           </div>
 
           {/* Tabla de registros */}

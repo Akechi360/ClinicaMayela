@@ -114,7 +114,7 @@ export const ClinicSettings: React.FC = () => {
               </div>
 
               {/* Lector QR en tiempo real */}
-              <div className="w-full md:w-48 aspect-square bg-pure-white/40 rounded-xl border border-dashed border-satin-copper/30 flex items-center justify-center p-2">
+              <div className="w-full max-w-[200px] md:w-48 mx-auto md:mx-0 aspect-square bg-pure-white/40 rounded-xl border border-dashed border-satin-copper/30 flex items-center justify-center p-2">
                 {dbSettings?.bot_qr_base64 && !dbSettings?.bot_conectado ? (
                   <div className="text-center">
                     <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(dbSettings.bot_qr_base64)}`} alt="WhatsApp QR" className="w-full h-full rounded-lg" />
@@ -156,45 +156,12 @@ export const ClinicSettings: React.FC = () => {
           </div>
         </section>
 
-        {/* Sección 3: Paleta de Colores de Identidad */}
-        <section className="glass-panel p-6 md:p-8 rounded-3xl border border-pure-white/40 shadow-luxury space-y-4">
-          <h3 className="text-base font-display font-medium text-slate-dark border-b border-satin-copper/10 pb-3 flex items-center gap-2">
-            <Shield size={16} className="text-satin-copper" /> Paleta de Colores Corporativos
-          </h3>
-          <p className="text-xs text-slate-medium">La aplicación utiliza la siguiente paleta de tres colores definidos para tu clínica:</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-center gap-3 p-3 bg-slate-dark text-pure-white rounded-xl border border-slate-dark">
-              <div className="w-8 h-8 rounded-full bg-pure-white/10 flex items-center justify-center font-bold text-xs">1</div>
-              <div>
-                <p className="text-xs font-semibold">Gris Pizarra / Slate Dark</p>
-                <p className="text-[9px] opacity-75">Hex: #3A434D (Estructura)</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 bg-satin-copper text-pure-white rounded-xl border border-satin-copper">
-              <div className="w-8 h-8 rounded-full bg-pure-white/10 flex items-center justify-center font-bold text-xs">2</div>
-              <div>
-                <p className="text-xs font-semibold">Cobre Bronce / Satin Copper</p>
-                <p className="text-[9px] opacity-75">Hex: #A66E53 (Acción/Acentos)</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 bg-rose-champagne text-slate-dark rounded-xl border border-rose-champagne">
-              <div className="w-8 h-8 rounded-full bg-slate-dark/10 flex items-center justify-center font-bold text-xs">3</div>
-              <div>
-                <p className="text-xs font-semibold">Champaña / Rose Champagne</p>
-                <p className="text-[9px] opacity-75">Hex: #F2E7E2 (Fondos/Cards)</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Save button */}
         <div className="flex justify-end pt-4 pb-12">
           <button
             type="submit"
             disabled={updateSettingsMutation.isPending}
-            className="satin-button text-pure-white text-[10px] font-bold tracking-[0.15em] uppercase py-3 px-8 rounded-xl shadow-lg shadow-satin-copper/10 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            className="rosa-button text-[10px] font-semibold tracking-[0.12em] uppercase py-3 px-8 rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
             <Save size={14} /> {updateSettingsMutation.isPending ? 'Guardando...' : 'Guardar Ajustes'}
           </button>

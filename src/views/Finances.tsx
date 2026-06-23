@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbTransacciones } from '../services/db';
 import type { Transaccion } from '../types/database.types';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import {
   AreaChart,
   Area,
@@ -19,11 +20,22 @@ import {
   Search,
   Check,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Edit2,
+  X
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
 
-type MetodoPago = 'tarjeta' | 'efectivo' | 'transferencia';
+type MetodoPago = 'tarjeta' | 'efectivo' | 'transferencia' | 'zelle' | 'binance' | 'pago_movil';
+
+const METODOS_PAGO_LABELS: Record<MetodoPago, string> = {
+  efectivo: 'Efectivo',
+  tarjeta: 'Tarjeta',
+  transferencia: 'Transferencia',
+  zelle: 'Zelle',
+  binance: 'Binance',
+  pago_movil: 'Pago Móvil'
+};
 
 export const Finances: React.FC = () => {
   const queryClient = useQueryClient();
@@ -31,6 +43,9 @@ export const Finances: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [tempMonto, setTempMonto] = useState<string>('');
+  const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
 
   const { data: transacciones = [], isLoading } = useQuery<Transaccion[]>({
     queryKey: ['transacciones'],
@@ -47,6 +62,17 @@ export const Finances: React.FC = () => {
     },
     onError: (err) => {
       toast.error(`Error al registrar pago: ${err.message}`);
+    }
+  });
+
+  const actualizarMontoMutation = useMutation<Transaccion, Error, { id: string; monto: number }>({
+    mutationFn: ({ id, monto }) => dbTransacciones.actualizarMonto(id, monto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transacciones'] });
+      toast.success('Monto de transacción actualizado.');
+    },
+    onError: (err) => {
+      toast.error(`Error al actualizar monto: ${err.message}`);
     }
   });
 
@@ -108,7 +134,7 @@ export const Finances: React.FC = () => {
     transacciones.filter(t => {
       const query = searchQuery.toLowerCase();
       return (
-        t.paciente?.nombre?.toLowerCase().includes(query) ||
+        [t.paciente?.nombre, t.paciente?.apellido].filter(Boolean).join(' ').toLowerCase().includes(query) ||
         String(t.monto).includes(query) ||
         t.estado?.toLowerCase().includes(query)
       );
@@ -234,23 +260,25 @@ export const Finances: React.FC = () => {
         <div className="lg:col-span-1 glass-panel rounded-3xl p-6 shadow-luxury border border-pure-white/40 flex flex-col">
           <h3 className="text-xs font-sans font-bold uppercase tracking-wider text-slate-dark mb-6">Evolución de Ingresos</h3>
           <div className="w-full h-56 mt-auto">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#A66E53" stopOpacity={0.35}/>
-                    <stop offset="95%" stopColor="#A66E53" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="name" stroke="#8E9AA6" fontSize={9} tickLine={false} axisLine={false} />
-                <YAxis stroke="#8E9AA6" fontSize={9} tickLine={false} axisLine={false} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#3A434D', border: 'none', borderRadius: '12px', color: '#FFFFFF', fontSize: '11px', fontFamily: 'sans-serif' }}
-                  labelStyle={{ fontWeight: 'bold' }}
-                />
-                <Area type="monotone" dataKey="Ingresos" stroke="#A66E53" strokeWidth={1.8} fillOpacity={1} fill="url(#colorIngresos)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            <ErrorBoundary fallbackText="Error al cargar gráfica de ingresos">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#A66E53" stopOpacity={0.35}/>
+                      <stop offset="95%" stopColor="#A66E53" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="name" stroke="#8E9AA6" fontSize={9} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#8E9AA6" fontSize={9} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: '#3A434D', border: 'none', borderRadius: '12px', color: '#FFFFFF', fontSize: '11px', fontFamily: 'sans-serif' }}
+                    labelStyle={{ fontWeight: 'bold' }}
+                  />
+                  <Area type="monotone" dataKey="Ingresos" stroke="#A66E53" strokeWidth={1.8} fillOpacity={1} fill="url(#colorIngresos)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ErrorBoundary>
           </div>
         </div>
 
@@ -282,16 +310,16 @@ export const Finances: React.FC = () => {
                       {tr.paciente?.nombre?.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
                     </div>
                     <div>
-                      <h4 className="font-display font-medium text-sm text-slate-dark">{tr.paciente?.nombre}</h4>
+                      <h4 className="font-display font-medium text-sm text-slate-dark">{[tr.paciente?.nombre, tr.paciente?.apellido].filter(Boolean).join(' ')}</h4>
                       <p className="text-[9px] text-slate-light mt-0.5 font-bold tracking-wider uppercase">
                         {new Date(tr.fecha.includes('T') ? tr.fecha : `${tr.fecha}T00:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6 w-full md:w-auto justify-between md:justify-end">
                     <div className="text-xs font-semibold text-slate-medium capitalize tracking-wide font-sans">
-                      {tr.metodo_pago ? `Vía ${tr.metodo_pago}` : 'Pendiente de cobro'}
+                      {tr.metodo_pago ? `Vía ${METODOS_PAGO_LABELS[tr.metodo_pago as MetodoPago] || tr.metodo_pago}` : 'Pendiente de cobro'}
                     </div>
                     <div>
                       {tr.estado === 'completado' ? (
@@ -304,26 +332,86 @@ export const Finances: React.FC = () => {
                         </span>
                       )}
                     </div>
-                    <div className="text-right w-20">
-                      <span className="font-display font-semibold text-slate-dark text-base">{formatCurrency(Number(tr.monto))}</span>
+                    <div className="text-right w-28 flex items-center justify-end gap-1.5">
+                      {editingId === tr.id ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            value={tempMonto}
+                            onChange={(e) => setTempMonto(e.target.value)}
+                            className="w-16 bg-pure-white/85 border border-satin-copper/20 rounded px-1.5 py-0.5 text-xs font-semibold text-slate-dark text-right focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans"
+                          />
+                          <button
+                            onClick={() => {
+                              const parsed = parseFloat(tempMonto);
+                              if (!isNaN(parsed) && parsed >= 0) {
+                                actualizarMontoMutation.mutate({ id: tr.id, monto: parsed });
+                              }
+                              setEditingId(null);
+                            }}
+                            className="text-muted-olive hover:text-muted-olive-dark p-0.5 cursor-pointer"
+                          >
+                            <Check size={14} />
+                          </button>
+                          <button
+                            onClick={() => setEditingId(null)}
+                            className="text-red-500 hover:text-red-600 p-0.5 cursor-pointer"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <span className="font-display font-semibold text-slate-dark text-base">
+                            {formatCurrency(Number(tr.monto))}
+                          </span>
+                          {tr.estado === 'pendiente' && (
+                            <button
+                              onClick={() => {
+                                setEditingId(tr.id);
+                                setTempMonto(String(tr.monto));
+                              }}
+                              className="text-slate-light hover:text-slate-dark p-0.5 cursor-pointer transition-all"
+                              title="Editar monto"
+                            >
+                              <Edit2 size={11} />
+                            </button>
+                          )}
+                        </>
+                      )}
                     </div>
                     <div className="text-right">
                       {tr.estado === 'pendiente' ? (
-                        <div className="flex gap-1">
+                        <div className="relative">
                           <button
-                            onClick={() => cobrarMutation.mutate({ id: tr.id, metodo: 'tarjeta' })}
+                            onClick={() => setActiveDropdownId(activeDropdownId === tr.id ? null : tr.id)}
                             disabled={cobrarMutation.isPending}
-                            className="text-[9px] font-bold text-satin-copper hover:text-pure-white hover:bg-satin-copper border border-satin-copper/25 px-2 py-1.5 rounded-lg transition-all uppercase tracking-wider bg-pure-white/40 cursor-pointer disabled:opacity-50"
+                            className="text-[9px] font-bold text-satin-copper hover:text-pure-white hover:bg-satin-copper border border-satin-copper/25 px-3 py-1.5 rounded-lg transition-all uppercase tracking-wider bg-pure-white/40 cursor-pointer disabled:opacity-50"
                           >
-                            Tarjeta
+                            Registrar Pago
                           </button>
-                          <button
-                            onClick={() => cobrarMutation.mutate({ id: tr.id, metodo: 'efectivo' })}
-                            disabled={cobrarMutation.isPending}
-                            className="text-[9px] font-bold text-muted-olive hover:text-pure-white hover:bg-muted-olive border border-muted-olive/25 px-2 py-1.5 rounded-lg transition-all uppercase tracking-wider bg-pure-white/40 cursor-pointer disabled:opacity-50"
-                          >
-                            Efectivo
-                          </button>
+                          {activeDropdownId === tr.id && (
+                            <>
+                              <div
+                                className="fixed inset-0 z-10"
+                                onClick={() => setActiveDropdownId(null)}
+                              />
+                              <div className="absolute right-0 mt-1 w-36 bg-pure-white border border-rose-champagne rounded-xl shadow-luxury z-20 py-1 flex flex-col">
+                                {(['efectivo', 'tarjeta', 'pago_movil', 'zelle', 'binance', 'transferencia'] as MetodoPago[]).map((metodo) => (
+                                  <button
+                                    key={metodo}
+                                    onClick={() => {
+                                      cobrarMutation.mutate({ id: tr.id, metodo });
+                                      setActiveDropdownId(null);
+                                    }}
+                                    className="px-3 py-1.5 text-[9px] text-left text-slate-dark hover:bg-rose-champagne-light transition-all uppercase tracking-wider font-bold cursor-pointer"
+                                  >
+                                    {METODOS_PAGO_LABELS[metodo]}
+                                  </button>
+                                ))}
+                              </div>
+                            </>
+                          )}
                         </div>
                       ) : (
                         <span className="text-[9px] text-slate-light font-bold uppercase tracking-wider flex items-center justify-end gap-1"><Check size={12} className="text-muted-olive" /> Conciliado</span>

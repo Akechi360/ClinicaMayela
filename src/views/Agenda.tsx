@@ -61,6 +61,7 @@ export const Agenda: React.FC = () => {
   const [newFecha, setNewFecha]               = useState(new Date().toISOString().split('T')[0]);
   const [newHora, setNewHora]                 = useState('09:00');
   const [newNotas, setNewNotas]               = useState('');
+  const [newPrecioOverride, setNewPrecioOverride] = useState('');
 
   const { data: citas = [], isLoading } = useQuery<Cita[]>({
     queryKey: ['citas'],
@@ -77,7 +78,7 @@ export const Agenda: React.FC = () => {
     queryFn: dbTratamientos.listar
   });
 
-  const crearMutation = useMutation<Cita, Error, Partial<Cita>>({
+  const crearMutation = useMutation<Cita, Error, any>({
     mutationFn: (datos) => dbCitas.insertar(datos),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['citas'] });
@@ -115,6 +116,7 @@ export const Agenda: React.FC = () => {
     setNewFecha(new Date().toISOString().split('T')[0]);
     setNewHora('09:00');
     setNewNotas('');
+    setNewPrecioOverride('');
   };
 
   // Semana actual
@@ -159,7 +161,7 @@ export const Agenda: React.FC = () => {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="satin-button text-pure-white text-xs font-bold py-2.5 px-5 rounded-xl shadow-md flex items-center gap-2 cursor-pointer"
+          className="rosa-button text-xs font-semibold py-2.5 px-5 rounded-xl flex items-center gap-2 cursor-pointer"
         >
           + Nueva Cita
         </button>
@@ -183,14 +185,14 @@ export const Agenda: React.FC = () => {
       {/* Calendar */}
       <div className="glass-panel rounded-3xl border border-pure-white/40 shadow-luxury overflow-hidden">
         {/* Calendar Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-satin-copper/10 bg-pure-white/20">
-          <button onClick={prevWeek} className="w-8 h-8 rounded-full hover:bg-satin-copper/10 flex items-center justify-center transition-all cursor-pointer">
+        <div className="flex items-center justify-between px-3 sm:px-6 py-4 border-b border-satin-copper/10 bg-pure-white/20">
+          <button onClick={prevWeek} className="w-8 h-8 rounded-full hover:bg-satin-copper/10 flex items-center justify-center transition-all cursor-pointer shrink-0">
             <ChevronLeft size={16} className="text-slate-medium" />
           </button>
-          <h3 className="text-sm font-display font-medium text-slate-dark tracking-wide">
-            {weekDays[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })} – {weekDays[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+          <h3 className="text-xs sm:text-sm font-display font-medium text-slate-dark tracking-wide text-center truncate px-2">
+            {weekDays[0].toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })} – {weekDays[6].toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
           </h3>
-          <button onClick={nextWeek} className="w-8 h-8 rounded-full hover:bg-satin-copper/10 flex items-center justify-center transition-all cursor-pointer">
+          <button onClick={nextWeek} className="w-8 h-8 rounded-full hover:bg-satin-copper/10 flex items-center justify-center transition-all cursor-pointer shrink-0">
             <ChevronRight size={16} className="text-slate-medium" />
           </button>
         </div>
@@ -264,7 +266,8 @@ export const Agenda: React.FC = () => {
                 tratamiento_id: newTratamientoId,
                 fecha_hora: `${newFecha}T${newHora}:00`,
                 notas: newNotas,
-                estado: 'pendiente'
+                estado: 'pendiente',
+                precio: newPrecioOverride ? parseFloat(newPrecioOverride) : undefined
               });
             }}
             className="glass-panel w-full max-w-sm rounded-2xl shadow-luxury border border-pure-white/50 overflow-hidden flex flex-col"
@@ -279,17 +282,33 @@ export const Agenda: React.FC = () => {
                 <select required value={newPacienteId} onChange={e => setNewPacienteId(e.target.value)}
                   className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold">
                   <option value="">Seleccionar paciente...</option>
-                  {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                  {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido || ''}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Tratamiento</label>
-                <select required value={newTratamientoId} onChange={e => setNewTratamientoId(e.target.value)}
+                <select required value={newTratamientoId} onChange={e => {
+                  const val = e.target.value;
+                  setNewTratamientoId(val);
+                  const treat = tratamientos.find(t => t.id === val);
+                  if (treat) {
+                    setNewPrecioOverride(String(treat.precio));
+                  } else {
+                    setNewPrecioOverride('');
+                  }
+                }}
                   className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold">
                   <option value="">Seleccionar tratamiento...</option>
                   {tratamientos.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
                 </select>
               </div>
+              {newTratamientoId && (
+                <div>
+                  <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Costo del Procedimiento (USD)</label>
+                  <input type="number" required value={newPrecioOverride} onChange={e => setNewPrecioOverride(e.target.value)}
+                    className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold" />
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Fecha</label>
@@ -333,7 +352,7 @@ export const Agenda: React.FC = () => {
             <div className="p-5 space-y-3 text-xs">
               <div className="space-y-1">
                 <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold">Paciente</p>
-                <p className="font-display font-medium text-slate-dark text-sm">{selectedCita.paciente?.nombre}</p>
+                <p className="font-display font-medium text-slate-dark text-sm">{[selectedCita.paciente?.nombre, selectedCita.paciente?.apellido].filter(Boolean).join(' ')}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold">Tratamiento</p>

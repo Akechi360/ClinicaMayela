@@ -5,6 +5,7 @@ import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRec
 import { supabase } from '../services/supabase';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 import { FaceCanvas } from '../components/FaceCanvas';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { ComposicionCorporalTab } from '../components/ComposicionCorporalTab';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
@@ -188,6 +189,12 @@ export const PatientDetail: React.FC = () => {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.warning('Solo se permiten documentos PDF o imágenes.');
+      e.target.value = '';
+      return;
+    }
     if (file.size > 5 * 1024 * 1024) {
       toast.warning('El archivo supera el límite de 5MB.');
       e.target.value = '';
@@ -364,7 +371,7 @@ export const PatientDetail: React.FC = () => {
       </div>
 
       {/* Patient Overview Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 glass-panel p-6 rounded-3xl shadow-luxury border border-pure-white/40 font-sans">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 glass-panel p-6 rounded-3xl shadow-luxury border border-pure-white/40 font-sans">
         <div className="space-y-1">
           <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold">Contacto</p>
           <p className="text-xs text-slate-dark font-semibold flex items-center gap-1.5"><Phone size={11} className="text-slate-light" /> {paciente.telefono}</p>
@@ -382,6 +389,10 @@ export const PatientDetail: React.FC = () => {
         <div className="space-y-1">
           <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold">Antecedentes Médicos</p>
           <p className="text-xs text-slate-medium italic line-clamp-2 leading-relaxed">{paciente.antecedentes || 'Sin registrar'}</p>
+        </div>
+        <div className="space-y-1">
+          <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold">Notas Generales</p>
+          <p className="text-xs text-slate-medium italic line-clamp-2 leading-relaxed">{paciente.notas || 'Sin registrar'}</p>
         </div>
       </div>
 
@@ -486,7 +497,9 @@ export const PatientDetail: React.FC = () => {
         {activeTab === 'mapa' && (
           <div className="glass-panel rounded-2xl p-6 md:p-8 luxury-shadow flex flex-col md:flex-row gap-8 items-center justify-center">
             <div className="w-full md:w-1/2">
-              <FaceCanvas coordinates={todosLosPuntos} readOnly={true} />
+              <ErrorBoundary fallbackText="Error al cargar lienzo facial 3D">
+                <FaceCanvas coordinates={todosLosPuntos} readOnly={true} />
+              </ErrorBoundary>
             </div>
             <div className="w-full md:w-1/2 space-y-4">
               <div>

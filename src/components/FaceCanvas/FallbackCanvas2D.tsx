@@ -61,7 +61,7 @@ export const FallbackCanvas2D: React.FC<FallbackCanvas2DProps> = ({
     <div className="flex flex-col items-center w-full max-w-lg mx-auto">
       <div
         onClick={handleCanvasClick2D}
-        className="relative w-80 h-96 bg-rose-champagne-light rounded-xl border border-rose-champagne shadow-inner overflow-hidden flex items-center justify-center cursor-crosshair"
+        className="relative w-full max-w-xs h-96 sm:w-80 bg-rose-champagne-light rounded-xl border border-rose-champagne shadow-inner overflow-hidden flex items-center justify-center cursor-crosshair"
       >
         {/* Silueta de Rostro en SVG con estilo Premium */}
         <svg className="w-56 h-72 text-satin-copper/20" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1">

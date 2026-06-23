@@ -17,6 +17,7 @@ export const dbPacientes = {
     const { data, error } = await supabase
       .from('pacientes')
       .select('*')
+      .eq('activo', true)
       .order('creado_en', { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -52,7 +53,7 @@ export const dbPacientes = {
   eliminar: async (id: string): Promise<void> => {
     const { error } = await supabase
       .from('pacientes')
-      .delete()
+      .update({ activo: false })
       .eq('id', id);
     if (error) throw new Error(error.message);
   }
@@ -106,23 +107,31 @@ export const dbCitas = {
     return data ?? [];
   },
   insertar: async (datos: any): Promise<any> => {
-    const { data: treatment, error: tErr } = await supabase
-      .from('tratamientos')
-      .select('precio')
-      .eq('id', datos.tratamiento_id)
-      .single();
-    if (tErr) throw new Error(tErr.message);
+    const { precio, ...citaDatos } = datos;
+    
+    let finalPrecio = precio;
+    if (finalPrecio === undefined || finalPrecio === null) {
+      const { data: treatment, error: tErr } = await supabase
+        .from('tratamientos')
+        .select('precio')
+        .eq('id', datos.tratamiento_id)
+        .single();
+      if (tErr) throw new Error(tErr.message);
+      finalPrecio = treatment.precio;
+    }
+
     const { data: appointment, error: aErr } = await supabase
       .from('citas')
-      .insert(datos)
+      .insert(citaDatos)
       .select()
       .single();
     if (aErr) throw new Error(aErr.message);
+
     const transaction = {
       paciente_id: appointment.paciente_id,
       cita_id: appointment.id,
       fecha: appointment.fecha_hora.split('T')[0],
-      monto: treatment.precio,
+      monto: finalPrecio,
       estado: 'pendiente',
       metodo_pago: 'efectivo'
     };
@@ -211,6 +220,16 @@ export const dbTransacciones = {
     const { data, error } = await supabase
       .from('transacciones')
       .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data;
+  },
+  actualizarMonto: async (id: string, monto: number): Promise<any> => {
+    const { data, error } = await supabase
+      .from('transacciones')
+      .update({ monto })
       .eq('id', id)
       .select()
       .single();
@@ -448,7 +467,7 @@ export async function getDashboardStats() {
     supabase.from('citas').select('*', { count: 'exact', head: true })
       .eq('estado', 'pendiente'),
     supabase.from('historial_clinico')
-      .select('tratamiento, fecha, paciente:pacientes(nombre)')
+      .select('fecha, tratamiento:tratamientos(nombre), paciente:pacientes(nombre, apellido)')
       .order('fecha', { ascending: false })
       .limit(5),
   ]);
@@ -459,10 +478,12 @@ export async function getDashboardStats() {
     citasPendientes: citasPendientes ?? 0,
     ultimosHistoriales: (ultimoHistorial ?? []).map(h => {
       const p = Array.isArray(h.paciente) ? h.paciente[0] : h.paciente;
+      const t = Array.isArray(h.tratamiento) ? h.tratamiento[0] : h.tratamiento;
+      const fullPacienteName = p ? [p.nombre, p.apellido].filter(Boolean).join(' ') : 'Paciente';
       return {
-        tratamiento: h.tratamiento || 'Tratamiento',
+        tratamiento: t?.nombre || 'Tratamiento',
         fecha: h.fecha,
-        pacientes: p ? { nombre: p.nombre, apellido: '' } : { nombre: 'Paciente', apellido: '' }
+        pacientes: { nombre: fullPacienteName, apellido: '' }
       };
     })
   };
