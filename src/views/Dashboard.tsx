@@ -206,7 +206,7 @@ export const Dashboard: React.FC = () => {
                         ? 'bg-gradient-to-br from-rosa-petalo/12 to-satin-copper-light/10 text-[#A0806C]'
                         : 'bg-[#F7F8FA] text-slate-medium'
                     }`}>
-                      {cita.paciente?.nombre?.split(' ').map(n => n[0]).slice(0, 2).join('')}
+                      {cita.paciente?.nombre?.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
                     </div>
                     <div>
                       <Link to={`/pacientes/${cita.paciente_id}`} className="font-sans font-medium text-sm text-slate-dark hover:text-rosa-petalo transition-colors flex items-center gap-2">
