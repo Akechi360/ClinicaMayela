@@ -1,14 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbPacientes, dbCitas } from '../services/db';
-import { Search, UserPlus, Phone, Mail, Award, Calendar, Eye, X } from 'lucide-react';
+import { Search, UserPlus, Phone, Mail, Award, Calendar, Eye, X, Pencil, Trash2 } from 'lucide-react';
+import { useToast } from '../components/Toast';
+import { useConfirm } from '../components/ConfirmDialog';
 import { Link } from 'react-router-dom';
 
 export const Patients: React.FC = () => {
   const queryClient = useQueryClient();
+  const toast = useToast();
+  const confirm = useConfirm();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterVip, setFilterVip] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingPatient, setEditingPatient] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   
   const [nombre, setNombre] = useState('');
@@ -31,14 +37,37 @@ export const Patients: React.FC = () => {
     queryFn: dbCitas.listar
   });
 
-  // Mutación para agregar paciente
   const addPacienteMutation = useMutation({
     mutationFn: dbPacientes.insertar,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pacientes'] });
       setShowAddModal(false);
       resetForm();
-    }
+      toast.success('Paciente registrado correctamente.');
+    },
+    onError: (err: Error) => toast.error(`Error: ${err.message}`),
+  });
+
+  const editPacienteMutation = useMutation({
+    mutationFn: ({ id, datos }: { id: string; datos: Partial<Parameters<typeof dbPacientes.actualizar>[1]> }) =>
+      dbPacientes.actualizar(id, datos),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pacientes'] });
+      setShowEditModal(false);
+      setEditingPatient(null);
+      resetForm();
+      toast.success('Paciente actualizado correctamente.');
+    },
+    onError: (err: Error) => toast.error(`Error: ${err.message}`),
+  });
+
+  const deletePacienteMutation = useMutation({
+    mutationFn: dbPacientes.eliminar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pacientes'] });
+      toast.success('Paciente eliminado.');
+    },
+    onError: (err: Error) => toast.error(`Error al eliminar: ${err.message}`),
   });
 
   const resetForm = () => {
@@ -49,6 +78,27 @@ export const Patients: React.FC = () => {
     setEmail('');
     setFechaNacimiento('');
     setNotas('');
+  };
+
+  const openEditModal = (p: typeof pacientes[0]) => {
+    setEditingPatient(p.id);
+    setNombre(p.nombre);
+    setApellido(p.apellido ?? '');
+    setCedula(p.cedula ?? '');
+    setTelefono(p.telefono ?? '');
+    setEmail(p.email ?? '');
+    setFechaNacimiento(p.fecha_nacimiento ?? '');
+    setNotas(p.notas ?? '');
+    setShowEditModal(true);
+  };
+
+  const handleEditPaciente = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPatient) return;
+    editPacienteMutation.mutate({
+      id: editingPatient,
+      datos: { nombre, apellido, cedula, telefono, email, fecha_nacimiento, notas },
+    });
   };
 
   const handleAddPaciente = (e: React.FormEvent) => {
@@ -200,14 +250,35 @@ export const Patients: React.FC = () => {
                 )}
               </div>
 
-              {/* Action Button */}
-              <div className="flex items-center justify-end w-full md:w-auto">
+              {/* Actions */}
+              <div className="flex items-center gap-1.5 justify-end w-full md:w-auto">
                 <Link
                   to={`/pacientes/${paciente.id}`}
-                  className="inline-flex items-center justify-center gap-1.5 px-4.5 py-2.5 text-[9px] font-bold text-satin-copper hover:text-pure-white border border-satin-copper/25 hover:bg-satin-copper rounded-xl transition-all uppercase tracking-wider bg-pure-white/40 cursor-pointer"
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-[9px] font-bold text-satin-copper hover:text-pure-white border border-satin-copper/25 hover:bg-satin-copper rounded-xl transition-all uppercase tracking-wider bg-pure-white/40 cursor-pointer"
                 >
                   <Eye size={12} /> Expediente
                 </Link>
+                <button
+                  onClick={() => openEditModal(paciente)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-light hover:text-satin-copper hover:bg-satin-copper/10 transition-all cursor-pointer"
+                  title="Editar paciente"
+                >
+                  <Pencil size={13} />
+                </button>
+                <button
+                  onClick={async () => {
+                    const ok = await confirm({
+                      title: 'Eliminar Paciente',
+                      message: `¿Desea eliminar a ${paciente.nombre}? El paciente será desactivado del sistema.`,
+                      severity: 'danger'
+                    });
+                    if (ok) deletePacienteMutation.mutate(paciente.id);
+                  }}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-light hover:text-red-500 hover:bg-red-500/10 transition-all cursor-pointer"
+                  title="Eliminar paciente"
+                >
+                  <Trash2 size={13} />
+                </button>
               </div>
 
             </div>
@@ -356,6 +427,67 @@ export const Patients: React.FC = () => {
                   className="satin-button text-pure-white text-[10px] font-bold tracking-wider uppercase py-2.5 px-6 rounded-xl cursor-pointer font-sans"
                 >
                   Guardar Paciente
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Editar Paciente */}
+      {showEditModal && (
+        <div className="fixed inset-0 bg-slate-dark/45 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="glass-panel rounded-2xl shadow-2xl p-6 w-full max-w-lg font-sans overflow-y-auto max-h-[90vh] border border-pure-white/45">
+            <div className="flex justify-between items-center mb-4 border-b border-satin-copper/15 pb-3">
+              <h3 className="text-base font-medium text-slate-dark font-display">Editar Paciente</h3>
+              <button
+                type="button"
+                onClick={() => { setShowEditModal(false); setEditingPatient(null); resetForm(); }}
+                className="text-slate-medium hover:text-slate-dark cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditPaciente} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Nombre</label>
+                  <input type="text" required value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. María" className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Apellido</label>
+                  <input type="text" required value={apellido} onChange={(e) => setApellido(e.target.value)} placeholder="Ej. López" className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Cédula</label>
+                  <input type="text" value={cedula} onChange={(e) => setCedula(e.target.value)} placeholder="Ej. V-12345678" className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Teléfono</label>
+                  <input type="text" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="Ej. +34 600 000 000" className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Correo Electrónico</label>
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="maria.lopez@example.com" className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Fecha de Nacimiento</label>
+                  <input type="date" value={fecha_nacimiento} onChange={(e) => setFechaNacimiento(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans" />
+                </div>
+              </div>
+
+              <div className="flex flex-col space-y-1 pt-2">
+                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Notas del Paciente</label>
+                <textarea value={notas} onChange={(e) => setNotas(e.target.value)} placeholder="Observaciones generales..." rows={2} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper resize-none placeholder:text-slate-light/60 font-sans" />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-satin-copper/15 mt-6">
+                <button type="button" onClick={() => { setShowEditModal(false); setEditingPatient(null); resetForm(); }} className="px-5 py-2.5 rounded-xl border border-satin-copper/25 text-[10px] font-bold uppercase tracking-wider text-slate-dark hover:bg-pure-white/40 transition-all cursor-pointer font-sans">
+                  Cancelar
+                </button>
+                <button type="submit" className="satin-button text-pure-white text-[10px] font-bold tracking-wider uppercase py-2.5 px-6 rounded-xl cursor-pointer font-sans">
+                  Actualizar Paciente
                 </button>
               </div>
             </form>

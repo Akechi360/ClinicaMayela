@@ -55,6 +55,16 @@ export const PatientDetail: React.FC = () => {
   const [recipeFecha, setRecipeFecha] = useState(new Date().toISOString().split('T')[0]);
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [showEditPatientModal, setShowEditPatientModal] = useState(false);
+  const [editNombre, setEditNombre] = useState('');
+  const [editApellido, setEditApellido] = useState('');
+  const [editCedula, setEditCedula] = useState('');
+  const [editTelefono, setEditTelefono] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editFechaNac, setEditFechaNac] = useState('');
+  const [editNotas, setEditNotas] = useState('');
+  const [editAntecedentes, setEditAntecedentes] = useState('');
+  const [editAlergias, setEditAlergias] = useState('');
 
   const examModalRef = useRef<HTMLFormElement | null>(null);
   const recipeModalRef = useRef<HTMLFormElement | null>(null);
@@ -103,6 +113,31 @@ export const PatientDetail: React.FC = () => {
     queryKey: ['protocolos-peptidos', id],
     queryFn: () => dbProtocolosPeptidos.listarPorPaciente(id ?? '')
   });
+
+  const editPacienteMutation = useMutation({
+    mutationFn: (datos: Partial<Paciente>) => dbPacientes.actualizar(id!, datos),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['paciente', id] });
+      queryClient.invalidateQueries({ queryKey: ['pacientes'] });
+      setShowEditPatientModal(false);
+      toast.success('Paciente actualizado.');
+    },
+    onError: (err: Error) => toast.error(`Error: ${err.message}`),
+  });
+
+  useEffect(() => {
+    if (showEditPatientModal && paciente) {
+      setEditNombre(paciente.nombre);
+      setEditApellido(paciente.apellido ?? '');
+      setEditCedula(paciente.cedula ?? '');
+      setEditTelefono(paciente.telefono ?? '');
+      setEditEmail(paciente.email ?? '');
+      setEditFechaNac(paciente.fecha_nacimiento ?? '');
+      setEditNotas(paciente.notas ?? '');
+      setEditAntecedentes(paciente.antecedentes ?? '');
+      setEditAlergias(paciente.alergias ?? '');
+    }
+  }, [showEditPatientModal, paciente]);
 
   const deleteProtocolMutation = useMutation({
     mutationFn: dbProtocolosPeptidos.eliminar,
@@ -380,12 +415,39 @@ export const PatientDetail: React.FC = () => {
               <p className="text-[10px] text-slate-light mt-1">Expediente Clínico: #{paciente.id}</p>
             </div>
           </div>
-          <button
-            onClick={() => navigate(`/nueva-entrada?pacienteId=${paciente.id}`)}
-            className="w-full sm:w-auto bg-satin-copper hover:bg-satin-copper-hover text-pure-white text-xs font-semibold py-2.5 px-5 rounded-xl transition-all flex items-center justify-center gap-2"
-          >
-            <Plus size={15} /> Registrar Procedimiento
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => navigate(`/nueva-entrada?pacienteId=${paciente.id}`)}
+              className="flex-1 sm:flex-none bg-satin-copper hover:bg-satin-copper-hover text-pure-white text-xs font-semibold py-2.5 px-5 rounded-xl transition-all flex items-center justify-center gap-2"
+            >
+              <Plus size={15} /> Registrar Procedimiento
+            </button>
+            <button
+              onClick={() => setShowEditPatientModal(true)}
+              className="w-10 h-10 rounded-xl flex items-center justify-center border border-satin-copper/25 text-satin-copper hover:bg-satin-copper/10 transition-all cursor-pointer"
+              title="Editar paciente"
+            >
+              <Pencil size={15} />
+            </button>
+            <button
+              onClick={async () => {
+                const ok = await confirm({
+                  title: 'Eliminar Paciente',
+                  message: `¿Desea eliminar a ${paciente.nombre}? El paciente será desactivado del sistema.`,
+                  severity: 'danger'
+                });
+                if (ok) {
+                  await dbPacientes.eliminar(paciente.id);
+                  toast.success('Paciente eliminado.');
+                  navigate('/pacientes');
+                }
+              }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center border border-red-300 text-red-400 hover:bg-red-50 transition-all cursor-pointer"
+              title="Eliminar paciente"
+            >
+              <Trash2 size={15} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -982,6 +1044,84 @@ export const PatientDetail: React.FC = () => {
               <button type="submit" disabled={addRecipeMutation.isPending || !recipeMedicamentos} className="px-4 py-2 bg-satin-copper hover:bg-satin-copper-hover disabled:opacity-50 text-pure-white transition-all rounded-lg font-bold text-[10px] uppercase tracking-wider shadow-md cursor-pointer">
                 {addRecipeMutation.isPending ? 'Guardando...' : 'Emitir Récipe'}
               </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Modal Editar Paciente */}
+      {showEditPatientModal && (
+        <div className="fixed inset-0 bg-slate-dark/45 backdrop-blur-md flex items-center justify-center z-[90] p-4">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              editPacienteMutation.mutate({
+                nombre: editNombre,
+                apellido: editApellido,
+                cedula: editCedula,
+                telefono: editTelefono,
+                email: editEmail,
+                fecha_nacimiento: editFechaNac,
+                notas: editNotas,
+                antecedentes: editAntecedentes,
+                alergias: editAlergias,
+              });
+            }}
+            className="glass-panel rounded-2xl shadow-2xl p-6 w-full max-w-lg font-sans overflow-y-auto max-h-[90vh] border border-pure-white/45"
+          >
+            <div className="flex justify-between items-center mb-4 border-b border-satin-copper/15 pb-3">
+              <h3 className="text-base font-medium text-slate-dark font-display">Editar Paciente</h3>
+              <button type="button" onClick={() => setShowEditPatientModal(false)} className="text-slate-medium hover:text-slate-dark cursor-pointer border-none bg-transparent">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Nombre</label>
+                  <input type="text" required value={editNombre} onChange={e => setEditNombre(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans" />
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Apellido</label>
+                  <input type="text" value={editApellido} onChange={e => setEditApellido(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans" />
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Cédula</label>
+                  <input type="text" value={editCedula} onChange={e => setEditCedula(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans" />
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Teléfono</label>
+                  <input type="text" value={editTelefono} onChange={e => setEditTelefono(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans" />
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Email</label>
+                  <input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans" />
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Fecha de Nacimiento</label>
+                  <input type="date" value={editFechaNac} onChange={e => setEditFechaNac(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans" />
+                </div>
+              </div>
+              <div className="flex flex-col space-y-1">
+                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Antecedentes Médicos</label>
+                <textarea value={editAntecedentes} onChange={e => setEditAntecedentes(e.target.value)} rows={2} placeholder="Antecedentes médicos..." className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper resize-none font-sans" />
+              </div>
+              <div className="flex flex-col space-y-1">
+                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Alergias</label>
+                <input type="text" value={editAlergias} onChange={e => setEditAlergias(e.target.value)} placeholder="Alergias conocidas..." className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans" />
+              </div>
+              <div className="flex flex-col space-y-1">
+                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Notas</label>
+                <textarea value={editNotas} onChange={e => setEditNotas(e.target.value)} rows={2} placeholder="Observaciones..." className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper resize-none font-sans" />
+              </div>
+              <div className="flex justify-end gap-3 pt-4 border-t border-satin-copper/15">
+                <button type="button" onClick={() => setShowEditPatientModal(false)} className="px-5 py-2.5 rounded-xl border border-satin-copper/25 text-[10px] font-bold uppercase tracking-wider text-slate-dark hover:bg-pure-white/40 transition-all cursor-pointer font-sans">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={editPacienteMutation.isPending} className="satin-button text-pure-white text-[10px] font-bold tracking-wider uppercase py-2.5 px-6 rounded-xl cursor-pointer font-sans disabled:opacity-50">
+                  {editPacienteMutation.isPending ? 'Guardando...' : 'Actualizar Paciente'}
+                </button>
+              </div>
             </div>
           </form>
         </div>
