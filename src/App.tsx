@@ -23,6 +23,9 @@ const Gallery = lazy(() => import('./views/Gallery').then(m => ({ default: m.Gal
 const ClinicSettings = lazy(() => import('./views/ClinicSettings').then(m => ({ default: m.ClinicSettings })));
 const Consentimientos = lazy(() => import('./views/Consentimientos').then(m => ({ default: m.Consentimientos })));
 const DoctorProfile = lazy(() => import('./views/DoctorProfile').then(m => ({ default: m.DoctorProfile })));
+const PeptidesProtocol = lazy(() => import('./views/PeptidesProtocol').then(m => ({ default: m.PeptidesProtocol })));
+const PeptidesConsent = lazy(() => import('./views/PeptidesConsent').then(m => ({ default: m.PeptidesConsent })));
+const PeptidesReport = lazy(() => import('./views/PeptidesReport').then(m => ({ default: m.PeptidesReport })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -101,6 +104,9 @@ const AppLayout: React.FC = () => {
               <Route path="/ajustes" element={<ClinicSettings />} />
               <Route path="/consentimientos" element={<Consentimientos />} />
               <Route path="/perfil" element={<DoctorProfile />} />
+              <Route path="/peptides" element={<PeptidesProtocol />} />
+              <Route path="/peptides/consent/:protocolId" element={<PeptidesConsent />} />
+              <Route path="/peptides/report/:protocolId" element={<PeptidesReport />} />
             </Routes>
           </Suspense>
         </main>

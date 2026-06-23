@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbDoctor, dbConsentimientos } from '../services/db';
+import { dbProtocolosPeptidos } from '../services/peptidesService';
+import type { PeptideProtocol } from '../types/peptides';
 import { supabase } from '../services/supabase';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 import { FaceCanvas } from '../components/FaceCanvas';
@@ -24,10 +26,11 @@ import {
   Trash2,
   Download,
   Printer,
-  X
+  X,
+  FlaskConical
 } from 'lucide-react';
 
-type ActiveTab = 'historial' | 'mapa' | 'citas' | 'finanzas' | 'examenes' | 'recipes' | 'consentimientos' | 'composicion';
+type ActiveTab = 'historial' | 'mapa' | 'citas' | 'finanzas' | 'examenes' | 'recipes' | 'consentimientos' | 'composicion' | 'peptidos';
 
 export const PatientDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -93,6 +96,11 @@ export const PatientDetail: React.FC = () => {
   const { data: consentimientos = [], isLoading: loadingConsentimientos } = useQuery<Consentimiento[]>({
     queryKey: ['paciente-consentimientos', id],
     queryFn: () => dbConsentimientos.listarPorPaciente(id ?? '')
+  });
+
+  const { data: protocolosPeptidos = [] } = useQuery<PeptideProtocol[]>({
+    queryKey: ['protocolos-peptidos', id],
+    queryFn: () => dbProtocolosPeptidos.listarPorPaciente(id ?? '')
   });
 
   const addExamenMutation = useMutation({
@@ -337,6 +345,7 @@ export const PatientDetail: React.FC = () => {
     { id: 'examenes',        label: 'Exámenes de Lab.' },
     { id: 'recipes',         label: 'Récipes' },
     { id: 'consentimientos', label: 'Consentimientos' },
+    { id: 'peptidos',        label: 'Péptidos' },
   ];
 
   return (
@@ -762,6 +771,77 @@ export const PatientDetail: React.FC = () => {
                     >
                       <Download size={13} /> {isGeneratingPdf ? 'Generando PDF...' : 'Descargar Consentimiento (PDF)'}
                     </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Péptidos */}
+        {activeTab === 'peptidos' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-base font-display font-medium text-slate-dark">Protocolos Peptídicos</h3>
+              <Link
+                to={`/peptides?pacienteId=${id}`}
+                className="rosa-button px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 no-underline"
+              >
+                <Plus size={13} /> Nuevo Protocolo
+              </Link>
+            </div>
+            {protocolosPeptidos.length === 0 ? (
+              <div className="py-12 text-center border border-dashed border-satin-copper/25 rounded-2xl bg-pure-white/15 backdrop-blur-md">
+                <FlaskConical className="mx-auto text-slate-light mb-2 opacity-50" size={32} />
+                <p className="text-xs text-slate-medium font-semibold">No hay protocolos peptídicos para este paciente</p>
+                <Link
+                  to={`/peptides?pacienteId=${id}`}
+                  className="text-[9px] text-satin-copper font-bold uppercase tracking-[0.15em] mt-3 inline-block hover:underline"
+                >
+                  Crear primer protocolo
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {protocolosPeptidos.map((proto) => (
+                  <div key={proto.id} className="p-5 rounded-2xl bg-pure-white/15 border border-satin-copper/10 hover:bg-pure-white/25 transition-all duration-300 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <span className="text-[9px] text-satin-copper font-bold uppercase tracking-widest bg-satin-copper/10 px-2.5 py-1 rounded-full">
+                        {new Date(proto.fecha_inicio + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </span>
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                        proto.estado === 'activo'
+                          ? 'bg-emerald-500/10 text-emerald-600'
+                          : proto.estado === 'borrador'
+                          ? 'bg-amber-500/10 text-amber-600'
+                          : proto.estado === 'completado'
+                          ? 'bg-blue-500/10 text-blue-600'
+                          : 'bg-red-500/10 text-red-500'
+                      }`}>{proto.estado}</span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-slate-dark">
+                        {proto.peptidos_seleccionados.map(sp => sp.peptide.name).join(', ')}
+                      </p>
+                      <p className="text-[10px] text-slate-light mt-0.5">
+                        {proto.duracion_semanas} semanas — Seguimiento cada {proto.intervalo_seguimiento} días
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        to={`/peptides/consent/${proto.id}`}
+                        className="text-[9px] text-satin-copper font-bold uppercase tracking-wider hover:underline"
+                      >
+                        Consentimiento
+                      </Link>
+                      <span className="text-slate-light">•</span>
+                      <Link
+                        to={`/peptides/report/${proto.id}`}
+                        className="text-[9px] text-satin-copper font-bold uppercase tracking-wider hover:underline"
+                      >
+                        Informe
+                      </Link>
+                    </div>
                   </div>
                 ))}
               </div>
