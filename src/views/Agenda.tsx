@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbCitas, dbPacientes, dbTratamientos } from '../services/db';
 import type { CrearCitaParams } from '../services/db';
-import type { Paciente, Tratamiento } from '../types/database.types';
+import type { Paciente, Tratamiento, CitaRelacional } from '../types/database.types';
 import {
   ChevronLeft,
   ChevronRight,
@@ -18,20 +18,9 @@ import { useConfirm } from '../components/ConfirmDialog';
 
 type EstadoCita = 'pendiente' | 'confirmado' | 'en_sala' | 'completado' | 'cancelado';
 
-interface Cita {
-  id: string;
-  paciente_id: string;
-  tratamiento_id: string;
-  fecha_hora: string;
-  notas?: string;
-  estado: EstadoCita;
-  paciente?: Paciente;
-  tratamiento?: Tratamiento;
-}
-
 const HOURS = Array.from({ length: 11 }, (_, i) => i + 8); // 08:00 – 18:00
 
-const ESTADO_STYLES: Record<EstadoCita, string> = {
+const ESTADO_STYLES: Record<string, string> = {
   pendiente:   'bg-slate-light/15 text-slate-medium border-slate-light/20',
   confirmado:  'bg-satin-copper/10 text-satin-copper border-satin-copper/20',
   en_sala:     'bg-rose-champagne/40 text-slate-dark border-satin-copper/25 animate-pulse',
@@ -39,7 +28,7 @@ const ESTADO_STYLES: Record<EstadoCita, string> = {
   cancelado:   'bg-red-500/10 text-red-500 border-red-500/20',
 };
 
-const ESTADO_LABEL: Record<EstadoCita, string> = {
+const ESTADO_LABEL: Record<string, string> = {
   pendiente:  'Pendiente',
   confirmado: 'Confirmado',
   en_sala:    'En Sala',
@@ -54,7 +43,7 @@ export const Agenda: React.FC = () => {
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
-  const [selectedCita, setSelectedCita] = useState<Cita | null>(null);
+  const [selectedCita, setSelectedCita] = useState<CitaRelacional | null>(null);
 
   // Nueva cita
   const [newPacienteId, setNewPacienteId]     = useState('');
@@ -64,7 +53,7 @@ export const Agenda: React.FC = () => {
   const [newNotas, setNewNotas]               = useState('');
   const [newPrecioOverride, setNewPrecioOverride] = useState('');
 
-  const { data: citas = [], isLoading } = useQuery<Cita[]>({
+  const { data: citas = [], isLoading } = useQuery<CitaRelacional[]>({
     queryKey: ['citas'],
     queryFn: dbCitas.listar
   });
@@ -91,7 +80,7 @@ export const Agenda: React.FC = () => {
     onError: (err) => toast.error(`Error al agendar cita: ${err.message}`)
   });
 
-  const actualizarEstadoMutation = useMutation<Cita, Error, { id: string; estado: EstadoCita }>({
+  const actualizarEstadoMutation = useMutation<unknown, Error, { id: string; estado: EstadoCita }>({
     mutationFn: ({ id, estado }) => dbCitas.actualizarEstado(id, estado),
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['citas'] });
@@ -267,7 +256,6 @@ export const Agenda: React.FC = () => {
                 tratamiento_id: newTratamientoId,
                 fecha_hora: `${newFecha}T${newHora}:00`,
                 notas: newNotas,
-                estado: 'pendiente',
                 precio: newPrecioOverride ? parseFloat(newPrecioOverride) : undefined
               });
             }}

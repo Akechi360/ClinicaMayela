@@ -334,8 +334,8 @@ export const PatientDetail: React.FC = () => {
           doctorNombre={doctor?.nombre ?? 'Dra. Mayela González'}
           doctorEspecialidad={doctor?.especialidad ?? 'Medicina Estética & Bienestar'}
           doctorCedula={doctor?.cedula ?? '12345678-A'}
-          doctorMpps={doctor?.mpps}
-          doctorCol={doctor?.col}
+          doctorMpps={doctor?.mpps ?? undefined}
+          doctorCol={doctor?.col ?? undefined}
           medicamentos={recipe.medicamentos}
           indicaciones={recipe.indicaciones}
         />
@@ -510,7 +510,7 @@ export const PatientDetail: React.FC = () => {
                 <p className="text-[10px] text-slate-light mt-1">Registra su primer procedimiento con el botón superior.</p>
               </div>
             ) : (
-              historiales.map((historial: { id: string; fecha: string; tratamiento?: { nombre?: string }; producto?: string; cantidad?: string; lote?: string; tecnica?: string; notas_medicas?: string; foto_antes?: string; foto_despues?: string }) => (
+              historiales.map((historial) => (
                 <div key={historial.id} className="glass-panel rounded-2xl p-6 md:p-8 luxury-shadow hover:shadow-xl transition-all duration-500">
                   <div className="flex flex-col lg:flex-row gap-8">
                     <div className="w-full lg:w-1/3 space-y-5">

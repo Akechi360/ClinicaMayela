@@ -78,8 +78,9 @@ export const DoctorProfile: React.FC = () => {
       setTimeout(() => setErrorMessage(''), 3000);
       return;
     }
+    if (!doctor?.id) return;
     updateMutation.mutate({
-      id: doctor?.id,
+      id: doctor.id,
       nombre,
       especialidad,
       cedula_prof: cedulaProf,
@@ -87,9 +88,9 @@ export const DoctorProfile: React.FC = () => {
       telefono,
       foto,
       biografia,
-      horario: horario || null,
-      mpps: mpps || null,
-      col: col || null,
+      horario: horario || undefined,
+      mpps: mpps || undefined,
+      col: col || undefined,
       updated_at: new Date().toISOString()
     });
   };

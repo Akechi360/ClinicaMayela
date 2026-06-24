@@ -40,7 +40,9 @@ export const ClinicSettings: React.FC = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!dbSettings?.id) return;
     updateSettingsMutation.mutate({
+      id: dbSettings.id,
       bot_activo: botActivo,
       hora_recordatorio: horaRecordatorio,
       mensaje_bienvenida: mensajeBienvenida

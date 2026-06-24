@@ -156,7 +156,7 @@ export const Topbar: React.FC<TopbarProps> = ({
             >
               <img
                 alt={doctor.nombre}
-                src={doctor.foto_perfil || doctor.foto}
+                src={doctor.foto_perfil ?? doctor.foto ?? undefined}
                 className="w-full h-full object-cover"
               />
             </Link>

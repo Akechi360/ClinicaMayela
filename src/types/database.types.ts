@@ -29,8 +29,8 @@ export interface HistorialClinico {
   tecnica?:                string;
   notas_medicas?:          string;
   mapa_facial_coordenadas: MapaFacialCoordenada[];
-  foto_antes?:             string;
-  foto_despues?:           string;
+  foto_antes?:             string | null;
+  foto_despues?:           string | null;
   creado_en?:              string;
   created_at?:             string;
 }
@@ -53,8 +53,8 @@ export interface ProductoUsado {
 
 export interface Cita {
   id:             string;
-  paciente_id?:   string;
-  tratamiento_id?: string;
+  paciente_id:    string;
+  tratamiento_id: string;
   fecha_hora:     string;
   estado:         string;
   notas?:         string;
@@ -68,20 +68,20 @@ export interface DoctorProfile {
   id:           string;
   nombre:       string;
   especialidad: string;
-  cedula_prof?: string;
-  cedula?:      string;
-  correo?:      string;
-  email?:       string;
+  cedula_prof?: string | null;
+  cedula?:      string | null;
+  correo?:      string | null;
+  email?:       string | null;
   telefono:     string;
-  foto?:        string;
-  foto_perfil?: string;
+  foto?:        string | null;
+  foto_perfil?: string | null;
   biografia:    string;
   horario:      string;
-  linkedin?:    string;
-  instagram?:   string;
-  mpps?:        string;
-  col?:         string;
-  updated_at?:  string;
+  linkedin?:    string | null;
+  instagram?:   string | null;
+  mpps?:        string | null;
+  col?:         string | null;
+  updated_at?:  string | null;
 }
 
 export interface Transaccion {
@@ -159,7 +159,7 @@ export interface Consentimiento {
   fecha: string;
   doctor_nombre: string;
   estado: 'Activo' | 'Pendiente' | 'Archivado';
-  firma_base64?: string;
+  firma_base64?: string | null;
   version: number;
   clausulas: string[];
   created_at: string;
