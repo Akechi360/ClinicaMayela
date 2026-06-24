@@ -69,10 +69,22 @@ export async function handleIncomingMessage(sock, msg, supabase) {
           await reply('📝 ¿Cuál es tu nombre completo?');
           SESSION.set(phone, { step: 'esperando_nombre' });
         } else if (text === '2') {
+          const { data: paciente } = await supabase
+            .from('pacientes')
+            .select('id')
+            .eq('telefono', phone)
+            .eq('activo', true)
+            .limit(1)
+            .single();
+          if (!paciente) {
+            await reply('❌ No encontramos tu número registrado. Agenda tu primera cita con la opción *1*.');
+            SESSION.delete(phone);
+            break;
+          }
           const { data } = await supabase
             .from('citas')
-            .select('fecha_hora, tratamiento:tratamientos(nombre), paciente:pacientes!inner(id)')
-            .eq('paciente.telefono', phone)
+            .select('fecha_hora, tratamiento:tratamientos(nombre)')
+            .eq('paciente_id', paciente.id)
             .eq('estado', 'pendiente')
             .order('fecha_hora', { ascending: true })
             .limit(1);
@@ -82,10 +94,22 @@ export async function handleIncomingMessage(sock, msg, supabase) {
             : '❌ No tienes citas pendientes.');
           SESSION.delete(phone);
         } else if (text === '3') {
+          const { data: paciente } = await supabase
+            .from('pacientes')
+            .select('id')
+            .eq('telefono', phone)
+            .eq('activo', true)
+            .limit(1)
+            .single();
+          if (!paciente) {
+            await reply('❌ No encontramos tu número registrado.');
+            SESSION.delete(phone);
+            break;
+          }
           const { data } = await supabase
             .from('citas')
-            .select('id, fecha_hora, tratamiento:tratamientos(nombre), paciente:pacientes!inner(id)')
-            .eq('paciente.telefono', phone)
+            .select('id, fecha_hora, tratamiento:tratamientos(nombre)')
+            .eq('paciente_id', paciente.id)
             .eq('estado', 'pendiente')
             .order('fecha_hora', { ascending: true })
             .limit(1);

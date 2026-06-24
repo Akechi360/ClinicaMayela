@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbDoctor, dbConsentimientos } from '../services/db';
 import { dbProtocolosPeptidos } from '../services/peptidesService';
 import type { PeptideProtocol } from '../types/peptides';
-import { supabase } from '../services/supabase';
+import { supabase, getSignedUrl } from '../services/supabase';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 import { FaceCanvas } from '../components/FaceCanvas';
 import { ErrorBoundary } from '../components/ErrorBoundary';
@@ -260,9 +260,8 @@ export const PatientDetail: React.FC = () => {
         .from('examenes')
         .upload(`${id}/${Date.now()}_${file.name}`, file, { cacheControl: '3600', upsert: false });
       if (storageError) throw new Error(storageError.message);
-      const { data: signedUrlData, error: signedError } = await supabase.storage.from('examenes').createSignedUrl(storageData.path, 3600);
-      if (signedError) throw new Error(signedError.message);
-      setExamenArchivoUrl(signedUrlData.signedUrl);
+      const signedUrl = await getSignedUrl('examenes', storageData.path);
+      setExamenArchivoUrl(signedUrl);
       toast.dismiss(uploadToastId);
       toast.success('Archivo subido correctamente.');
     } catch (err) {

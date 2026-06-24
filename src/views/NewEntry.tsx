@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbPacientes, dbTratamientos, dbHistoriales, dbConsentimientos, dbDoctor } from '../services/db';
-import { supabase } from '../services/supabase';
+import { supabase, getSignedUrl } from '../services/supabase';
 import type { Paciente, Tratamiento, Consentimiento, MapaFacialCoordenada } from '../types/database.types';
 import { FaceCanvas } from '../components/FaceCanvas';
 import { ErrorBoundary } from '../components/ErrorBoundary';
@@ -126,9 +126,7 @@ export const NewEntry: React.FC = () => {
         .from('pacientes-fotos')
         .upload(path, file, { cacheControl: '3600', upsert: false });
       if (error) throw new Error(error.message);
-      const { data: signedUrlData, error: signedError } = await supabase.storage.from('pacientes-fotos').createSignedUrl(data.path, 3600);
-      if (signedError) throw new Error(signedError.message);
-      const signedUrl = signedUrlData.signedUrl;
+      const signedUrl = await getSignedUrl('pacientes-fotos', data.path);
       if (type === 'antes') setFotoAntes(signedUrl);
       else setFotoDespues(signedUrl);
       toast.dismiss(uploadId);
