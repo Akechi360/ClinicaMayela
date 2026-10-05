@@ -23,6 +23,7 @@ import { NumberTicker } from '../components/motion/NumberTicker';
 import { MedicalPointCloud } from '../components/landing/MedicalPointCloud';
 import { DOMWebGLErrorBoundary } from '../components/FaceCanvas/DOMWebGLErrorBoundary';
 import { CellgenicEditorialShowcase } from '../components/landing/CellgenicEditorialShowcase';
+import { LandingNav } from '../components/landing/LandingNav';
 import { ResponsiveCamera } from '../components/landing/ResponsiveCamera';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -200,46 +201,13 @@ export const LandingPage: React.FC = () => {
     <div ref={pageRef} className="landing-soria min-h-screen bg-lilac-pearl text-ink font-sans relative selection:bg-aurora-rose/40 selection:text-ink overflow-x-hidden">
 
       {/* ─────────────────────────────────────────────────────────────
-          1. HEADER — fijo, cristal oscuro (se lee sobre el hero y sobre las secciones claras)
+          1. HEADER — estilo Apple: transparente arriba, vidrio esmerilado al hacer scroll
       ───────────────────────────────────────────────────────────── */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#FBF7FA]/70 border-b border-[#A891AA]/20 text-[#5E4760]">
-        <div className="px-4 sm:px-8 h-14 flex items-center justify-between gap-2">
-          <div
-            className="flex items-center gap-2 sm:gap-2.5 cursor-pointer min-w-0 sm:shrink-0"
-            onClick={() => lenisRef.current ? lenisRef.current.scrollTo(0) : window.scrollTo({ top: 0, behavior: 'smooth' })}
-          >
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#5E4760] via-[#A891AA] to-[#D0AFC6] p-[1px] flex items-center justify-center">
-              <div className="w-full h-full bg-[#FBF7FA] rounded-full flex items-center justify-center">
-                <span className="font-fraunces italic font-medium text-xs text-[#5E4760]">M</span>
-              </div>
-            </div>
-            <span className="text-[12px] sm:text-sm font-medium tracking-tight leading-[1.15]">Clínica Dra. Mayela González</span>
-          </div>
-
-          <nav className="hidden lg:flex items-center gap-4 xl:gap-8 font-mono text-[10.5px] uppercase tracking-[0.08em] xl:tracking-[0.18em] text-[#A891AA]">
-            <a href="#pilares" className="hover:text-[#5E4760] transition-colors whitespace-nowrap">Terapias</a>
-            <a href="#peptidos" className="hover:text-[#5E4760] transition-colors whitespace-nowrap">Péptidos</a>
-            <a href="#calculadora" className="hover:text-[#5E4760] transition-colors whitespace-nowrap">Calculadora</a>
-            <a href="#dra-mayela" className="hover:text-[#5E4760] transition-colors whitespace-nowrap">Dra. Mayela</a>
-          </nav>
-
-          <div className="flex items-center gap-2.5">
-            <button
-              onClick={() => handleOpenWhatsApp("Hola Dra. Mayela, quisiera solicitar una evaluación médica personalizada.")}
-              className="hidden xl:flex px-3.5 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#5E4760]/80 hover:text-[#5E4760] transition-colors cursor-pointer whitespace-nowrap"
-            >
-              Agendar Cita
-            </button>
-            <button
-              onClick={() => navigate('/login')}
-              className="px-2.5 sm:px-4 py-1.5 border border-[#A891AA]/60 hover:border-[#5E4760]/60 hover:bg-[#EADAE3]/70 font-mono text-[9.5px] sm:text-[10.5px] uppercase tracking-[0.08em] sm:tracking-[0.16em] text-[#5E4760] transition-colors cursor-pointer whitespace-nowrap flex items-center gap-2"
-              title="Acceso médico exclusivo"
-            >
-              Acceso Portal <span className="hidden min-[400px]:inline tracking-[-0.15em]">▸▸▸</span>
-            </button>
-          </div>
-        </div>
-      </header>
+      <LandingNav
+        onLogoClick={() => (lenisRef.current ? lenisRef.current.scrollTo(0) : window.scrollTo({ top: 0, behavior: 'smooth' }))}
+        onPortal={() => navigate('/login')}
+        onSchedule={() => handleOpenWhatsApp("Hola Dra. Mayela, quisiera solicitar una evaluación médica personalizada.")}
+      />
 
       {/* ─────────────────────────────────────────────────────────────
           2. HERO — busto 3D de partículas (referencia: video Orvane)
