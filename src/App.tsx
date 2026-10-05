@@ -91,7 +91,7 @@ const AppLayout: React.FC = () => {
           sidebarCollapsed={sidebarCollapsed}
         />
 
-        <main className="flex-1 min-w-0 pt-24 sm:pt-28 pb-16 sm:pb-20 max-w-screen-2xl w-full mx-auto">
+        <main className="flex-1 min-w-0 pt-24 sm:pt-28 pb-24 sm:pb-24 max-w-screen-2xl w-full mx-auto">
           <Suspense fallback={<PageLoadSkeleton />}>
             <Routes>
               {/* ESCALABILIDAD: agregar aquí rutas de portal de pacientes

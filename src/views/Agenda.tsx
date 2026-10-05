@@ -42,6 +42,8 @@ export const Agenda: React.FC = () => {
   const confirm = useConfirm();
 
   const [currentDate, setCurrentDate] = useState(new Date());
+  // Vista móvil de un solo día: índice 0 (lun) .. 6 (dom) dentro de la semana mostrada
+  const [selectedDayIdx, setSelectedDayIdx] = useState(() => (new Date().getDay() + 6) % 7);
   const [showModal, setShowModal] = useState(false);
   const [selectedCita, setSelectedCita] = useState<CitaRelacional | null>(null);
 
@@ -187,9 +189,66 @@ export const Agenda: React.FC = () => {
           </button>
         </div>
 
-        {/* Scrollable Container for Grid */}
-        <div className="overflow-x-auto">
-          <div className="min-w-[760px]">
+        {/* Móvil: selector de día + horas del día elegido */}
+        <div className="md:hidden">
+          <div className="grid grid-cols-7 border-b border-satin-copper/10">
+            {weekDays.map((day, i) => {
+              const isToday = day.toDateString() === new Date().toDateString();
+              const active = i === selectedDayIdx;
+              const count = citas.filter(c => new Date(c.fecha_hora).toDateString() === day.toDateString()).length;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setSelectedDayIdx(i)}
+                  aria-pressed={active}
+                  aria-label={day.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  className={`py-2.5 text-center transition-colors cursor-pointer min-h-[56px] ${active ? 'bg-satin-copper/15' : isToday ? 'bg-satin-copper/5' : ''}`}
+                >
+                  <span className="block text-[9px] uppercase tracking-wider text-slate-light font-bold">{dayNames[i]}</span>
+                  <span className={`block text-base font-display font-medium mt-0.5 ${active || isToday ? 'text-satin-copper' : 'text-slate-dark'}`}>{day.getDate()}</span>
+                  <span className={`mx-auto mt-0.5 block h-1 w-1 rounded-full ${count > 0 ? 'bg-satin-copper' : 'bg-transparent'}`} />
+                </button>
+              );
+            })}
+          </div>
+          <p className="px-4 py-2 text-[10px] uppercase tracking-wider text-slate-light font-bold capitalize border-b border-satin-copper/6">
+            {weekDays[selectedDayIdx].toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </p>
+          <div className="overflow-y-auto max-h-[60vh]">
+            {isLoading ? (
+              <div className="py-16 flex items-center justify-center gap-2 text-xs text-slate-light">
+                <Loader2 size={16} className="animate-spin text-satin-copper" /> Cargando agenda...
+              </div>
+            ) : (
+              HOURS.map(hour => {
+                const slotCitas = getCitasForSlot(weekDays[selectedDayIdx], hour);
+                return (
+                  <div key={hour} className="flex gap-3 px-4 py-2 border-b border-satin-copper/6 min-h-[52px]">
+                    <span className="w-11 shrink-0 pt-1 text-[10px] text-slate-light font-bold">{String(hour).padStart(2, '0')}:00</span>
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      {slotCitas.map(cita => (
+                        <button
+                          key={cita.id}
+                          type="button"
+                          onClick={() => setSelectedCita(cita)}
+                          className={`w-full text-left px-3 py-2 rounded-xl border text-[11px] font-bold tracking-wide transition-all cursor-pointer leading-tight ${ESTADO_STYLES[cita.estado]}`}
+                        >
+                          <span className="block truncate">{cita.paciente?.nombre}</span>
+                          <span className="block truncate font-normal text-[10px] opacity-80">{cita.tratamiento?.nombre}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Tableta/escritorio: cuadrícula semanal */}
+        <div className="hidden md:block overflow-x-auto">
+          <div className="min-w-[680px]">
             {/* Day Headers */}
             <div className="grid grid-cols-8 border-b border-satin-copper/10">
               <div className="py-3 px-2 text-center">

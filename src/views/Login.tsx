@@ -50,13 +50,13 @@ export const Login: React.FC = () => {
       toast.dismiss(toastId);
       toast.success('Sesión iniciada con éxito.');
       navigate('/dashboard', { replace: true });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.dismiss(toastId);
       console.error('Error de login:', err);
 
       await confirm({
         title: 'Error de Autenticación',
-        message: err.message || 'Las credenciales ingresadas son incorrectas o el usuario no existe. Por favor, intente de nuevo.',
+        message: (err instanceof Error && err.message) || 'Las credenciales ingresadas son incorrectas o el usuario no existe. Por favor, intente de nuevo.',
         confirmLabel: 'Entendido',
         cancelLabel: 'Cerrar',
         severity: 'warning'

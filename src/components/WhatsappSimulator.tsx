@@ -123,7 +123,7 @@ export const WhatsappSimulator: React.FC = () => {
         queryClient.invalidateQueries({ queryKey: ['citas'] });
         queryClient.invalidateQueries({ queryKey: ['pacientes'] });
         queryClient.invalidateQueries({ queryKey: ['transacciones'] });
-      } catch (err) {
+      } catch {
         addMensaje('bot', 'Hubo un problema al registrar la cita. Por favor intenta de nuevo.');
       }
       
@@ -183,7 +183,7 @@ export const WhatsappSimulator: React.FC = () => {
             });
             setUnreadCount(0);
           }}
-          className="fixed bottom-6 right-6 w-14 h-14 bg-[#5D7D65] hover:bg-[#4E6B55] text-pure-white rounded-full flex items-center justify-center shadow-2xl z-50 transition-all duration-300 hover:scale-110 active:scale-95 group border border-pure-white/25 cursor-pointer"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-12 h-12 sm:w-14 sm:h-14 bg-[#5D7D65] hover:bg-[#4E6B55] text-pure-white rounded-full flex items-center justify-center shadow-2xl z-50 transition-all duration-300 hover:scale-110 active:scale-95 group border border-pure-white/25 cursor-pointer"
           title="Simulador de Bot de WhatsApp"
         >
           <MessageCircle size={28} />
@@ -197,7 +197,7 @@ export const WhatsappSimulator: React.FC = () => {
 
       {/* Panel del chat */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-80 md:w-96 h-[480px] glass-panel rounded-2xl shadow-2xl border border-pure-white/45 flex flex-col overflow-hidden z-50 font-sans">
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-[calc(100vw-2rem)] max-w-sm md:w-96 md:max-w-none h-[480px] max-h-[calc(100dvh-2rem)] glass-panel rounded-2xl shadow-2xl border border-pure-white/45 flex flex-col overflow-hidden z-50 font-sans">
           
           {/* Header del chat */}
           <div className="bg-[#5D7D65]/90 backdrop-blur-md text-pure-white px-4 py-3.5 flex justify-between items-center border-b border-pure-white/10">

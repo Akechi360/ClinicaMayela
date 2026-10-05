@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useLoader } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'three';
@@ -6,6 +6,8 @@ import { vertexShader, fragmentShader } from './headShaders';
 
 interface Props {
   pointCount?: number;
+  /** 0..1: fracción de puntos que se dibuja. Los puntos son aleatorios, así que recortar el rango conserva la forma. */
+  quality?: number;
 }
 
 // Boca/mentón en el espacio normalizado del modelo (medido sobre LeePerrySmith.glb:
@@ -153,7 +155,7 @@ function buildHeadPointCloud(scene: THREE.Object3D, normalTex: THREE.Texture, po
   return { positions: pos, randoms: rnd, sizes: sz, normals: nrm, headGeometry: geom };
 }
 
-export const MedicalPointCloud: React.FC<Props> = ({ pointCount = 320000 }) => {
+export const MedicalPointCloud: React.FC<Props> = ({ pointCount = 320000, quality = 1 }) => {
   const groupRef = useRef<THREE.Group>(null);
   const pointsRef = useRef<THREE.Points>(null);
   const modelUrl = `${import.meta.env.BASE_URL || '/'}models/LeePerrySmith.glb`.replace(/\/+/g, '/');
@@ -165,6 +167,10 @@ export const MedicalPointCloud: React.FC<Props> = ({ pointCount = 320000 }) => {
     () => buildHeadPointCloud(obj.scene, normalTex, pointCount),
     [obj, normalTex, pointCount],
   );
+
+  useEffect(() => {
+    pointsRef.current?.geometry.setDrawRange(0, Math.max(2000, Math.floor(pointCount * quality)));
+  }, [quality, pointCount, positions]);
 
   const uniforms = useMemo(
     () => ({ uTime: { value: 0 }, uMouth: { value: MOUTH_CENTER.clone() } }),

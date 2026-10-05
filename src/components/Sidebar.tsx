@@ -98,8 +98,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         : 'text-slate-medium hover:text-slate-dark hover:bg-[#F7F8FA] border border-transparent'
     }`;
 
-  const renderNavItems = (items: typeof clinicalItems) =>
-    items.map((item: any) => {
+  const renderNavItems = (items: { name: string; path: string; icon: React.ReactNode; badge?: string }[]) =>
+    items.map((item) => {
       const active = isActive(item.path);
       return (
         <Link

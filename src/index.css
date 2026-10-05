@@ -1,7 +1,9 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gloock&display=swap');
 
 @theme {
+  --font-soria: 'Soria', 'Gloock', serif;
   --font-display: 'Cormorant Garamond', serif;
   --font-sans: 'Inter', sans-serif;
 
@@ -390,4 +392,25 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .aurora-drift-1, .aurora-drift-2, .aurora-drift-3 { animation: none; }
+}
+
+/* ── Tipografía de la landing: Soria ─────────────────────────────────
+   Soria no es una fuente de Google Fonts. Coloca el archivo en public/fonts/
+   (Soria.woff2, Soria.otf o Soria.ttf) y se activa sola; mientras tanto la
+   landing usa Gloock como respaldo. */
+@font-face {
+  font-family: 'Soria';
+  src: local('Soria'),
+       url('/fonts/Soria.woff2') format('woff2'),
+       url('/fonts/Soria.otf') format('opentype'),
+       url('/fonts/Soria.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Doble clase = más especificidad que font-mono / font-sans / font-fraunces de Tailwind */
+.landing-soria.landing-soria,
+.landing-soria.landing-soria * {
+  font-family: var(--font-soria);
 }
