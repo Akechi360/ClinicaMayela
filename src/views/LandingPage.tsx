@@ -184,37 +184,37 @@ export const LandingPage: React.FC = () => {
       {/* ─────────────────────────────────────────────────────────────
           1. HEADER — fijo, cristal oscuro (se lee sobre el hero y sobre las secciones claras)
       ───────────────────────────────────────────────────────────── */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#04061f]/60 border-b border-white/[0.07] text-white">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#FBF7FA]/70 border-b border-[#A891AA]/20 text-[#5E4760]">
         <div className="px-5 sm:px-8 h-14 flex items-center justify-between">
           <div
             className="flex items-center gap-2.5 cursor-pointer"
             onClick={() => lenisRef.current ? lenisRef.current.scrollTo(0) : window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 via-violet-400 to-fuchsia-300 p-[1px] flex items-center justify-center">
-              <div className="w-full h-full bg-[#070b3a] rounded-full flex items-center justify-center">
-                <span className="font-fraunces italic font-medium text-xs text-white">M</span>
+            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#5E4760] via-[#A891AA] to-[#D0AFC6] p-[1px] flex items-center justify-center">
+              <div className="w-full h-full bg-[#FBF7FA] rounded-full flex items-center justify-center">
+                <span className="font-fraunces italic font-medium text-xs text-[#5E4760]">M</span>
               </div>
             </div>
             <span className="text-sm font-medium tracking-tight">Clínica Mayela</span>
           </div>
 
-          <nav className="hidden lg:flex items-center gap-8 font-mono text-[10.5px] uppercase tracking-[0.18em] text-white/45">
-            <a href="#pilares" className="hover:text-white transition-colors whitespace-nowrap">Terapias</a>
-            <a href="#peptidos" className="hover:text-white transition-colors whitespace-nowrap">Péptidos</a>
-            <a href="#calculadora" className="hover:text-white transition-colors whitespace-nowrap">Calculadora</a>
-            <a href="#dra-mayela" className="hover:text-white transition-colors whitespace-nowrap">Dra. Mayela</a>
+          <nav className="hidden lg:flex items-center gap-8 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#A891AA]">
+            <a href="#pilares" className="hover:text-[#5E4760] transition-colors whitespace-nowrap">Terapias</a>
+            <a href="#peptidos" className="hover:text-[#5E4760] transition-colors whitespace-nowrap">Péptidos</a>
+            <a href="#calculadora" className="hover:text-[#5E4760] transition-colors whitespace-nowrap">Calculadora</a>
+            <a href="#dra-mayela" className="hover:text-[#5E4760] transition-colors whitespace-nowrap">Dra. Mayela</a>
           </nav>
 
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => handleOpenWhatsApp("Hola Dra. Mayela, quisiera solicitar una evaluación médica personalizada.")}
-              className="hidden sm:flex px-3.5 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/70 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
+              className="hidden sm:flex px-3.5 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#5E4760]/80 hover:text-[#5E4760] transition-colors cursor-pointer whitespace-nowrap"
             >
               Agendar Cita
             </button>
             <button
               onClick={() => navigate('/login')}
-              className="px-4 py-1.5 border border-indigo-300/40 hover:border-indigo-200/80 hover:bg-indigo-400/10 font-mono text-[10.5px] uppercase tracking-[0.16em] text-indigo-100 transition-colors cursor-pointer whitespace-nowrap flex items-center gap-2"
+              className="px-4 py-1.5 border border-[#A891AA]/60 hover:border-[#5E4760]/60 hover:bg-[#EADAE3]/70 font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#5E4760] transition-colors cursor-pointer whitespace-nowrap flex items-center gap-2"
               title="Acceso médico exclusivo"
             >
               Acceso Portal <span className="tracking-[-0.15em]">▸▸▸</span>
@@ -226,8 +226,8 @@ export const LandingPage: React.FC = () => {
       {/* ─────────────────────────────────────────────────────────────
           2. HERO — busto 3D de partículas (referencia: video Orvane)
       ───────────────────────────────────────────────────────────── */}
-      <section className="relative h-screen min-h-[640px] overflow-hidden bg-[#03041a] text-white select-none">
-        <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_at_50%_42%,#101a6e_0%,#070b3a_45%,#03041a_100%)]" aria-hidden="true" />
+      <section className="relative h-screen min-h-[640px] overflow-hidden bg-[#FBF7FA] text-[#5E4760] select-none">
+        <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_55%_42%,rgba(234,218,227,0.85)_0%,rgba(234,218,227,0.40)_45%,rgba(251,247,250,0)_75%)]" aria-hidden="true" />
 
         <div className="absolute inset-0 z-[1]">
           <Canvas camera={{ position: [-0.15, 0, 3.1], fov: 35 }} dpr={[1, 1.5]}>
@@ -240,56 +240,56 @@ export const LandingPage: React.FC = () => {
         {/* Cuadrícula HUD con cruces */}
         <div className="absolute inset-0 z-[2] pointer-events-none" aria-hidden="true">
           {[34, 66, 82].map((x) => (
-            <div key={`v${x}`} className="absolute top-0 bottom-0 w-px bg-indigo-200/[0.07]" style={{ left: `${x}%` }} />
+            <div key={`v${x}`} className="absolute top-0 bottom-0 w-px bg-[#A891AA]/20" style={{ left: `${x}%` }} />
           ))}
           {[24, 78].map((y) => (
-            <div key={`h${y}`} className="absolute left-0 right-0 h-px bg-indigo-200/[0.07]" style={{ top: `${y}%` }} />
+            <div key={`h${y}`} className="absolute left-0 right-0 h-px bg-[#A891AA]/20" style={{ top: `${y}%` }} />
           ))}
           {[34, 66, 82].flatMap((x) => [24, 78].map((y) => (
-            <span key={`${x}-${y}`} className="absolute -translate-x-1/2 -translate-y-1/2 text-indigo-100/40 text-[11px] leading-none" style={{ left: `${x}%`, top: `${y}%` }}>+</span>
+            <span key={`${x}-${y}`} className="absolute -translate-x-1/2 -translate-y-1/2 text-[#A891AA] text-[11px] leading-none" style={{ left: `${x}%`, top: `${y}%` }}>+</span>
           )))}
         </div>
 
         {/* Título */}
         <div className="absolute top-[17%] left-6 sm:left-8 md:left-10 z-10 max-w-xl pointer-events-none">
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-normal leading-[1.02] tracking-tight text-white">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-normal leading-[1.02] tracking-tight text-[#5E4760]">
             Medicina Celular<br />& Longevidad
           </h1>
         </div>
 
         {/* Badges HUD */}
         <div className="absolute top-[26%] right-[12%] z-10 hidden sm:flex items-start gap-2.5 font-mono pointer-events-none">
-          <span className="absolute top-[6px] right-full mr-2 w-20 h-px bg-gradient-to-l from-indigo-200/50 to-transparent" />
-          <span className="mt-[3px] w-1.5 h-1.5 bg-indigo-300" />
+          <span className="absolute top-[6px] right-full mr-2 w-20 h-px bg-gradient-to-l from-[#A891AA]/60 to-transparent" />
+          <span className="mt-[3px] w-1.5 h-1.5 bg-[#A891AA]" />
           <div>
-            <strong className="block text-[13px] font-medium text-white">24/7</strong>
-            <small className="block text-[9px] text-white/35 tracking-[0.16em] uppercase">Monitoreo Clínico</small>
+            <strong className="block text-[13px] font-medium text-[#5E4760]">24/7</strong>
+            <small className="block text-[9px] text-[#A891AA] tracking-[0.16em] uppercase">Monitoreo Clínico</small>
           </div>
         </div>
         <div className="absolute top-[54%] left-[71%] z-10 hidden md:flex items-start gap-2.5 font-mono pointer-events-none">
-          <span className="absolute top-[6px] right-full mr-2 w-16 h-px bg-gradient-to-l from-indigo-200/50 to-transparent" />
-          <span className="mt-[3px] w-1.5 h-1.5 bg-indigo-300" />
+          <span className="absolute top-[6px] right-full mr-2 w-16 h-px bg-gradient-to-l from-[#A891AA]/60 to-transparent" />
+          <span className="mt-[3px] w-1.5 h-1.5 bg-[#A891AA]" />
           <div>
-            <strong className="block text-[13px] font-medium text-white">+18 Péptidos</strong>
-            <small className="block text-[9px] text-white/35 tracking-[0.16em] uppercase">Fórmulas Certificadas</small>
+            <strong className="block text-[13px] font-medium text-[#5E4760]">+18 Péptidos</strong>
+            <small className="block text-[9px] text-[#A891AA] tracking-[0.16em] uppercase">Fórmulas Certificadas</small>
           </div>
         </div>
         <div className="absolute top-[67%] left-[14%] z-10 hidden sm:flex items-start gap-2.5 font-mono pointer-events-none">
-          <span className="absolute top-[6px] left-full ml-3 w-24 h-px bg-gradient-to-r from-indigo-200/50 to-transparent" />
-          <span className="mt-[3px] w-1.5 h-1.5 bg-indigo-300" />
+          <span className="absolute top-[6px] left-full ml-3 w-24 h-px bg-gradient-to-r from-[#A891AA]/60 to-transparent" />
+          <span className="mt-[3px] w-1.5 h-1.5 bg-[#A891AA]" />
           <div>
-            <strong className="block text-[13px] font-medium text-white">99.4%</strong>
-            <small className="block text-[9px] text-white/35 tracking-[0.16em] uppercase">Adherencia Protocolar</small>
+            <strong className="block text-[13px] font-medium text-[#5E4760]">99.4%</strong>
+            <small className="block text-[9px] text-[#A891AA] tracking-[0.16em] uppercase">Adherencia Protocolar</small>
           </div>
         </div>
 
         {/* Pie izquierdo: crédito + microcopy */}
         <div className="absolute bottom-6 left-6 sm:left-8 md:left-10 z-10 max-w-[18rem] font-mono">
-          <p className="mb-2 text-[8.5px] text-white/30">
+          <p className="mb-2 text-[8.5px] text-[#A891AA]">
             Escaneo de cabeza por{' '}
             <a href="https://github.com/mrdoob/three.js" target="_blank" rel="noreferrer" className="underline">Lee Perry-Smith</a>, CC BY 3.0
           </p>
-          <p className="text-[11px] leading-relaxed text-white/90">
+          <p className="text-[11px] leading-relaxed text-[#5E4760]">
             Desde biomarcadores tempranos hasta tratamientos de regeneración celular avanzada.
           </p>
         </div>
@@ -303,7 +303,7 @@ export const LandingPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="text-3xl md:text-5xl font-normal leading-[1.05] text-white whitespace-pre-line tracking-tight"
+              className="text-3xl md:text-5xl font-normal leading-[1.05] text-[#5E4760] whitespace-pre-line tracking-tight"
             >
               {MORPHING_MESSAGES[msgIndex]}
             </motion.h2>

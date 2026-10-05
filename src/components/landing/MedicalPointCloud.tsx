@@ -203,7 +203,7 @@ export const MedicalPointCloud: React.FC<Props> = ({ pointCount = 320000 }) => {
           transparent
           depthTest
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={THREE.NormalBlending}
         />
       </points>
     </group>

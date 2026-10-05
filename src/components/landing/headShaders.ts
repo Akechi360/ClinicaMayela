@@ -106,18 +106,17 @@ export const fragmentShader = `
     vec3 keyDir = normalize(vec3(0.7, 0.55, 0.45));
     float diffuse = clamp(dot(n, keyDir), 0.0, 1.0);
 
-    vec3 colShadow = vec3(0.30, 0.32, 0.95);
-    vec3 colMid    = vec3(0.42, 0.44, 1.0);
-    vec3 colRim    = vec3(0.80, 0.68, 1.0);
-    vec3 colWhite  = vec3(0.97, 0.90, 1.0);
+    // Paleta Faded Lilac & Mauve (modo claro): las partículas oscurecen sobre fondo perla
+    vec3 cDeepMauve   = vec3(0.369, 0.278, 0.376); // #5E4760
+    vec3 cSmokedLilac = vec3(0.659, 0.569, 0.667); // #A891AA
+    vec3 cFadedMauve  = vec3(0.816, 0.686, 0.776); // #D0AFC6
 
     float facing = clamp(dot(n, v), 0.0, 1.0);
-    float lit = clamp(0.6 + diffuse * 0.4 + facing * 0.25, 0.0, 1.0);
-    vec3 c = mix(colShadow, colMid, lit);
-    c = mix(c, colRim, rim * 0.9);
-    c = mix(c, colWhite, pow(rim, 3.0) * 0.55 + vDispersal * 0.8);
-    c *= 0.75 + vNoise * 0.15;
+    float lit = clamp(0.25 + diffuse * 0.55 + facing * 0.2, 0.0, 1.0);
+    vec3 c = mix(cDeepMauve, cSmokedLilac, lit);
+    c = mix(c, cFadedMauve, rim * 0.6 + vDispersal * 0.5);
+    c *= 0.92 + vNoise * 0.08;
 
-    gl_FragColor = vec4(c, alpha * (0.9 + rim * 0.4));
+    gl_FragColor = vec4(c, alpha * 0.85);
   }
 `;
