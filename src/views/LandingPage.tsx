@@ -22,6 +22,7 @@ import {
 import { NumberTicker } from '../components/motion/NumberTicker';
 import { MedicalPointCloud } from '../components/landing/MedicalPointCloud';
 import { DOMWebGLErrorBoundary } from '../components/FaceCanvas/DOMWebGLErrorBoundary';
+import { CellgenicEditorialShowcase } from '../components/landing/CellgenicEditorialShowcase';
 import { ResponsiveCamera } from '../components/landing/ResponsiveCamera';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -358,6 +359,11 @@ export const LandingPage: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          3b. PÉPTIDOS CELLGENIC — archivo editorial (ancla #peptidos)
+      ───────────────────────────────────────────────────────────── */}
+      <CellgenicEditorialShowcase />
 
       {/* ─────────────────────────────────────────────────────────────
           4. LOS 4 PILARES — columnas sin bordes, solo línea fina
