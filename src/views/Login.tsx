@@ -4,6 +4,7 @@ import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
+import { DOMWebGLErrorBoundary } from '../components/FaceCanvas/DOMWebGLErrorBoundary';
 
 const LoginFace3D = lazy(() =>
   import('../components/LoginFace3D').then(m => ({ default: m.LoginFace3D }))
@@ -113,22 +114,24 @@ export const Login: React.FC = () => {
               <span className="material-symbols-outlined text-white text-base">spa</span>
             </div>
             <div>
-              <h1 className="text-sm font-display font-medium text-slate-dark tracking-[0.12em] uppercase leading-none">Rejuvenece</h1>
-              <p className="text-[7px] uppercase tracking-[0.1em] text-rosa-petalo font-medium mt-0.5">Clínica Mayela</p>
+              <h1 className="text-sm font-display font-medium text-slate-dark tracking-[0.12em] uppercase leading-none">Clínica Dra. Mayela González</h1>
             </div>
           </div>
 
           {/* 3D Face Canvas */}
           <div className="flex-1 relative z-10">
-            <Suspense fallback={
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rosa-petalo/20 to-satin-copper-light/15 flex items-center justify-center animate-pulse">
-                  <span className="material-symbols-outlined text-rosa-petalo text-lg">spa</span>
+            {/* Si el modelo no carga o no hay WebGL, el login sigue funcionando sin el 3D */}
+            <DOMWebGLErrorBoundary fallback={null}>
+              <Suspense fallback={
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rosa-petalo/20 to-satin-copper-light/15 flex items-center justify-center animate-pulse">
+                    <span className="material-symbols-outlined text-rosa-petalo text-lg">spa</span>
+                  </div>
                 </div>
-              </div>
-            }>
-              <LoginFace3D />
-            </Suspense>
+              }>
+                <LoginFace3D />
+              </Suspense>
+            </DOMWebGLErrorBoundary>
           </div>
 
           {/* Bottom content */}
@@ -177,8 +180,7 @@ export const Login: React.FC = () => {
                 <span className="material-symbols-outlined text-white text-base">spa</span>
               </div>
               <div>
-                <h1 className="text-sm font-display font-medium text-white tracking-[0.12em] uppercase">Rejuvenece</h1>
-                <p className="text-[7px] uppercase tracking-[0.1em] text-rosa-petalo font-medium mt-0.5">Clínica Mayela</p>
+                <h1 className="text-sm font-display font-medium text-white tracking-[0.12em] uppercase">Clínica Dra. Mayela González</h1>
               </div>
             </div>
 

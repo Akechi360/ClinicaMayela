@@ -147,7 +147,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         lg:left-5 lg:top-5 lg:h-[calc(100vh-2.5rem)]
         ${collapsed ? 'lg:w-20' : 'lg:w-64'}
         w-64
-        ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-[calc(100%+3rem)] lg:translate-x-0'}
         flex flex-col justify-between py-6 px-4`}
       aria-label="Menú principal de navegación"
     >

@@ -121,7 +121,7 @@ export const ConsentimientoPDF: React.FC<ConsentimientoPDFProps> = ({
       {/* Cabecera */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Clínica Mayela</Text>
+          <Text style={styles.title}>Clínica Dra. Mayela González</Text>
           <Text style={styles.subtitle}>Medicina Estética & Bienestar</Text>
         </View>
         <View style={{ alignItems: 'flex-end' }}>
@@ -190,7 +190,7 @@ export const ConsentimientoPDF: React.FC<ConsentimientoPDFProps> = ({
 
       {/* Pie de Pagina */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Clínica Mayela Estética Premium • Calle de la Salud 123 • www.clinicamayela.com</Text>
+        <Text style={styles.footerText}>Clínica Dra. Mayela González Estética Premium • Calle de la Salud 123 • www.clinicamayela.com</Text>
       </View>
     </Page>
   </Document>

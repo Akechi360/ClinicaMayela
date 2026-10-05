@@ -1,5 +1,5 @@
 const MENU_PRINCIPAL = `
-👋 Hola, soy el asistente de *Clínica Mayela*.
+👋 Hola, soy el asistente de *Clínica Dra. Mayela González*.
 
 ¿En qué te puedo ayudar?
 1️⃣ Agendar una cita

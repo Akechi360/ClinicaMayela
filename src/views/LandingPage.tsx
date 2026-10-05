@@ -20,6 +20,8 @@ import {
 } from 'lucide-react';
 import { NumberTicker } from '../components/motion/NumberTicker';
 import { MedicalPointCloud } from '../components/landing/MedicalPointCloud';
+import { DOMWebGLErrorBoundary } from '../components/FaceCanvas/DOMWebGLErrorBoundary';
+import { ResponsiveCamera } from '../components/landing/ResponsiveCamera';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -46,29 +48,29 @@ const PILARES = [
     num: "01",
     tag: "Medicina Celular & Regeneración",
     title: "Péptidos Bioactivos & Longevidad",
-    desc: "Protocolos terapéuticos con moléculas de señalización celular de alta pureza. Estimulación de hormona de crecimiento, regeneración tisular, salud mitocondrial y modulación metabólica avanzada.",
+    desc: "Protocolos terapéuticos de longevidad con moléculas de señalización celular de alta pureza. Eje metabólico, hormona de crecimiento, regenerativos, inmunes,mitocondriales, neuropeptificos, eje reproductivo y cosmeceuticos.",
     highlights: ["BPC-157 & TB-500", "Semaglutida & Tirzepatida", "CJC-1295 / Ipamorelin", "GHK-Cu (Péptido de Cobre)", "NAD+ Intracelular"],
   },
   {
     num: "02",
     tag: "Escultura Médica & Precisión",
     title: "Armonización Facial Inteligente",
-    desc: "Abordaje tridimensional del envejecimiento facial respetando las proporciones áureas y la dinámica muscular natural. Resultados indetectables con técnicas de mínima invasión.",
+    desc: "Abordaje tridimensional del envejecimiento facial respetando las proporciones áureas y la dinámica muscular natural. Respetando las estructuras y la dinámica del rostro, técnicas mínimamente invasivas.",
     highlights: ["Toxina Botulínica Preventiva y Correctiva", "Ácido Hialurónico de Alta Cohesión", "Técnica Rinomodelación 4 Puntos", "Perfilado Mandibular & Mentón", "Lip Flip & Tratamientos Labiales"],
   },
   {
     num: "03",
     tag: "Inducción Autóloga de Colágeno",
     title: "Bioestimulación & Exosomas",
-    desc: "Reactivación biológica de los fibroblastos para una dermis densa, elástica y luminosa. Terapia vesicular avanzada para regeneración cutánea profunda y bioestimulación capilar.",
-    highlights: ["Radiesse (Hidroxiapatita de Calcio)", "Ellansé (Bioestimulador duradero)", "Vesículas Extracelulares (Exosomas)", "Polinucleótidos & Mesoheal", "Peelings Médicos de Rejuvenecimiento"],
+    desc: "Regeneración profunda de los tejidos para una dermis densa, elástica y luminosa. Terapia con exosomas, bioestimuladores de colageno, polirevitalizantes.",
+    highlights: ["Certificación hilos aptos", "Regeneración capilar con tratamiento para la alopecia"],
   },
   {
     num: "04",
     tag: "Optimización Biológica Global",
     title: "Medicina Metabólica & Corporal",
-    desc: "Evaluación integral de la composición corporal (masa grasa, masa magra, IMC y retención) asociada a programas de salud metabólica, sueroterapia détox y antienvejecimiento sistémico.",
-    highlights: ["Composición Corporal Bioeléctrica", "Sueroterapia Ortomolecular IV", "Radiofrecuencia & Modelado Tisular", "Carboxiterapia Subcutánea", "Controles de Laboratorio Específicos"],
+    desc: "Evaluación integral de la composición corporal.",
+    highlights: ["Suero terapia detox y de longevidad sistémica", "Depilación láser triple diodo", "Tratamientos corporales carboxiterapia, ultrasonido, ultracavitacion, láser diodo, rafiofrecuencia monopolar, tripolar, indiba, limpieza de cutis", "Carboxiterapia Subcutánea", "Controles de Laboratorio Específicos"],
   }
 ];
 
@@ -84,6 +86,8 @@ export const LandingPage: React.FC = () => {
   const pageRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
   const [msgIndex, setMsgIndex] = useState(0);
+  // Menos partículas en pantallas pequeñas para sostener los fps
+  const [pointCount] = useState(() => (typeof window !== 'undefined' && window.innerWidth < 768 ? 160000 : 320000));
 
   useEffect(() => {
     const timer = setInterval(() => setMsgIndex((prev) => (prev + 1) % MORPHING_MESSAGES.length), 4200);
@@ -195,7 +199,7 @@ export const LandingPage: React.FC = () => {
                 <span className="font-fraunces italic font-medium text-xs text-[#5E4760]">M</span>
               </div>
             </div>
-            <span className="text-sm font-medium tracking-tight">Clínica Mayela</span>
+            <span className="text-[13px] sm:text-sm font-medium tracking-tight leading-[1.15]">Clínica Dra. Mayela González</span>
           </div>
 
           <nav className="hidden lg:flex items-center gap-8 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#A891AA]">
@@ -214,10 +218,10 @@ export const LandingPage: React.FC = () => {
             </button>
             <button
               onClick={() => navigate('/login')}
-              className="px-4 py-1.5 border border-[#A891AA]/60 hover:border-[#5E4760]/60 hover:bg-[#EADAE3]/70 font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#5E4760] transition-colors cursor-pointer whitespace-nowrap flex items-center gap-2"
+              className="px-3 sm:px-4 py-1.5 border border-[#A891AA]/60 hover:border-[#5E4760]/60 hover:bg-[#EADAE3]/70 font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#5E4760] transition-colors cursor-pointer whitespace-nowrap flex items-center gap-2"
               title="Acceso médico exclusivo"
             >
-              Acceso Portal <span className="tracking-[-0.15em]">▸▸▸</span>
+              Acceso Portal <span className="hidden min-[400px]:inline tracking-[-0.15em]">▸▸▸</span>
             </button>
           </div>
         </div>
@@ -230,11 +234,14 @@ export const LandingPage: React.FC = () => {
         <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(circle_at_55%_42%,rgba(234,218,227,0.85)_0%,rgba(234,218,227,0.40)_45%,rgba(251,247,250,0)_75%)]" aria-hidden="true" />
 
         <div className="absolute inset-0 z-[1]">
-          <Canvas camera={{ position: [-0.15, 0, 3.1], fov: 35 }} dpr={[1, 1.5]}>
-            <Suspense fallback={null}>
-              <MedicalPointCloud />
-            </Suspense>
-          </Canvas>
+          <DOMWebGLErrorBoundary fallback={null}>
+            <Canvas camera={{ position: [-0.15, 0, 3.1], fov: 35 }} dpr={[1, 1.5]}>
+              <ResponsiveCamera baseZ={3.1} />
+              <Suspense fallback={null}>
+                <MedicalPointCloud pointCount={pointCount} />
+              </Suspense>
+            </Canvas>
+          </DOMWebGLErrorBoundary>
         </div>
 
         {/* Cuadrícula HUD con cruces */}
@@ -252,7 +259,7 @@ export const LandingPage: React.FC = () => {
 
         {/* Título */}
         <div className="absolute top-[17%] left-6 sm:left-8 md:left-10 z-10 max-w-xl pointer-events-none">
-          <h1 className="text-5xl sm:text-6xl md:text-7xl font-normal leading-[1.02] tracking-tight text-[#5E4760]">
+          <h1 className="text-4xl min-[400px]:text-5xl sm:text-6xl md:text-7xl font-normal leading-[1.02] tracking-tight text-[#5E4760]">
             Medicina Celular<br />& Longevidad
           </h1>
         </div>
@@ -263,7 +270,7 @@ export const LandingPage: React.FC = () => {
           <span className="mt-[3px] w-1.5 h-1.5 bg-[#A891AA]" />
           <div>
             <strong className="block text-[13px] font-medium text-[#5E4760]">24/7</strong>
-            <small className="block text-[9px] text-[#A891AA] tracking-[0.16em] uppercase">Monitoreo Clínico</small>
+            <small className="block text-[9px] text-[#5E4760]/75 tracking-[0.16em] uppercase">Monitoreo Clínico</small>
           </div>
         </div>
         <div className="absolute top-[54%] left-[71%] z-10 hidden md:flex items-start gap-2.5 font-mono pointer-events-none">
@@ -271,7 +278,7 @@ export const LandingPage: React.FC = () => {
           <span className="mt-[3px] w-1.5 h-1.5 bg-[#A891AA]" />
           <div>
             <strong className="block text-[13px] font-medium text-[#5E4760]">+18 Péptidos</strong>
-            <small className="block text-[9px] text-[#A891AA] tracking-[0.16em] uppercase">Fórmulas Certificadas</small>
+            <small className="block text-[9px] text-[#5E4760]/75 tracking-[0.16em] uppercase">Fórmulas Certificadas</small>
           </div>
         </div>
         <div className="absolute top-[67%] left-[14%] z-10 hidden sm:flex items-start gap-2.5 font-mono pointer-events-none">
@@ -279,7 +286,7 @@ export const LandingPage: React.FC = () => {
           <span className="mt-[3px] w-1.5 h-1.5 bg-[#A891AA]" />
           <div>
             <strong className="block text-[13px] font-medium text-[#5E4760]">99.4%</strong>
-            <small className="block text-[9px] text-[#A891AA] tracking-[0.16em] uppercase">Adherencia Protocolar</small>
+            <small className="block text-[9px] text-[#5E4760]/75 tracking-[0.16em] uppercase">Adherencia Protocolar</small>
           </div>
         </div>
 
@@ -295,7 +302,7 @@ export const LandingPage: React.FC = () => {
         </div>
 
         {/* Texto dinámico (morphing) */}
-        <div className="absolute bottom-6 right-6 sm:right-8 md:right-10 z-10 text-right min-h-[96px] md:min-h-[130px] pointer-events-none">
+        <div className="absolute bottom-28 sm:bottom-6 right-6 sm:right-8 md:right-10 z-10 text-right min-h-[96px] md:min-h-[130px] pointer-events-none">
           <AnimatePresence mode="wait">
             <motion.h2
               key={msgIndex}
@@ -303,7 +310,7 @@ export const LandingPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="text-3xl md:text-5xl font-normal leading-[1.05] text-[#5E4760] whitespace-pre-line tracking-tight"
+              className="text-2xl sm:text-3xl md:text-5xl font-normal leading-[1.05] text-[#5E4760] whitespace-pre-line tracking-tight"
             >
               {MORPHING_MESSAGES[msgIndex]}
             </motion.h2>
@@ -580,7 +587,7 @@ export const LandingPage: React.FC = () => {
             </h2>
 
             <p className="text-sm text-lilac-muted leading-relaxed">
-              La medicina estética contemporánea no debe perseguir la estandarización ni la sobrecorrección. Nuestro compromiso es la <strong>armonización inteligente</strong>: potenciar la arquitectura natural del paciente a través de inductores de colágeno, precisión anatómica y terapias regenerativas que restauran la juventud desde el nivel celular.
+              La medicina estética de la nueva era. Potencia la arquitectura natural del rostro del paciente mediante la combinación de distintas técnicas y tratamientos incluso restaurando la juventud a nivel celular.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
@@ -644,7 +651,7 @@ export const LandingPage: React.FC = () => {
                 M
               </div>
               <span className="font-fraunces text-xl font-medium tracking-wide text-ink">
-                Clínica Mayela
+                Clínica Dra. Mayela González
               </span>
             </div>
             <p className="text-xs text-lilac-muted max-w-sm leading-relaxed">
@@ -674,7 +681,7 @@ export const LandingPage: React.FC = () => {
               Atención Clínica
             </h6>
             <ul className="space-y-2 text-xs text-lilac-muted">
-              <li><span className="flex items-center gap-1.5"><Clock size={12} /> Lunes a Viernes 9:00 - 18:30</span></li>
+              <li><span className="flex items-center gap-1.5"><Clock size={12} /> Lunes a Viernes 10:00AM - 5:00PM Previa Cita</span></li>
               <li>
                 <button
                   onClick={() => handleOpenWhatsApp("Hola, deseo información sobre citas disponibles.")}
@@ -699,7 +706,7 @@ export const LandingPage: React.FC = () => {
 
         <div className="max-w-7xl mx-auto border-t border-ink/10 pt-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-lilac-muted">
           <div>
-            © {new Date().getFullYear()} Clínica Mayela. Todos los derechos reservados.
+            © {new Date().getFullYear()} Clínica Dra. Mayela González. Todos los derechos reservados.
           </div>
           <div className="flex gap-4 mt-2 sm:mt-0">
             <span>Aviso de Privacidad Sanitaria</span>

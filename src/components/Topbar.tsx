@@ -61,7 +61,7 @@ export const Topbar: React.FC<TopbarProps> = ({
     if (path.startsWith('/perfil')) return 'Perfil Profesional';
     if (path.startsWith('/consentimientos')) return 'Consentimientos';
     if (path.startsWith('/peptides')) return 'Protocolos de Péptidos';
-    return 'Clínica Mayela';
+    return 'Clínica Dra. Mayela González';
   };
 
   const unreadCount = notificaciones.length;

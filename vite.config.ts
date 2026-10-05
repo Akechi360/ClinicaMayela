@@ -12,7 +12,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'logo.svg', 'models/face.obj', 'background.png'],
       manifest: {
-        name: 'Clínica Mayela',
+        name: 'Clínica Dra. Mayela González',
         short_name: 'Mayela',
         description: 'Aplicación clínica de medicina estética y bienestar de la Dra. Mayela Silva',
         theme_color: '#3A434D', // Slate Dark

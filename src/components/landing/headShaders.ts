@@ -66,7 +66,11 @@ export const vertexShader = `
     // máscara esférica alrededor de la boca, limitada a la superficie frontal.
     float mouthDist = distance(pos, uMouth);
     float mask = smoothstep(0.42, 0.0, mouthDist) * smoothstep(0.0, 0.5, aNormal.z);
-    float noise = snoise(pos * 3.2 + vec3(uTime * 0.55));
+    // El ruido Simplex es lo más caro del vertex shader: solo se evalúa dentro de la máscara de la boca
+    float noise = 0.0;
+    if (mask > 0.001) {
+      noise = snoise(pos * 3.2 + vec3(uTime * 0.55));
+    }
     vNoise = noise;
 
     // Ráfaga hacia adelante y hacia afuera, con vaivén para que "respire"

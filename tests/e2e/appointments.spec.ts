@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Flujos de Usuario de la Clínica Mayela', () => {
+test.describe('Flujos de Usuario de la Clínica Dra. Mayela González', () => {
   test.beforeEach(async ({ page }) => {
     // Inyectar un token de sesión de Supabase simulado en localStorage antes de que cargue la página
     await page.addInitScript(() => {
@@ -31,7 +31,7 @@ test.describe('Flujos de Usuario de la Clínica Mayela', () => {
 
     // Verificar el título principal o marca comercial (primera coincidencia para evitar duplicación de logos)
     const brandHeader = page.locator('h1').first();
-    await expect(brandHeader).toContainText('Clínica Mayela');
+    await expect(brandHeader).toContainText('Clínica Dra. Mayela González');
 
     // Verificar que la navegación del menú está visible (buscando dentro de la barra lateral)
     const panelLink = page.locator('nav a:has-text("Panel")').first();

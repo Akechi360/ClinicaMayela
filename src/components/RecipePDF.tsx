@@ -156,7 +156,7 @@ export const RecipePDF: React.FC<RecipePDFProps> = ({
       {/* Cabecera */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>Clínica Mayela</Text>
+          <Text style={styles.title}>Clínica Dra. Mayela González</Text>
           <Text style={styles.subtitle}>Medicina Estética & Bienestar</Text>
         </View>
         <View style={styles.doctorInfo}>
@@ -212,7 +212,7 @@ export const RecipePDF: React.FC<RecipePDFProps> = ({
 
       {/* Pie de Página */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Clínica Mayela Estética Premium • Calle de la Salud 123 • Tel: +34 600 999 888 • www.clinicamayela.com</Text>
+        <Text style={styles.footerText}>Clínica Dra. Mayela González Estética Premium • Calle de la Salud 123 • Tel: +34 600 999 888 • www.clinicamayela.com</Text>
       </View>
     </Page>
   </Document>
