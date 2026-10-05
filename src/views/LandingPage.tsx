@@ -1,13 +1,13 @@
-import React, { useState, useRef } from 'react';
+import React, { Suspense, useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Canvas } from '@react-three/fiber';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import Lenis from 'lenis';
 import {
   ShieldCheck,
-  ArrowRight,
   Calculator,
   LogIn,
   CheckCircle2,
@@ -19,6 +19,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { NumberTicker } from '../components/motion/NumberTicker';
+import { MedicalPointCloud } from '../components/landing/MedicalPointCloud';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -32,6 +33,12 @@ const springConfig = {
   damping: 30,
   mass: 1,
 };
+
+const MORPHING_MESSAGES = [
+  'Ciencia Aplicada\na Tu Longevidad.',
+  'Medicina Celular\ny Precisión Clínica.',
+  'Decisiones Médicas\nBasadas en Evidencia.',
+];
 
 // Datos de los 4 Pilares Terapéuticos
 const PILARES = [
@@ -72,20 +79,16 @@ const PEPTIDE_PRESETS = [
   { id: 'ghkcu', label: 'GHK-Cu (50 mg)' },
 ] as const;
 
-// Palabra individual con máscara overflow-hidden: la unidad mínima del reveal del titular.
-const Word: React.FC<{ children: string; className?: string }> = ({ children, className = '' }) => (
-  <span className="word-mask inline-block overflow-hidden align-top">
-    <span className={`word-inner inline-block ${className}`} style={{ transform: 'translateY(110%)' }}>
-      {children}
-    </span>
-  </span>
-);
-
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const pageRef = useRef<HTMLDivElement>(null);
-  const blobCursorRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
+  const [msgIndex, setMsgIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => setMsgIndex((prev) => (prev + 1) % MORPHING_MESSAGES.length), 4200);
+    return () => clearInterval(timer);
+  }, []);
 
   // Estados interactivos para la Mini-Calculadora Teaser
   const [calcPeptido, setCalcPeptido] = useState<'bpc157' | 'semaglutide' | 'tirzepatide' | 'ghkcu'>('bpc157');
@@ -126,14 +129,14 @@ export const LandingPage: React.FC = () => {
     window.open(url, '_blank');
   };
 
-  // Toda la coreografía de movimiento vive aquí, aislada por useGSAP (cleanup automático).
+
+  // Coreografía de movimiento: Lenis + reveal de pilares, aislado por useGSAP (cleanup automático).
   useGSAP(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // Lenis + GSAP ticker: el patrón estándar, en vez del rAF manual suelto.
     let lenis: Lenis | undefined;
     let raf: ((time: number) => void) | undefined;
-    let cleanupCursor: (() => void) | undefined;
     if (!reduced) {
       lenis = new Lenis({ duration: 1.15, smoothWheel: true });
       lenisRef.current = lenis;
@@ -157,47 +160,6 @@ export const LandingPage: React.FC = () => {
     };
     pageRef.current?.addEventListener('click', handleAnchorClick);
 
-    // Reveal del titular, palabra por palabra. El overflow-hidden de cada
-    // palabra es solo la máscara de la animación — se quita al terminar,
-    // si no las descendentes (la cola de la "g", la "y"...) quedan recortadas para siempre.
-    if (reduced) {
-      gsap.set('.word-inner, .hero-reveal', { clearProps: 'all' });
-      gsap.set('.word-mask', { overflow: 'visible' });
-    } else {
-      const tl = gsap.timeline({ delay: 0.15 });
-      tl.to('.hero-eyebrow', { opacity: 1, duration: 0.6, ease: 'power2.out' })
-        .to('.word-inner', {
-          y: '0%', duration: 1.1, stagger: 0.045, ease: 'power4.out',
-          onComplete: () => gsap.set('.word-mask', { overflow: 'visible' }),
-        }, 0.1)
-        .to('.hero-lede', { opacity: 1, duration: 0.8, ease: 'power2.out' }, '-=0.6')
-        .to('.hero-cta', { opacity: 1, duration: 0.8, ease: 'power2.out' }, '-=0.55');
-    }
-
-    if (!reduced) {
-      // Parallax de los 3 blobs, a velocidades distintas.
-      gsap.utils.toArray<HTMLElement>('.blob-parallax').forEach((el) => {
-        const speed = parseFloat(el.dataset.speed || '0');
-        gsap.to(el, {
-          y: () => window.innerHeight * speed,
-          ease: 'none',
-          scrollTrigger: { trigger: pageRef.current, start: 'top top', end: 'bottom bottom', scrub: 0.6 },
-        });
-      });
-
-      // El blob principal se inclina sutilmente hacia el cursor.
-      if (window.matchMedia('(pointer: fine)').matches && blobCursorRef.current) {
-        const blobX = gsap.quickTo(blobCursorRef.current, 'x', { duration: 1.4, ease: 'power2.out' });
-        const blobY = gsap.quickTo(blobCursorRef.current, 'y', { duration: 1.4, ease: 'power2.out' });
-        const onMove = (e: MouseEvent) => {
-          blobX((e.clientX / window.innerWidth - 0.5) * 60);
-          blobY((e.clientY / window.innerHeight - 0.5) * 40);
-        };
-        window.addEventListener('mousemove', onMove);
-        cleanupCursor = () => window.removeEventListener('mousemove', onMove);
-      }
-    }
-
     // Reveal escalonado de los pilares al entrar en viewport.
     gsap.from('.pilar-col', {
       y: reduced ? 0 : 32,
@@ -211,7 +173,6 @@ export const LandingPage: React.FC = () => {
     return () => {
       pageRef.current?.removeEventListener('click', handleAnchorClick);
       if (raf) gsap.ticker.remove(raf);
-      cleanupCursor?.();
       lenis?.destroy();
       lenisRef.current = null;
     };
@@ -221,137 +182,135 @@ export const LandingPage: React.FC = () => {
     <div ref={pageRef} className="min-h-screen bg-lilac-pearl text-ink font-sans relative selection:bg-aurora-rose/40 selection:text-ink overflow-x-hidden">
 
       {/* ─────────────────────────────────────────────────────────────
-          1. HEADER — glass sutil, pills magnéticas
+          1. HEADER — fijo, cristal oscuro (se lee sobre el hero y sobre las secciones claras)
       ───────────────────────────────────────────────────────────── */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-2xl bg-lilac-pearl/65 backdrop-saturate-150 border-b border-ink/[0.07]">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#04061f]/60 border-b border-white/[0.07] text-white">
+        <div className="px-5 sm:px-8 h-14 flex items-center justify-between">
           <div
             className="flex items-center gap-2.5 cursor-pointer"
             onClick={() => lenisRef.current ? lenisRef.current.scrollTo(0) : window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-aurora-deep via-aurora-violet to-aurora-rose p-[1px] flex items-center justify-center">
-              <div className="w-full h-full bg-lilac-pearl rounded-full flex items-center justify-center">
-                <span className="font-fraunces italic font-medium text-xs text-ink">M</span>
+            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 via-violet-400 to-fuchsia-300 p-[1px] flex items-center justify-center">
+              <div className="w-full h-full bg-[#070b3a] rounded-full flex items-center justify-center">
+                <span className="font-fraunces italic font-medium text-xs text-white">M</span>
               </div>
             </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-fraunces italic text-sm tracking-wide font-medium text-ink">
-                Mayela
-              </span>
-              <span className="hidden sm:inline-block text-[9px] uppercase tracking-wider text-lilac-muted/80 font-mono">
-                · Medicina & Longevidad
-              </span>
-            </div>
+            <span className="text-sm font-medium tracking-tight">Clínica Mayela</span>
           </div>
 
-          <nav className="hidden lg:flex items-center gap-7 text-[12px] font-normal tracking-tight text-ink/75">
-            <a href="#pilares" className="hover:text-ink transition-colors whitespace-nowrap">Terapias</a>
-            <a href="#peptidos" className="hover:text-ink transition-colors flex items-center gap-1.5 whitespace-nowrap">
-              <span>Péptidos</span>
-              <span className="px-1.5 py-0.5 rounded-full text-[8.5px] bg-aurora-violet/15 text-aurora-deep font-medium">cGMP</span>
-            </a>
-            <a href="#calculadora" className="hover:text-ink transition-colors whitespace-nowrap">Calculadora</a>
-            <a href="#dra-mayela" className="hover:text-ink transition-colors whitespace-nowrap">Dra. Mayela</a>
+          <nav className="hidden lg:flex items-center gap-8 font-mono text-[10.5px] uppercase tracking-[0.18em] text-white/45">
+            <a href="#pilares" className="hover:text-white transition-colors whitespace-nowrap">Terapias</a>
+            <a href="#peptidos" className="hover:text-white transition-colors whitespace-nowrap">Péptidos</a>
+            <a href="#calculadora" className="hover:text-white transition-colors whitespace-nowrap">Calculadora</a>
+            <a href="#dra-mayela" className="hover:text-white transition-colors whitespace-nowrap">Dra. Mayela</a>
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => handleOpenWhatsApp("Hola Dra. Mayela, quisiera solicitar una evaluación médica personalizada.")}
+              className="hidden sm:flex px-3.5 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.16em] text-white/70 hover:text-white transition-colors cursor-pointer whitespace-nowrap"
+            >
+              Agendar Cita
+            </button>
             <button
               onClick={() => navigate('/login')}
-              className="px-3.5 py-1 rounded-full text-[11px] font-medium text-ink/80 hover:text-ink hover:bg-ink/[0.04] transition-colors cursor-pointer border border-ink/10 whitespace-nowrap"
+              className="px-4 py-1.5 border border-indigo-300/40 hover:border-indigo-200/80 hover:bg-indigo-400/10 font-mono text-[10.5px] uppercase tracking-[0.16em] text-indigo-100 transition-colors cursor-pointer whitespace-nowrap flex items-center gap-2"
               title="Acceso médico exclusivo"
             >
-              Portal
+              Acceso Portal <span className="tracking-[-0.15em]">▸▸▸</span>
             </button>
-
-            <motion.button
-              onClick={() => handleOpenWhatsApp("Hola Dra. Mayela, quisiera solicitar una evaluación médica personalizada.")}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={tapTransition}
-              className="px-4 py-1 rounded-full text-[11px] font-medium text-white bg-ink hover:bg-lilac-deep transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-            >
-              <span>Agendar Cita</span>
-              <ChevronRight size={12} className="text-aurora-rose" />
-            </motion.button>
           </div>
         </div>
       </header>
 
       {/* ─────────────────────────────────────────────────────────────
-          2. HERO — fondo aurora (sin 3D), titular por palabras
+          2. HERO — busto 3D de partículas (referencia: video Orvane)
       ───────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex flex-col overflow-hidden">
-        {/* Fondo aurora: 3 manchas con deriva ambiental + parallax de scroll */}
-        <div className="absolute -inset-[10%] z-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute inset-0 aurora-drift-1">
-            <div className="blob-parallax absolute inset-0" data-speed="0.08">
-              <div
-                ref={blobCursorRef}
-                className="absolute rounded-full blur-[90px] opacity-[0.65] w-[52vw] h-[52vw] -left-[14%] -top-[18%]"
-                style={{ background: 'radial-gradient(circle at 35% 35%, #8F6FA8, #B79BC7 60%, transparent 75%)' }}
-              />
-            </div>
-          </div>
-          <div className="absolute inset-0 aurora-drift-2">
-            <div className="blob-parallax absolute inset-0" data-speed="-0.14">
-              <div
-                className="absolute rounded-full blur-[90px] opacity-[0.65] w-[46vw] h-[46vw] -right-[12%] top-[8%]"
-                style={{ background: 'radial-gradient(circle at 60% 40%, #F0C2D4, #FBDDE8 60%, transparent 75%)' }}
-              />
-            </div>
-          </div>
-          <div className="absolute inset-0 aurora-drift-3">
-            <div className="blob-parallax absolute inset-0" data-speed="0.18">
-              <div
-                className="absolute rounded-full blur-[90px] opacity-[0.55] w-[38vw] h-[38vw] left-[18%] -bottom-[20%]"
-                style={{ background: 'radial-gradient(circle at 50% 50%, #B79BC7, #F4EAF1 65%, transparent 78%)' }}
-              />
-            </div>
+      <section className="relative h-screen min-h-[640px] overflow-hidden bg-[#03041a] text-white select-none">
+        <div className="absolute inset-0 z-0 pointer-events-none bg-[radial-gradient(ellipse_at_50%_42%,#101a6e_0%,#070b3a_45%,#03041a_100%)]" aria-hidden="true" />
+
+        <div className="absolute inset-0 z-[1]">
+          <Canvas camera={{ position: [-0.15, 0, 3.1], fov: 35 }} dpr={[1, 1.5]}>
+            <Suspense fallback={null}>
+              <MedicalPointCloud />
+            </Suspense>
+          </Canvas>
+        </div>
+
+        {/* Cuadrícula HUD con cruces */}
+        <div className="absolute inset-0 z-[2] pointer-events-none" aria-hidden="true">
+          {[34, 66, 82].map((x) => (
+            <div key={`v${x}`} className="absolute top-0 bottom-0 w-px bg-indigo-200/[0.07]" style={{ left: `${x}%` }} />
+          ))}
+          {[24, 78].map((y) => (
+            <div key={`h${y}`} className="absolute left-0 right-0 h-px bg-indigo-200/[0.07]" style={{ top: `${y}%` }} />
+          ))}
+          {[34, 66, 82].flatMap((x) => [24, 78].map((y) => (
+            <span key={`${x}-${y}`} className="absolute -translate-x-1/2 -translate-y-1/2 text-indigo-100/40 text-[11px] leading-none" style={{ left: `${x}%`, top: `${y}%` }}>+</span>
+          )))}
+        </div>
+
+        {/* Título */}
+        <div className="absolute top-[17%] left-6 sm:left-8 md:left-10 z-10 max-w-xl pointer-events-none">
+          <h1 className="text-5xl sm:text-6xl md:text-7xl font-normal leading-[1.02] tracking-tight text-white">
+            Medicina Celular<br />& Longevidad
+          </h1>
+        </div>
+
+        {/* Badges HUD */}
+        <div className="absolute top-[26%] right-[12%] z-10 hidden sm:flex items-start gap-2.5 font-mono pointer-events-none">
+          <span className="absolute top-[6px] right-full mr-2 w-20 h-px bg-gradient-to-l from-indigo-200/50 to-transparent" />
+          <span className="mt-[3px] w-1.5 h-1.5 bg-indigo-300" />
+          <div>
+            <strong className="block text-[13px] font-medium text-white">24/7</strong>
+            <small className="block text-[9px] text-white/35 tracking-[0.16em] uppercase">Monitoreo Clínico</small>
           </div>
         </div>
-        <div className="absolute inset-0 z-[1] opacity-[0.05] aurora-grain pointer-events-none" aria-hidden="true" />
-
-        <div className="relative z-10 flex-1 flex flex-col justify-center px-4 sm:px-8 max-w-5xl mx-auto w-full pt-28 pb-16">
-          <div className="hero-eyebrow opacity-0 flex items-center gap-2 text-[11px] font-semibold text-lilac-muted tracking-[0.18em] uppercase mb-6">
-            <span className="w-[22px] h-px bg-gold-thread" />
-            <span>Medicina Regenerativa · Péptidos de Alta Pureza · Armonización Inteligente</span>
+        <div className="absolute top-[54%] left-[71%] z-10 hidden md:flex items-start gap-2.5 font-mono pointer-events-none">
+          <span className="absolute top-[6px] right-full mr-2 w-16 h-px bg-gradient-to-l from-indigo-200/50 to-transparent" />
+          <span className="mt-[3px] w-1.5 h-1.5 bg-indigo-300" />
+          <div>
+            <strong className="block text-[13px] font-medium text-white">+18 Péptidos</strong>
+            <small className="block text-[9px] text-white/35 tracking-[0.16em] uppercase">Fórmulas Certificadas</small>
           </div>
+        </div>
+        <div className="absolute top-[67%] left-[14%] z-10 hidden sm:flex items-start gap-2.5 font-mono pointer-events-none">
+          <span className="absolute top-[6px] left-full ml-3 w-24 h-px bg-gradient-to-r from-indigo-200/50 to-transparent" />
+          <span className="mt-[3px] w-1.5 h-1.5 bg-indigo-300" />
+          <div>
+            <strong className="block text-[13px] font-medium text-white">99.4%</strong>
+            <small className="block text-[9px] text-white/35 tracking-[0.16em] uppercase">Adherencia Protocolar</small>
+          </div>
+        </div>
 
-          <h1 className="font-fraunces text-4xl sm:text-6xl md:text-7xl font-normal tracking-tight text-ink leading-[1.04] mb-6 max-w-4xl">
-            <Word>La</Word> <Word>Ciencia</Word> <Word>de</Word> <Word>la</Word>{' '}
-            <Word className="italic font-light text-aurora-deep">Longevidad</Word> <Word>&</Word> <Word>la</Word>{' '}
-            <Word>Escultura</Word> <Word>Facial</Word> <Word>Inteligente</Word>
-          </h1>
-
-          <p className="hero-lede opacity-0 text-sm sm:text-base text-lilac-muted leading-relaxed max-w-2xl mb-9 font-normal">
-            Bajo el liderazgo de la <strong>Dra. Mayela González</strong>, integramos biotecnología celular, péptidos de grado clínico y bioestimulación autóloga para una armonización facial y bienestar sistémico con rigor médico inquebrantable.
+        {/* Pie izquierdo: crédito + microcopy */}
+        <div className="absolute bottom-6 left-6 sm:left-8 md:left-10 z-10 max-w-[18rem] font-mono">
+          <p className="mb-2 text-[8.5px] text-white/30">
+            Escaneo de cabeza por{' '}
+            <a href="https://github.com/mrdoob/three.js" target="_blank" rel="noreferrer" className="underline">Lee Perry-Smith</a>, CC BY 3.0
           </p>
+          <p className="text-[11px] leading-relaxed text-white/90">
+            Desde biomarcadores tempranos hasta tratamientos de regeneración celular avanzada.
+          </p>
+        </div>
 
-          <div className="hero-cta opacity-0 flex flex-wrap items-center gap-4">
-            <motion.a
-              href="#pilares"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              transition={tapTransition}
-              className="px-6 py-3 rounded-2xl bg-ink hover:bg-lilac-deep text-white text-xs font-semibold tracking-wide flex items-center gap-2 cursor-pointer"
+        {/* Texto dinámico (morphing) */}
+        <div className="absolute bottom-6 right-6 sm:right-8 md:right-10 z-10 text-right min-h-[96px] md:min-h-[130px] pointer-events-none">
+          <AnimatePresence mode="wait">
+            <motion.h2
+              key={msgIndex}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="text-3xl md:text-5xl font-normal leading-[1.05] text-white whitespace-pre-line tracking-tight"
             >
-              <span>Explorar los 4 Pilares</span>
-              <ArrowRight size={14} className="text-aurora-rose" />
-            </motion.a>
-
-            <motion.a
-              href="#calculadora"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              transition={tapTransition}
-              className="px-6 py-3 rounded-2xl bg-white/70 hover:bg-white text-aurora-deep border border-ink/10 text-xs font-semibold tracking-wide flex items-center gap-2 cursor-pointer backdrop-blur-md"
-            >
-              <Calculator size={14} className="text-aurora-violet" />
-              <span>Calculadora de Reconstitución</span>
-            </motion.a>
-          </div>
+              {MORPHING_MESSAGES[msgIndex]}
+            </motion.h2>
+          </AnimatePresence>
         </div>
       </section>
+
 
       {/* ─────────────────────────────────────────────────────────────
           3. MÉTRICAS — franja sin cajas, solo líneas finas

@@ -46,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   });
 
   const clinicalItems = [
-    { name: 'Panel', path: '/', icon: <LayoutDashboard size={18} /> },
+    { name: 'Panel', path: '/dashboard', icon: <LayoutDashboard size={18} /> },
     { name: 'Agenda', path: '/agenda', icon: <Calendar size={18} /> },
     { name: 'Pacientes', path: '/pacientes', icon: <Users size={18} /> },
     { name: 'Consentimientos', path: '/consentimientos', icon: <FileText size={18} /> },
@@ -65,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/';
+    if (path === '/dashboard') return location.pathname === '/dashboard';
     return location.pathname.startsWith(path);
   };
 

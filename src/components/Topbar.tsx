@@ -50,7 +50,7 @@ export const Topbar: React.FC<TopbarProps> = ({
 
   const getTitle = () => {
     const path = location.pathname;
-    if (path === '/') return 'Panel de Gestión';
+    if (path === '/dashboard') return 'Panel de Gestión';
     if (path.startsWith('/pacientes')) return 'Expedientes Clínicos';
     if (path.startsWith('/agenda')) return 'Agenda de la Clínica';
     if (path.startsWith('/tratamientos')) return 'Catálogo de Tratamientos';
