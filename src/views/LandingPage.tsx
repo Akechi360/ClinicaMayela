@@ -351,7 +351,7 @@ export const LandingPage: React.FC = () => {
                   </p>
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 border border-ink/10 text-[10px] font-semibold text-aurora-deep">
                     <Award size={12} className="text-aurora-violet" />
-                    <span>MPPS-98765 · COL-12345</span>
+                    <span>MPPS-652562 · COL-7645</span>
                   </div>
                 </div>
               </div>
