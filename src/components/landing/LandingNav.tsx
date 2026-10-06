@@ -4,7 +4,6 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 const LINKS = [
   { href: '#pilares', label: 'Terapias' },
   { href: '#peptidos', label: 'Péptidos' },
-  { href: '#calculadora', label: 'Calculadora' },
   { href: '#dra-mayela', label: 'Dra. Mayela' },
 ];
 

@@ -9,7 +9,6 @@ import { useGSAP } from '@gsap/react';
 import Lenis from 'lenis';
 import {
   ShieldCheck,
-  Calculator,
   LogIn,
   CheckCircle2,
   Award,
@@ -17,7 +16,6 @@ import {
   MessageCircle,
   Clock,
   MapPin,
-  ChevronRight,
 } from 'lucide-react';
 import { NumberTicker } from '../components/motion/NumberTicker';
 import { MedicalPointCloud } from '../components/landing/MedicalPointCloud';
@@ -30,14 +28,6 @@ gsap.registerPlugin(ScrollTrigger);
 
 // Easing limpio para hover/tap de botones — sin resorte, sin rebote.
 const tapTransition = { duration: 0.2, ease: 'easeOut' as const };
-
-// Resorte reservado solo para la barra de la jeringa (no es una interacción de botón).
-const springConfig = {
-  type: "spring" as const,
-  stiffness: 400,
-  damping: 30,
-  mass: 1,
-};
 
 const MORPHING_MESSAGES = [
   'Ciencia Aplicada\na Tu Longevidad.',
@@ -77,13 +67,6 @@ const PILARES = [
   }
 ];
 
-const PEPTIDE_PRESETS = [
-  { id: 'bpc157', label: 'BPC-157 (5 mg)' },
-  { id: 'semaglutide', label: 'Semaglutida (5 mg)' },
-  { id: 'tirzepatide', label: 'Tirzepatida (10 mg)' },
-  { id: 'ghkcu', label: 'GHK-Cu (50 mg)' },
-] as const;
-
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const pageRef = useRef<HTMLDivElement>(null);
@@ -108,39 +91,6 @@ export const LandingPage: React.FC = () => {
     const timer = setInterval(() => setMsgIndex((prev) => (prev + 1) % MORPHING_MESSAGES.length), 4200);
     return () => clearInterval(timer);
   }, []);
-
-  // Estados interactivos para la Mini-Calculadora Teaser
-  const [calcPeptido, setCalcPeptido] = useState<'bpc157' | 'semaglutide' | 'tirzepatide' | 'ghkcu'>('bpc157');
-  const [vialMg, setVialMg] = useState<number>(5);
-  const [dilucionMl, setDilucionMl] = useState<number>(2);
-  const [dosisMcg, setDosisMcg] = useState<number>(250);
-
-  // Cálculo en tiempo real:
-  const concMcgMl = (vialMg * 1000) / (dilucionMl || 1);
-  const mcgPorUi = concMcgMl / 100;
-  const unidadesJeringa = mcgPorUi > 0 ? (dosisMcg / mcgPorUi) : 0;
-  const dosisTotales = (vialMg * 1000) / (dosisMcg || 1);
-
-  const handleSelectPeptidePreset = (key: 'bpc157' | 'semaglutide' | 'tirzepatide' | 'ghkcu') => {
-    setCalcPeptido(key);
-    if (key === 'bpc157') {
-      setVialMg(5);
-      setDilucionMl(2);
-      setDosisMcg(250);
-    } else if (key === 'semaglutide') {
-      setVialMg(5);
-      setDilucionMl(2);
-      setDosisMcg(250); // 0.25 mg
-    } else if (key === 'tirzepatide') {
-      setVialMg(10);
-      setDilucionMl(2);
-      setDosisMcg(2500); // 2.5 mg
-    } else if (key === 'ghkcu') {
-      setVialMg(50);
-      setDilucionMl(3);
-      setDosisMcg(2000); // 2 mg
-    }
-  };
 
   const handleOpenWhatsApp = (mensaje: string) => {
     const tel = "584120000000";
@@ -379,185 +329,30 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
-          5. CALCULADORA DE PÉPTIDOS INTERACTIVA
-      ───────────────────────────────────────────────────────────── */}
-      <section id="calculadora" className="py-20 sm:py-28 px-4 sm:px-8 max-w-7xl mx-auto relative z-10">
-        <div className="rounded-3xl bg-white/60 border border-ink/10 p-8 sm:p-12 relative overflow-hidden backdrop-blur-md">
-          <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-aurora-rose/20 blur-3xl pointer-events-none" />
-
-          <div className="max-w-2xl mb-10 relative">
-            <div className="inline-flex items-center gap-2 text-[10px] font-bold text-aurora-deep uppercase tracking-wider mb-3">
-              <Calculator size={12} className="text-aurora-violet" />
-              <span>Herramienta Clínica Abierta</span>
-            </div>
-            <h2 className="font-fraunces text-3xl sm:text-4xl text-ink font-medium mb-3">
-              Calculadora de Reconstitución & Dosificación
-            </h2>
-            <p className="text-xs sm:text-sm text-lilac-muted leading-relaxed">
-              En terapia con péptidos, la exactitud milimétrica es vital. Selecciona un preset inteligente o ajusta los parámetros del vial para calcular la graduación exacta en jeringa de insulina (U-100).
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2 mb-8 relative">
-            {PEPTIDE_PRESETS.map((p) => (
-              <motion.button
-                key={p.id}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                transition={tapTransition}
-                onClick={() => handleSelectPeptidePreset(p.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
-                  calcPeptido === p.id
-                    ? 'bg-ink text-white'
-                    : 'bg-white/80 text-aurora-deep border border-ink/10 hover:bg-white'
-                }`}
-              >
-                {p.label}
-              </motion.button>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center relative">
-            <div className="space-y-4 lg:col-span-2">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-4 rounded-2xl bg-white/70 border border-ink/10">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-lilac-muted block mb-1">
-                    Cantidad Vial
-                  </label>
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      type="number"
-                      step="0.5"
-                      min="0.5"
-                      value={vialMg}
-                      onChange={(e) => setVialMg(Math.max(0.1, Number(e.target.value)))}
-                      className="w-full text-lg font-bold text-ink bg-transparent focus:outline-none"
-                    />
-                    <span className="text-xs font-semibold text-lilac-muted">mg</span>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-white/70 border border-ink/10">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-lilac-muted block mb-1">
-                    Agua Bacteriostática
-                  </label>
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      type="number"
-                      step="0.5"
-                      min="0.5"
-                      value={dilucionMl}
-                      onChange={(e) => setDilucionMl(Math.max(0.1, Number(e.target.value)))}
-                      className="w-full text-lg font-bold text-ink bg-transparent focus:outline-none"
-                    />
-                    <span className="text-xs font-semibold text-lilac-muted">ml</span>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-white/70 border border-ink/10">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-lilac-muted block mb-1">
-                    Dosis Deseada
-                  </label>
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      type="number"
-                      step="50"
-                      min="10"
-                      value={dosisMcg}
-                      onChange={(e) => setDosisMcg(Math.max(1, Number(e.target.value)))}
-                      className="w-full text-lg font-bold text-ink bg-transparent focus:outline-none"
-                    />
-                    <span className="text-xs font-semibold text-lilac-muted">mcg</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-white/60 border border-ink/10">
-                <div className="flex justify-between items-center text-xs mb-2">
-                  <span className="font-semibold text-aurora-deep">
-                    Graduación en Jeringa U-100 (100 Unidades = 1 ml)
-                  </span>
-                  <span className="font-bold text-ink">
-                    {unidadesJeringa.toFixed(1)} UI ({((unidadesJeringa / 100)).toFixed(2)} ml)
-                  </span>
-                </div>
-                <div className="w-full h-5 rounded-lg bg-lilac-pearl border border-ink/10 relative overflow-hidden flex items-center">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-aurora-violet to-aurora-rose"
-                    animate={{ width: `${Math.min(100, Math.max(0, unidadesJeringa))}%` }}
-                    transition={springConfig}
-                  />
-                  <div className="absolute inset-0 flex justify-between px-1 pointer-events-none opacity-40">
-                    {[0, 20, 40, 60, 80, 100].map((tick) => (
-                      <div key={tick} className="h-full w-[1px] bg-lilac-muted" />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-ink text-white flex flex-col justify-between h-full">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-aurora-rose block mb-1">
-                  Resultado de Aspiración
-                </span>
-                <div className="font-fraunces text-4xl sm:text-5xl font-medium mb-1 text-white">
-                  {unidadesJeringa.toFixed(1)} <span className="text-xl font-normal text-aurora-rose">UI</span>
-                </div>
-                <p className="text-[11px] text-white/70 mb-5">
-                  Aspirar hasta la raya <strong>{Math.round(unidadesJeringa)}</strong> en jeringa U-100.
-                </p>
-
-                <div className="space-y-2 border-t border-white/10 pt-4 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-white/60">Concentración:</span>
-                    <span className="font-semibold text-white">{concMcgMl.toFixed(0)} mcg/ml</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/60">Concentración por UI:</span>
-                    <span className="font-semibold text-white">{mcgPorUi.toFixed(1)} mcg / UI</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-white/60">Dosis totales en vial:</span>
-                    <span className="font-semibold text-white">{Math.floor(dosisTotales)} aplicaciones</span>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={() => navigate('/login')}
-                className="w-full mt-6 py-2.5 rounded-xl bg-gradient-to-r from-aurora-violet to-aurora-rose hover:brightness-95 text-ink font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <span>Generar Protocolo Completo en el Portal</span>
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ─────────────────────────────────────────────────────────────
           6. AUTORIDAD MÉDICA — DRA. MAYELA GONZÁLEZ
       ───────────────────────────────────────────────────────────── */}
       <section id="dra-mayela" className="py-20 sm:py-28 px-4 sm:px-8 max-w-7xl mx-auto relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           <div className="lg:col-span-5 relative">
             <div className="relative mx-auto max-w-sm rounded-3xl p-3 border border-ink/10">
-              <div className="w-full aspect-[4/5] rounded-2xl bg-gradient-to-br from-lilac-pearl via-aurora-rose/25 to-aurora-violet/25 flex flex-col items-center justify-center p-8 text-center relative overflow-hidden">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-aurora-deep to-aurora-rose p-1 mb-4">
-                  <div className="w-full h-full rounded-full bg-ink flex items-center justify-center">
-                    <span className="font-fraunces text-3xl font-light text-aurora-rose">MG</span>
+              <div className="w-full aspect-[4/5] rounded-2xl relative overflow-hidden bg-lilac-pearl">
+                <img
+                  src="/dra-mayela.webp"
+                  alt="Dra. Mayela González"
+                  loading="lazy"
+                  className="absolute inset-0 w-full h-full object-cover object-[50%_18%]"
+                />
+                <div className="absolute inset-x-0 bottom-0 pt-24 pb-6 px-6 text-center bg-gradient-to-t from-ink/85 via-ink/50 to-transparent">
+                  <h4 className="font-fraunces text-2xl font-medium text-white mb-1">
+                    Dra. Mayela González
+                  </h4>
+                  <p className="text-xs text-white/80 font-medium mb-3">
+                    Medicina Estética, Antienvejecimiento & Longevidad
+                  </p>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 border border-ink/10 text-[10px] font-semibold text-aurora-deep">
+                    <Award size={12} className="text-aurora-violet" />
+                    <span>MPPS-98765 · COL-12345</span>
                   </div>
-                </div>
-                <h4 className="font-fraunces text-2xl font-medium text-ink mb-1">
-                  Dra. Mayela González
-                </h4>
-                <p className="text-xs text-lilac-muted font-medium mb-4">
-                  Medicina Estética, Antienvejecimiento & Longevidad
-                </p>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 border border-ink/10 text-[10px] font-semibold text-aurora-deep">
-                  <Award size={12} className="text-aurora-violet" />
-                  <span>MPPS-98765 · COL-12345</span>
                 </div>
               </div>
             </div>
@@ -659,7 +454,6 @@ export const LandingPage: React.FC = () => {
               <li><a href="#pilares" className="hover:text-aurora-deep">Armonización Facial 3D</a></li>
               <li><a href="#pilares" className="hover:text-aurora-deep">Bioestimuladores & Exosomas</a></li>
               <li><a href="#pilares" className="hover:text-aurora-deep">Composición Corporal & IMC</a></li>
-              <li><a href="#calculadora" className="hover:text-aurora-deep">Calculadora de Dilución</a></li>
             </ul>
           </div>
 
