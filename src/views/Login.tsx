@@ -249,6 +249,7 @@ export const Login: React.FC = () => {
                   Recordarme
                 </label>
                 <button
+                  type="button"
                   onClick={handleForgotPassword}
                   className="text-rosa-petalo hover:text-rosa-petalo-hover transition-colors font-medium border-none bg-transparent cursor-pointer"
                 >
