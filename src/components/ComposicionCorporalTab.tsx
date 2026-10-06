@@ -18,9 +18,12 @@ import { Plus, Trash2, X, Activity } from 'lucide-react';
 import { useToast } from './Toast';
 import { useConfirm } from './ConfirmDialog';
 import { ErrorBoundary } from './ErrorBoundary';
+import { PesoMetaCard } from './PesoMeta';
 
 interface Props {
   pacienteId: string;
+  estaturaCm?: number | null;
+  pesoMetaKg?: number | null;
 }
 
 const ROSA     = '#E0A2A2';
@@ -42,7 +45,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-export const ComposicionCorporalTab: React.FC<Props> = ({ pacienteId }) => {
+export const ComposicionCorporalTab: React.FC<Props> = ({ pacienteId, estaturaCm, pesoMetaKg }) => {
   const toast        = useToast();
   const confirm      = useConfirm();
   const queryClient  = useQueryClient();
@@ -135,6 +138,8 @@ export const ComposicionCorporalTab: React.FC<Props> = ({ pacienteId }) => {
           <Plus size={13} /> Nueva Medición
         </button>
       </div>
+
+      <PesoMetaCard key={`${estaturaCm}-${pesoMetaKg}`} pacienteId={pacienteId} estaturaCm={estaturaCm} pesoMetaKg={pesoMetaKg} mediciones={mediciones} />
 
       {isLoading ? (
         <div className="py-16 text-center text-xs text-slate-light">Cargando mediciones...</div>

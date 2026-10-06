@@ -23,6 +23,7 @@ export const Patients: React.FC = () => {
   const [telefono, setTelefono] = useState('');
   const [email, setEmail] = useState('');
   const [fecha_nacimiento, setFechaNacimiento] = useState('');
+  const [genero, setGenero] = useState('');
   const [notas, setNotas] = useState('');
 
   // Consultar pacientes
@@ -78,6 +79,7 @@ export const Patients: React.FC = () => {
     setEmail('');
     setFechaNacimiento('');
     setNotas('');
+    setGenero('');
   };
 
   const openEditModal = (p: typeof pacientes[0]) => {
@@ -88,6 +90,7 @@ export const Patients: React.FC = () => {
     setTelefono(p.telefono ?? '');
     setEmail(p.email ?? '');
     setFechaNacimiento(p.fecha_nacimiento ?? '');
+    setGenero(p.genero ?? '');
     setNotas(p.notas ?? '');
     setShowEditModal(true);
   };
@@ -97,7 +100,7 @@ export const Patients: React.FC = () => {
     if (!editingPatient) return;
     editPacienteMutation.mutate({
       id: editingPatient,
-      datos: { nombre, apellido, cedula, telefono, email, fecha_nacimiento, notas },
+      datos: { nombre, apellido, cedula, telefono, email, fecha_nacimiento, genero: genero || undefined, notas },
     });
   };
 
@@ -110,6 +113,7 @@ export const Patients: React.FC = () => {
       telefono,
       email,
       fecha_nacimiento,
+      genero: genero || undefined,
       notas,
     });
   };
@@ -389,6 +393,14 @@ export const Patients: React.FC = () => {
                   />
                 </div>
  
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Género</label>
+                  <select value={genero} onChange={(e) => setGenero(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans">
+                    <option value="">Sin especificar</option>
+                    <option value="Femenino">Femenino</option>
+                    <option value="Masculino">Masculino</option>
+                  </select>
+                </div>
                 {/* Fecha Nacimiento */}
                 <div className="flex flex-col space-y-1">
                   <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Fecha de Nacimiento</label>
@@ -470,6 +482,14 @@ export const Patients: React.FC = () => {
                 <div className="flex flex-col space-y-1">
                   <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Correo Electrónico</label>
                   <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="maria.lopez@example.com" className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Género</label>
+                  <select value={genero} onChange={(e) => setGenero(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans">
+                    <option value="">Sin especificar</option>
+                    <option value="Femenino">Femenino</option>
+                    <option value="Masculino">Masculino</option>
+                  </select>
                 </div>
                 <div className="flex flex-col space-y-1">
                   <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Fecha de Nacimiento</label>

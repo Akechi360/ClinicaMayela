@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbRecipePlantillas, dbDoctor, dbConsentimientos, registrarAcceso } from '../services/db';
+import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbRecipePlantillas, dbDoctor, dbConsentimientos, registrarAcceso, dbEventosAdversos, dbComposicionCorporal } from '../services/db';
 import { recipeVerifyUrl, recipeQrDataUrl } from '../lib/recipeVerify';
 import { estructurarDictado, useDictado } from '../lib/dictado';
 import { dbProtocolosPeptidos } from '../services/peptidesService';
@@ -12,6 +12,10 @@ import { toStorageRef, resolveStorageUrl } from '../lib/storageUrl';
 import { FaceCanvas } from '../components/FaceCanvas';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { ComposicionCorporalTab } from '../components/ComposicionCorporalTab';
+import { EventosAdversosTab } from '../components/EventosAdversosTab';
+import { PatologiasSelector, EtiquetasPatologia, AlertasClinicas } from '../components/PatologiasUi';
+import { PesoProtocolo } from '../components/PesoMeta';
+import { alertasPara } from '../data/patologias';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
 import type { ExamenLaboratorio, RecipeMedico, Consentimiento, Paciente, DoctorProfile, MapaFacialCoordenada } from '../types/database.types';
@@ -39,7 +43,7 @@ import {
   Ban
 } from 'lucide-react';
 
-type ActiveTab = 'historial' | 'mapa' | 'citas' | 'finanzas' | 'examenes' | 'recipes' | 'consentimientos' | 'composicion' | 'peptidos';
+type ActiveTab = 'eventos' | 'historial' | 'mapa' | 'citas' | 'finanzas' | 'examenes' | 'recipes' | 'consentimientos' | 'composicion' | 'peptidos';
 
 export const PatientDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -75,6 +79,10 @@ export const PatientDetail: React.FC = () => {
   const [editNotas, setEditNotas] = useState('');
   const [editAntecedentes, setEditAntecedentes] = useState('');
   const [editAlergias, setEditAlergias] = useState('');
+  const [editGenero, setEditGenero] = useState('');
+  const [editEstatura, setEditEstatura] = useState('');
+  const [editPesoMeta, setEditPesoMeta] = useState('');
+  const [editPatologias, setEditPatologias] = useState<string[]>([]);
 
   const examModalRef = useRef<HTMLFormElement | null>(null);
   const recipeModalRef = useRef<HTMLFormElement | null>(null);
@@ -146,6 +154,10 @@ export const PatientDetail: React.FC = () => {
       setEditNotas(paciente.notas ?? '');
       setEditAntecedentes(paciente.antecedentes ?? '');
       setEditAlergias(paciente.alergias ?? '');
+      setEditGenero(paciente.genero ?? '');
+      setEditEstatura(paciente.estatura_cm?.toString() ?? '');
+      setEditPesoMeta(paciente.peso_meta_kg?.toString() ?? '');
+      setEditPatologias(paciente.patologias ?? []);
     }
   }, [showEditPatientModal, paciente]);
 
@@ -184,6 +196,10 @@ export const PatientDetail: React.FC = () => {
   useEffect(() => {
     if (id) void registrarAcceso('pacientes', id);
   }, [id]);
+
+  const { data: eventosAdversos = [] } = useQuery({ queryKey: ['eventos-adversos', id], queryFn: () => dbEventosAdversos.listarPorPaciente(id ?? ''), enabled: !!id });
+  const { data: mediciones = [] } = useQuery({ queryKey: ['composicion', id], queryFn: () => dbComposicionCorporal.listarPorPaciente(id ?? ''), enabled: !!id });
+  const eventosActivos = eventosAdversos.filter((e) => e.estado !== 'resuelto').length;
 
   const { data: plantillas = [] } = useQuery({ queryKey: ['recipe-plantillas'], queryFn: dbRecipePlantillas.listar });
   const savePlantillaMutation = useMutation({
@@ -441,6 +457,7 @@ export const PatientDetail: React.FC = () => {
 
   const TABS: { id: ActiveTab; label: string }[] = [
     { id: 'historial',       label: 'Historial Clínico' },
+    { id: 'eventos',         label: eventosActivos > 0 ? `Efectos Adversos (${eventosActivos})` : 'Efectos Adversos' },
     { id: 'composicion',     label: 'Composición Corporal' },
     { id: 'mapa',            label: 'Mapa Facial' },
     { id: 'citas',           label: 'Citas' },
@@ -471,6 +488,12 @@ export const PatientDetail: React.FC = () => {
                 )}
               </h2>
               <p className="text-[10px] text-slate-light mt-1">Expediente Clínico: #{paciente.id}</p>
+              <EtiquetasPatologia patologias={paciente.patologias} />
+              {eventosActivos > 0 && (
+                <button onClick={() => setActiveTab('eventos')} className="mt-2 text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 rounded-full px-2.5 py-0.5 cursor-pointer">
+                  ⚠ {eventosActivos} efecto{eventosActivos > 1 ? 's' : ''} adverso{eventosActivos > 1 ? 's' : ''} en seguimiento
+                </button>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -519,7 +542,7 @@ export const PatientDetail: React.FC = () => {
         <div className="space-y-1">
           <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold">Datos Personales</p>
           <p className="text-xs text-slate-dark font-medium">Nacimiento: {new Date(paciente.fecha_nacimiento ?? '').toLocaleDateString()}</p>
-          <p className="text-xs text-slate-dark font-medium">Género: {paciente.genero}</p>
+          <p className="text-xs text-slate-dark font-medium">Género: {paciente.genero || 'Sin especificar'}</p>
         </div>
         <div className="space-y-1">
           <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold">Alergias</p>
@@ -534,6 +557,8 @@ export const PatientDetail: React.FC = () => {
           <p className="text-xs text-slate-medium italic line-clamp-2 leading-relaxed">{paciente.notas || 'Sin registrar'}</p>
         </div>
       </div>
+
+      <AlertasClinicas alertas={alertasPara(paciente.patologias, 'inyectable')} titulo="Precauciones antes de infiltrar" />
 
       {/* Navigation Tabs */}
       <div className="border-b border-rose-champagne flex gap-x-6 overflow-x-auto whitespace-nowrap scrollbar-none font-sans pb-px">
@@ -629,7 +654,7 @@ export const PatientDetail: React.FC = () => {
 
         {/* Composición Corporal */}
         {activeTab === 'composicion' && id && (
-          <ComposicionCorporalTab pacienteId={id} />
+          <ComposicionCorporalTab pacienteId={id} estaturaCm={paciente.estatura_cm} pesoMetaKg={paciente.peso_meta_kg} />
         )}
 
         {/* Mapa Facial */}
@@ -963,6 +988,8 @@ export const PatientDetail: React.FC = () => {
         )}
 
         {/* Péptidos */}
+        {activeTab === 'eventos' && id && <EventosAdversosTab pacienteId={id} />}
+
         {activeTab === 'peptidos' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -1011,6 +1038,7 @@ export const PatientDetail: React.FC = () => {
                         {proto.duracion_semanas} semanas — Seguimiento cada {proto.intervalo_seguimiento} días
                       </p>
                     </div>
+                    <PesoProtocolo mediciones={mediciones} fechaInicio={proto.fecha_inicio} />
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Link
@@ -1215,6 +1243,10 @@ export const PatientDetail: React.FC = () => {
                 notas: editNotas,
                 antecedentes: editAntecedentes,
                 alergias: editAlergias,
+                genero: editGenero || undefined,
+                estatura_cm: editEstatura ? Number(editEstatura) : null,
+                peso_meta_kg: editPesoMeta ? Number(editPesoMeta) : null,
+                patologias: editPatologias,
               });
             }}
             className="glass-panel rounded-2xl shadow-2xl p-6 w-full max-w-lg font-sans overflow-y-auto max-h-[90vh] border border-pure-white/45"
@@ -1251,6 +1283,28 @@ export const PatientDetail: React.FC = () => {
                   <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Fecha de Nacimiento</label>
                   <input type="date" value={editFechaNac} onChange={e => setEditFechaNac(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans" />
                 </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Género</label>
+                  <select value={editGenero} onChange={e => setEditGenero(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans">
+                    <option value="">Sin especificar</option>
+                    <option value="Femenino">Femenino</option>
+                    <option value="Masculino">Masculino</option>
+                  </select>
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Estatura (cm)</label>
+                  <input type="number" step="0.5" min="50" max="250" value={editEstatura} onChange={e => setEditEstatura(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans" />
+                </div>
+                <div className="flex flex-col space-y-1">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Peso meta (kg)</label>
+                  <input type="number" step="0.5" min="20" max="400" value={editPesoMeta} onChange={e => setEditPesoMeta(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Patologías previas / factores de riesgo</label>
+                <PatologiasSelector value={editPatologias} onChange={setEditPatologias} />
               </div>
               <div className="flex flex-col space-y-1">
                 <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Antecedentes Médicos</label>

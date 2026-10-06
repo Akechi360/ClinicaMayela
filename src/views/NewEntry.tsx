@@ -4,6 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbPacientes, dbTratamientos, dbHistoriales, dbConsentimientos, dbDoctor } from '../services/db';
 import { supabase, getSignedUrl } from '../services/supabase';
 import { toStorageRef } from '../lib/storageUrl';
+import { AlertasClinicas } from '../components/PatologiasUi';
+import { alertasPara } from '../data/patologias';
 import type { Paciente, Tratamiento, Consentimiento, MapaFacialCoordenada } from '../types/database.types';
 import { FaceCanvas } from '../components/FaceCanvas';
 import { ErrorBoundary } from '../components/ErrorBoundary';
@@ -191,6 +193,7 @@ export const NewEntry: React.FC = () => {
         {step === 1 && (
           <div className="space-y-6">
             <h3 className="text-lg font-display font-medium text-slate-dark">Paciente y Tratamiento</h3>
+            <AlertasClinicas alertas={alertasPara(selectedPaciente?.patologias, 'inyectable')} titulo="Precauciones para este paciente" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1.5 font-bold">Paciente *</label>

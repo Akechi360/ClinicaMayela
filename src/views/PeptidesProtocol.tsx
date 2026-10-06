@@ -5,6 +5,8 @@ import { dbPacientes, dbDoctor } from '../services/db';
 import { dbProtocolosPeptidos } from '../services/peptidesService';
 import { PEPTIDES_CATALOG, CONTRAINDICATIONS } from '../data/peptidesData';
 import { useToast } from '../components/Toast';
+import { AlertasClinicas } from '../components/PatologiasUi';
+import { alertasPara } from '../data/patologias';
 import { PeptideCalculator } from '../components/PeptideCalculator';
 import type { Paciente } from '../types/database.types';
 import type { Peptide, SelectedPeptide, PeptideProtocol } from '../types/peptides';
@@ -33,7 +35,8 @@ const CANCER_KEYWORDS = ['cáncer', 'cancer', 'neoplasia', 'tumor', 'carcinoma',
 
 function detectCancerFlag(paciente: Paciente): boolean {
   const fields = [paciente.antecedentes, paciente.notas, paciente.alergias].filter(Boolean).join(' ').toLowerCase();
-  return CANCER_KEYWORDS.some(kw => fields.includes(kw));
+  const estructurado = (paciente.patologias ?? []).some(c => ['neoplasia_previa', 'neoplasia_activa', 'tumor_hipofisario'].includes(c));
+  return estructurado || CANCER_KEYWORDS.some(kw => fields.includes(kw));
 }
 
 export const PeptidesProtocol: React.FC = () => {
@@ -313,6 +316,14 @@ export const PeptidesProtocol: React.FC = () => {
               </p>
             </div>
           </div>
+        )}
+
+        {/* Alertas por patologías previas estructuradas (las oncológicas ya se muestran arriba) */}
+        {selectedPatient && (
+          <AlertasClinicas
+            alertas={alertasPara(selectedPatient.patologias, 'peptidos').filter(a => !['neoplasia_previa', 'neoplasia_activa', 'tumor_hipofisario'].includes(a.codigo))}
+            titulo="Patologías previas del paciente"
+          />
         )}
 
         {/* Contraindicaciones relativas */}

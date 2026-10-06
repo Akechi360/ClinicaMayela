@@ -7,6 +7,9 @@ export interface Paciente {
   email?:           string;
   fecha_nacimiento?: string;
   genero?:          string;
+  estatura_cm?:     number | null;
+  peso_meta_kg?:    number | null;
+  patologias?:      string[];
   antecedentes?:    string;
   alergias?:        string;
   notas?:           string;
@@ -15,6 +18,44 @@ export interface Paciente {
   activo?:          boolean;
   creado_en?:       string;
   created_at?:      string;
+}
+
+export interface EventoAdverso {
+  id: string;
+  paciente_id: string;
+  historial_id?: string | null;
+  tipo: string;
+  severidad: 'leve' | 'moderada' | 'severa';
+  fecha_inicio: string;
+  estado: 'activo' | 'en_tratamiento' | 'resuelto';
+  conducta?: string | null;
+  notas?: string | null;
+  resuelto_en?: string | null;
+  created_at?: string;
+}
+
+export interface Seguimiento {
+  id: string;
+  paciente_id: string;
+  cita_id?: string | null;
+  protocolo_id?: string | null;
+  tipo: 'cuidados_post' | 'recordatorio_24h' | 'recordatorio_72h' | 'control_estetico' | 'dosis_peptido' | 'escalado_dosis';
+  fecha_programada: string;
+  mensaje: string;
+  estado: 'pendiente' | 'enviado' | 'cancelado' | 'error';
+  enviado_en?: string | null;
+  error?: string | null;
+  created_at?: string;
+}
+
+export interface OrdenLaboratorio {
+  id: string;
+  paciente_id: string;
+  fecha: string;
+  perfil: 'Femenino' | 'Masculino';
+  estudios: string[];
+  notas?: string | null;
+  created_at?: string;
 }
 
 export interface HistorialClinico {

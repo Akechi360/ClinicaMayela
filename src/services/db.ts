@@ -15,6 +15,9 @@ import type {
   ExamenLaboratorio,
   RecipeEstado,
   RecipeMedico,
+  EventoAdverso,
+  Seguimiento,
+  OrdenLaboratorio,
   RecipePlantilla,
   RecipeVerificado,
 } from '../types/database.types';
@@ -27,7 +30,7 @@ export const dbPacientes = {
   listar: async (): Promise<Paciente[]> => {
     const { data, error } = await supabase
       .from('pacientes')
-      .select('id, nombre, apellido, cedula, telefono, email, es_vip, foto_perfil, activo, creado_en')
+      .select('id, nombre, apellido, cedula, telefono, email, es_vip, foto_perfil, activo, creado_en, genero, antecedentes, alergias, notas, patologias, estatura_cm, peso_meta_kg')
       .eq('activo', true)
       .order('creado_en', { ascending: false });
     if (error) throw new Error(error.message);
@@ -463,6 +466,56 @@ export const dbRecipes = {
 export const registrarAcceso = async (tabla: 'pacientes', registroId: string): Promise<void> => {
   const { error } = await supabase.rpc('registrar_acceso', { p_tabla: tabla, p_registro: registroId });
   if (error) console.error('No se pudo registrar el acceso:', error.message);
+};
+
+export const dbEventosAdversos = {
+  listarPorPaciente: async (pacienteId: string): Promise<EventoAdverso[]> => {
+    const { data, error } = await supabase.from('eventos_adversos').select('*').eq('paciente_id', pacienteId).order('fecha_inicio', { ascending: false });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  },
+  insertar: async (e: Omit<EventoAdverso, 'id' | 'created_at'>): Promise<EventoAdverso> => {
+    const { data, error } = await supabase.from('eventos_adversos').insert(e).select().single();
+    if (error) throw new Error(error.message);
+    return data;
+  },
+  actualizar: async (id: string, cambios: Partial<EventoAdverso>): Promise<void> => {
+    const { error } = await supabase.from('eventos_adversos').update(cambios).eq('id', id);
+    if (error) throw new Error(error.message);
+  },
+  eliminar: async (id: string): Promise<void> => {
+    const { error } = await supabase.from('eventos_adversos').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  },
+};
+
+export const dbSeguimientos = {
+  listarPorPaciente: async (pacienteId: string): Promise<Seguimiento[]> => {
+    const { data, error } = await supabase.from('seguimientos_tratamiento').select('*').eq('paciente_id', pacienteId).order('fecha_programada', { ascending: false }).limit(50);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  },
+  programar: async (items: Omit<Seguimiento, 'id' | 'created_at' | 'estado' | 'enviado_en' | 'error'>[]): Promise<void> => {
+    const { error } = await supabase.from('seguimientos_tratamiento').insert(items);
+    if (error) throw new Error(error.message);
+  },
+  cancelar: async (id: string): Promise<void> => {
+    const { error } = await supabase.from('seguimientos_tratamiento').update({ estado: 'cancelado' }).eq('id', id).eq('estado', 'pendiente');
+    if (error) throw new Error(error.message);
+  },
+};
+
+export const dbOrdenesLab = {
+  listarPorPaciente: async (pacienteId: string): Promise<OrdenLaboratorio[]> => {
+    const { data, error } = await supabase.from('ordenes_laboratorio').select('*').eq('paciente_id', pacienteId).order('fecha', { ascending: false });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  },
+  insertar: async (o: Omit<OrdenLaboratorio, 'id' | 'created_at'>): Promise<OrdenLaboratorio> => {
+    const { data, error } = await supabase.from('ordenes_laboratorio').insert(o).select().single();
+    if (error) throw new Error(error.message);
+    return data;
+  },
 };
 
 export const dbRecipePlantillas = {
