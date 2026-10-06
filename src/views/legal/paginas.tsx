@@ -59,7 +59,7 @@ export const AvisoLegal: React.FC = () => (
 export const Privacidad: React.FC = () => (
   <LegalLayout
     titulo="Privacidad y protección de datos"
-    resumen="Qué datos personales y de salud tratamos, para qué, quién los ve, dónde se guardan y cómo ejerces tus derechos."
+    resumen="Qué datos personales y de salud tratamos, para qué, quién los ve y cómo ejerces tus derechos."
   >
     <Seccion titulo="1. Responsable">
       <p>Clínica Dra. Mayela González (Dra. Mayela González, MPPS 652562 · COL 7645). Para cualquier consulta sobre tus datos escríbenos por <Contacto />.</p>
@@ -90,21 +90,11 @@ export const Privacidad: React.FC = () => (
       <p>La información clínica está protegida por el <b>secreto profesional</b> que establece el Código de Deontología Médica. Hoy el acceso a la plataforma clínica está limitado a la Dra. Mayela González. Si en el futuro se incorpora personal de apoyo, tendrá acceso restringido y quedará obligado a la misma confidencialidad.</p>
     </Seccion>
 
-    <Seccion titulo="5. Proveedores que intervienen">
-      <Lista items={[
-        <><b>Supabase</b>: base de datos, autenticación y archivos privados. Los servidores están en la región us-west-2 (Estados Unidos).</>,
-        <><b>Vercel</b>: alojamiento del sitio y de la aplicación.</>,
-        <><b>WhatsApp (Meta)</b>: mensajería para citas y recordatorios.</>,
-        <><b>Google Fonts</b>: carga de tipografías al abrir el sitio (Google recibe tu dirección IP).</>,
-      ]} />
-      <Aviso>Por lo anterior, parte de la información puede almacenarse o procesarse fuera de Venezuela. Aplicamos las medidas técnicas descritas en la página de seguridad.</Aviso>
-    </Seccion>
-
-    <Seccion titulo="6. Cuánto tiempo los conservamos">
+    <Seccion titulo="5. Cuánto tiempo los conservamos">
       <p>La historia clínica se conserva el tiempo que exigen el criterio médico y las normas aplicables. Los datos no clínicos (por ejemplo, de contacto) se conservan mientras mantengamos la relación asistencial o hasta que solicites su supresión, cuando sea procedente.</p>
     </Seccion>
 
-    <Seccion titulo="7. Tus derechos">
+    <Seccion titulo="6. Tus derechos">
       <p>La Constitución de la República Bolivariana de Venezuela reconoce el derecho de toda persona a conocer los datos que sobre ella constan en registros, a rectificarlos o a solicitar su destrucción cuando sean inexactos o lesivos (art. 28), y a la protección de su honor, vida privada, intimidad, propia imagen, confidencialidad y reputación (art. 60). En la clínica puedes:</p>
       <Lista items={[
         'Acceder a la información de tu ficha y pedir una copia.',
@@ -115,9 +105,6 @@ export const Privacidad: React.FC = () => (
       <p>Escríbenos por <Contacto /> o solicítalo en consulta. Venezuela no cuenta con una ley integral de protección de datos personales; aplicamos estos principios de forma voluntaria como buena práctica.</p>
     </Seccion>
 
-    <Seccion titulo="8. Menores de edad e incidentes">
-      <p>Los datos de menores se tratan con la autorización de su representante legal. Si ocurriera un incidente de seguridad que afecte tus datos, te lo informaremos directamente y adoptaremos medidas para contenerlo.</p>
-    </Seccion>
   </LegalLayout>
 );
 
@@ -125,22 +112,9 @@ export const Privacidad: React.FC = () => (
 export const Seguridad: React.FC = () => (
   <LegalLayout
     titulo="Seguridad de la información y normativa"
-    resumen="Las medidas con las que protegemos tus datos, el marco legal venezolano que nos orienta y los estándares internacionales que tomamos como referencia."
+    resumen="El marco legal venezolano que nos orienta y los estándares internacionales que tomamos como referencia para proteger tu información."
   >
-    <Seccion titulo="1. Medidas de seguridad implementadas">
-      <Lista items={[
-        <><b>Cifrado en tránsito:</b> toda la comunicación viaja por HTTPS.</>,
-        <><b>Cifrado en reposo y aislamiento:</b> los datos se guardan en una base de datos con cifrado de almacenamiento del proveedor (Supabase); las tablas con información clínica tienen seguridad a nivel de fila y no son legibles sin iniciar sesión.</>,
-        <><b>Acceso restringido:</b> solo cuentas autorizadas de la clínica acceden al portal; el sitio público no puede leer información de pacientes.</>,
-        <><b>Archivos privados:</b> exámenes y fotografías están en almacenamiento privado y se muestran mediante enlaces temporales.</>,
-        <><b>Bitácora de auditoría de solo-anexar:</b> cada alta, cambio, eliminación y consulta de una ficha queda registrada (quién, cuándo y sobre qué registro) y no puede modificarse ni borrarse.</>,
-        <><b>Cierre de sesión por inactividad:</b> el portal se cierra tras 20 minutos sin actividad.</>,
-        <><b>Récipes con sello criptográfico:</b> cada récipe lleva un código de autenticidad generado con una clave secreta guardada en una bóveda cifrada; si alguien altera el contenido, la verificación por QR lo detecta. Un récipe firmado no puede editarse; solo anularse o reemplazarse.</>,
-        <><b>Mínimo necesario:</b> la verificación pública del récipe muestra únicamente los datos indispensables.</>,
-      ]} />
-    </Seccion>
-
-    <Seccion titulo="2. Marco normativo venezolano que nos orienta">
+    <Seccion titulo="1. Marco normativo venezolano que nos orienta">
       <Lista items={[
         <><b>Constitución de la República Bolivariana de Venezuela</b>, arts. 28 (acceso y rectificación de datos personales) y 60 (honor, vida privada, intimidad y confidencialidad).</>,
         <><b>Ley sobre Mensajes de Datos y Firmas Electrónicas</b> (Gaceta Oficial N° 37.148 del 28 de febrero de 2001): eficacia probatoria de los documentos y firmas electrónicas.</>,
@@ -151,8 +125,8 @@ export const Seguridad: React.FC = () => (
       <Aviso>Venezuela no tiene una ley integral de protección de datos personales. Por eso, además de cumplir lo anterior, adoptamos de forma voluntaria buenas prácticas internacionales.</Aviso>
     </Seccion>
 
-    <Seccion titulo="3. Estándares internacionales de referencia">
-      <p>Los usamos como guía de buenas prácticas. <b>La clínica no cuenta con certificaciones</b> (ISO u otras) ni es una entidad sujeta a HIPAA.</p>
+    <Seccion titulo="2. Estándares internacionales de referencia">
+      <p>Los usamos como guía de buenas prácticas para proteger la información clínica.</p>
       <Lista items={[
         <><b>ISO/IEC 27799</b> (seguridad de la información en salud): control de acceso, auditoría y confidencialidad de datos clínicos.</>,
         <><b>HIPAA Security Rule</b> (EE. UU.): referencia para cifrado, control de acceso, auditoría y cierre automático de sesión.</>,
@@ -161,66 +135,34 @@ export const Seguridad: React.FC = () => (
       ]} />
     </Seccion>
 
-    <Seccion titulo="4. Mejoras previstas">
-      <Lista items={[
-        'Autenticación en dos pasos para el acceso al portal.',
-        'Perfiles de acceso diferenciados si se incorpora personal de apoyo.',
-        'Revisión periódica de permisos y de dependencias del sistema.',
-      ]} />
-    </Seccion>
-
-    <Seccion titulo="5. Reportar un problema de seguridad">
+    <Seccion titulo="3. Reportar un problema de seguridad">
       <p>Si crees haber encontrado una falla o recibes un mensaje sospechoso que dice venir de la clínica, avísanos por <Contacto />. Nunca te pediremos contraseñas ni datos bancarios por mensaje.</p>
     </Seccion>
   </LegalLayout>
 );
 
 /* ───────────────────────── COOKIES ───────────────────────── */
-const FILAS = [
-  ['Token de sesión de Supabase (localStorage)', 'Mantener la sesión del personal autorizado en el portal.', 'Solo tras iniciar sesión; se elimina al cerrarla.'],
-  ['cm_ultima_actividad (localStorage)', 'Medir la inactividad para cerrar la sesión de forma segura.', 'Se sobrescribe mientras se usa el portal.'],
-  ['cm_sesion_expirada (sessionStorage)', 'Mostrar el aviso "sesión cerrada por inactividad".', 'Se borra al mostrarse o al cerrar la pestaña.'],
-  ['Caché de la aplicación (service worker)', 'Guardar archivos del sitio para que cargue más rápido y funcione con conexión inestable.', 'Hasta la siguiente actualización; no contiene datos personales.'],
-];
-
 export const Cookies: React.FC = () => (
   <LegalLayout
-    titulo="Cookies y almacenamiento local"
-    resumen="Qué guarda este sitio en tu navegador, para qué sirve y cómo controlarlo."
+    titulo="Cookies"
+    resumen="Qué son las cookies y qué hace —y qué no hace— este sitio con ellas."
   >
-    <Seccion titulo="1. En resumen">
-      <Aviso><b>No usamos cookies de publicidad, analítica ni seguimiento</b>, ni de nuestra parte ni de terceros, y no te perfilamos.</Aviso>
-      <p>Por eso no mostramos un banner de consentimiento de cookies: solo se usa almacenamiento técnico estrictamente necesario, que se describe a continuación.</p>
+    <Seccion titulo="1. Qué son las cookies">
+      <p>Las cookies y el almacenamiento local son pequeños archivos que un sitio guarda en tu navegador para recordar información entre visitas, por ejemplo para mantener una sesión iniciada o acelerar la carga de la página.</p>
     </Seccion>
 
-    <Seccion titulo="2. Qué se guarda en tu navegador">
-      <div className="overflow-x-auto rounded-xl border border-ink/10 bg-white/70">
-        <table className="w-full text-left text-[13px]">
-          <thead className="bg-ink/5 text-[11px] uppercase tracking-wider text-lilac-deep">
-            <tr><th className="p-3">Elemento</th><th className="p-3">Para qué sirve</th><th className="p-3">Duración</th></tr>
-          </thead>
-          <tbody>
-            {FILAS.map(([a, b, c]) => (
-              <tr key={a} className="border-t border-ink/10 align-top">
-                <td className="p-3 font-medium">{a}</td><td className="p-3">{b}</td><td className="p-3">{c}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p>Los primeros tres elementos solo los usa el personal autorizado de la clínica en el portal; quien solo visita la página pública no los recibe.</p>
-    </Seccion>
-
-    <Seccion titulo="3. Servicios de terceros que reciben tu dirección IP">
+    <Seccion titulo="2. Lo que hacemos y lo que no">
+      <Aviso><b>No usamos cookies de publicidad, analítica ni seguimiento</b>, y no elaboramos perfiles de quienes visitan el sitio.</Aviso>
+      <p>Solo empleamos almacenamiento técnico estrictamente necesario para que el sitio y el portal de la clínica funcionen de forma segura:</p>
       <Lista items={[
-        <><b>Google Fonts</b> sirve las tipografías del sitio; al cargarlas, Google recibe tu dirección IP.</>,
-        <><b>Vercel</b>, que aloja el sitio, registra datos técnicos de la conexión (IP, navegador) para su funcionamiento y seguridad.</>,
-        <><b>WhatsApp</b>: solo si pulsas un botón para escribirnos, se abre WhatsApp con tu consentimiento y se rige por su política.</>,
+        <><b>Seguridad del portal:</b> mantener la sesión del personal autorizado y cerrarla automáticamente tras un periodo de inactividad.</>,
+        <><b>Rendimiento:</b> una caché de los archivos del sitio para que cargue más rápido, incluso con conexión inestable. No contiene datos personales.</>,
       ]} />
+      <p>Por ser de uso estrictamente técnico, no mostramos un banner de consentimiento.</p>
     </Seccion>
 
-    <Seccion titulo="4. Cómo controlarlo">
-      <p>Puedes borrar el almacenamiento local y la caché desde la configuración de tu navegador. Si lo haces, el personal tendrá que iniciar sesión de nuevo. Si en el futuro incorporáramos analítica o cookies no esenciales, actualizaremos esta página y te pediremos tu consentimiento antes de activarlas.</p>
+    <Seccion titulo="3. Cómo controlarlo">
+      <p>Puedes borrar el almacenamiento local y la caché en cualquier momento desde la configuración de tu navegador; al hacerlo, el personal de la clínica deberá iniciar sesión de nuevo. Si en el futuro incorporáramos analítica u otras cookies no esenciales, actualizaremos esta página y te pediremos tu consentimiento antes de activarlas.</p>
     </Seccion>
   </LegalLayout>
 );

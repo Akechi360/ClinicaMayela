@@ -446,8 +446,8 @@ export const LandingPage: React.FC = () => {
           {[
             { to: '/aviso-legal', icon: <Scale size={20} />, t: 'Aviso legal', d: 'Quiénes somos, alcance de la información y riesgos de los procedimientos.' },
             { to: '/privacidad', icon: <FileText size={20} />, t: 'Privacidad y datos', d: 'Qué datos tratamos, para qué, quién accede y cómo ejercer tus derechos.' },
-            { to: '/seguridad', icon: <Lock size={20} />, t: 'Seguridad y normativa', d: 'Medidas técnicas, leyes venezolanas aplicables y estándares de referencia.' },
-            { to: '/cookies', icon: <Cookie size={20} />, t: 'Cookies', d: 'No usamos cookies de seguimiento ni publicidad. Mira qué guarda el sitio.' },
+            { to: '/seguridad', icon: <Lock size={20} />, t: 'Seguridad y normativa', d: 'Leyes venezolanas aplicables y estándares internacionales de referencia.' },
+            { to: '/cookies', icon: <Cookie size={20} />, t: 'Cookies', d: 'No usamos cookies de seguimiento ni de publicidad.' },
           ].map((c) => (
             <Link
               key={c.to}
@@ -542,6 +542,9 @@ export const LandingPage: React.FC = () => {
             <Link to="/cookies" className="hover:text-aurora-deep">Cookies</Link>
           </div>
         </div>
+        <p className="max-w-7xl mx-auto mt-5 text-center text-[11px] tracking-wide text-lilac-muted">
+          Made By <span className="font-semibold text-ink">Abstrek Studio</span> - Hecho en Venezuela
+        </p>
       </footer>
     </div>
   );
