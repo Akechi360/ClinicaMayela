@@ -83,6 +83,8 @@ export interface DoctorProfile {
   col?:         string | null;
   firma_base64?: string | null;
   sello_base64?: string | null;
+  consultorio_nombre?: string | null;
+  consultorio_direccion?: string | null;
   updated_at?:  string | null;
 }
 
@@ -143,6 +145,8 @@ export interface ExamenLaboratorio {
   created_at?: string;
 }
 
+export type RecipeEstado = 'emitido' | 'dispensado' | 'anulado';
+
 export interface RecipeMedico {
   id: string;
   paciente_id: string;
@@ -154,6 +158,11 @@ export interface RecipeMedico {
   doctor_mpps?: string | null;
   doctor_col?: string | null;
   hash_sha256?: string | null;
+  estado?: RecipeEstado;
+  estado_at?: string | null;
+  /** Código corto público del QR (/v/<codigo>) */
+  codigo?: string;
+  reemplazado_por?: string | null;
   created_at?: string;
 }
 
@@ -166,14 +175,23 @@ export interface RecipePlantilla {
 
 export interface RecipeVerificado {
   valido: boolean;
+  estado?: RecipeEstado;
+  estado_at?: string | null;
+  /** Código de la versión vigente cuando este récipe fue corregido/reemplazado */
+  vigente_codigo?: string | null;
   fecha?: string;
   medicamentos?: string;
   indicaciones?: string | null;
   paciente?: string;
+  /** Cédula enmascarada por el servidor, p. ej. V-***3650 */
+  paciente_cedula?: string | null;
   doctor_nombre?: string;
   doctor_mpps?: string;
   doctor_col?: string;
   especialidad?: string;
+  telefono?: string | null;
+  consultorio_nombre?: string | null;
+  consultorio_direccion?: string | null;
   firma?: string | null;
   sello?: string | null;
 }

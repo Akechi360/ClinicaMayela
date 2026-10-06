@@ -13,6 +13,7 @@ import type {
   Transaccion,
   HistorialClinico,
   ExamenLaboratorio,
+  RecipeEstado,
   RecipeMedico,
   RecipePlantilla,
   RecipeVerificado,
@@ -442,6 +443,13 @@ export const dbRecipes = {
     if (error) throw new Error(error.message);
     return data;
   },
+  cambiarEstado: async (id: string, estado: Exclude<RecipeEstado, 'emitido'>, reemplazadoPor?: string): Promise<void> => {
+    const { error } = await supabase
+      .from('recipes_medicos')
+      .update(reemplazadoPor ? { estado, reemplazado_por: reemplazadoPor } : { estado })
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  },
   eliminar: async (id: string): Promise<void> => {
     const { error } = await supabase
       .from('recipes_medicos')
@@ -469,8 +477,8 @@ export const dbRecipePlantillas = {
 };
 
 /** Verificación pública del récipe (la usa la farmacia al escanear el QR; no requiere sesión). */
-export const verificarRecipe = async (id: string, hash: string): Promise<RecipeVerificado> => {
-  const { data, error } = await supabase.rpc('verificar_recipe', { p_id: id, p_hash: hash });
+export const verificarRecipe = async (codigo: string): Promise<RecipeVerificado> => {
+  const { data, error } = await supabase.rpc('verificar_recipe_codigo', { p_codigo: codigo });
   if (error) throw new Error(error.message);
   return data as RecipeVerificado;
 };

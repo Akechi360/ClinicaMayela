@@ -33,7 +33,9 @@ import {
   Pencil,
   Mic,
   Send,
-  BookmarkPlus
+  BookmarkPlus,
+  CheckCircle,
+  Ban
 } from 'lucide-react';
 
 type ActiveTab = 'historial' | 'mapa' | 'citas' | 'finanzas' | 'examenes' | 'recipes' | 'consentimientos' | 'composicion' | 'peptidos';
@@ -58,6 +60,8 @@ export const PatientDetail: React.FC = () => {
   const [recipeMedicamentos, setRecipeMedicamentos] = useState('');
   const [recipeIndicaciones, setRecipeIndicaciones] = useState('');
   const [recipeFecha, setRecipeFecha] = useState(new Date().toISOString().split('T')[0]);
+  /** Récipe que se está corrigiendo (se anula y se enlaza al nuevo) */
+  const [recipeCorrigiendo, setRecipeCorrigiendo] = useState<RecipeMedico | null>(null);
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [showEditPatientModal, setShowEditPatientModal] = useState(false);
@@ -185,16 +189,30 @@ export const PatientDetail: React.FC = () => {
   const dictado = useDictado((texto) => setRecipeMedicamentos((prev) => (prev ? prev + '\n' : '') + estructurarDictado(texto)));
 
   const addRecipeMutation = useMutation({
-    mutationFn: dbRecipes.insertar,
-    onSuccess: () => {
+    mutationFn: async ({ datos, reemplazaId }: { datos: Parameters<typeof dbRecipes.insertar>[0]; reemplazaId?: string }) => {
+      const nuevo = await dbRecipes.insertar(datos);
+      if (reemplazaId) await dbRecipes.cambiarEstado(reemplazaId, 'anulado', nuevo.id);
+      return nuevo;
+    },
+    onSuccess: (_n, v) => {
       queryClient.invalidateQueries({ queryKey: ['paciente-recipes', id] });
       setShowRecipeModal(false);
+      setRecipeCorrigiendo(null);
       setRecipeMedicamentos('');
       setRecipeIndicaciones('');
       setRecipeFecha(new Date().toISOString().split('T')[0]);
-      toast.success('Récipe médico emitido correctamente.');
+      toast.success(v.reemplazaId ? 'Récipe corregido: la versión anterior quedó anulada y enlazada a la nueva.' : 'Récipe médico emitido correctamente.');
     },
     onError: (err: Error) => toast.error(`Error al emitir récipe: ${err.message}`)
+  });
+
+  const estadoRecipeMutation = useMutation({
+    mutationFn: ({ id: recipeId, estado }: { id: string; estado: 'dispensado' | 'anulado' }) => dbRecipes.cambiarEstado(recipeId, estado),
+    onSuccess: (_d, v) => {
+      queryClient.invalidateQueries({ queryKey: ['paciente-recipes', id] });
+      toast.success(v.estado === 'anulado' ? 'Récipe anulado.' : 'Récipe marcado como dispensado.');
+    },
+    onError: (err: Error) => toast.error(`No se pudo cambiar el estado: ${err.message}`)
   });
 
   const deleteRecipeMutation = useMutation({
@@ -332,12 +350,13 @@ export const PatientDetail: React.FC = () => {
   };
 
   const handleSendRecipeWhatsApp = (recipe: RecipeMedico) => {
-    if (!paciente || !recipe.hash_sha256) return;
+    if (!paciente || !recipe.codigo) return;
+    if (recipe.estado === 'anulado') { toast.error('Este récipe está anulado.'); return; }
     let tel = (paciente.telefono ?? '').replace(/\D/g, '');
     if (tel.startsWith('0')) tel = '58' + tel.slice(1);
     if (!tel) { toast.error('El paciente no tiene teléfono registrado.'); return; }
     const fecha = new Date(recipe.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
-    const msg = `Hola ${paciente.nombre}, le comparto su récipe médico del ${fecha}, emitido por ${recipe.doctor_nombre ?? 'la Dra. Mayela González'}. Puede mostrarlo en la farmacia; se verifica su autenticidad con este enlace:\n${recipeVerifyUrl(recipe.id, recipe.hash_sha256)}`;
+    const msg = `Hola ${paciente.nombre}, le comparto su récipe médico del ${fecha}, emitido por ${recipe.doctor_nombre ?? 'la Dra. Mayela González'}. Puede mostrarlo en la farmacia; se verifica su autenticidad con este enlace:\n${recipeVerifyUrl(recipe.codigo)}`;
     window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
@@ -348,7 +367,7 @@ export const PatientDetail: React.FC = () => {
     try {
       const { pdf } = await import('@react-pdf/renderer');
       const { RecipePDF } = await import('../components/RecipePDF');
-      const qr = recipe.hash_sha256 ? await recipeQrDataUrl(recipeVerifyUrl(recipe.id, recipe.hash_sha256)) : undefined;
+      const qr = recipe.codigo ? await recipeQrDataUrl(recipeVerifyUrl(recipe.codigo)) : undefined;
       const blob = await pdf(
         <RecipePDF
           pacienteNombre={paciente.nombre}
@@ -362,7 +381,7 @@ export const PatientDetail: React.FC = () => {
           firma={doctor?.firma_base64}
           sello={doctor?.sello_base64}
           qr={qr}
-          codigo={recipe.hash_sha256 ? recipe.hash_sha256.slice(0, 16).toUpperCase() : undefined}
+          codigo={recipe.codigo}
           medicamentos={recipe.medicamentos}
           indicaciones={recipe.indicaciones}
         />
@@ -771,7 +790,7 @@ export const PatientDetail: React.FC = () => {
             <div className="flex justify-between items-center">
               <h3 className="text-base font-display font-medium text-slate-dark">Récipes Médicos</h3>
               <button
-                onClick={() => setShowRecipeModal(true)}
+                onClick={() => { setRecipeCorrigiendo(null); setShowRecipeModal(true); }}
                 className="bg-satin-copper hover:bg-satin-copper-hover text-pure-white text-[11px] font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <Plus size={13} /> Emitir Récipe
@@ -788,9 +807,13 @@ export const PatientDetail: React.FC = () => {
                   <div key={recipe.id} className="p-5 rounded-2xl bg-pure-white/15 border border-satin-copper/10 hover:bg-pure-white/25 transition-all duration-300 flex flex-col justify-between h-full space-y-4">
                     <div className="space-y-2">
                       <div className="flex justify-between items-start">
-                        <span className="text-[9px] text-satin-copper font-bold uppercase tracking-widest bg-satin-copper/10 px-2.5 py-1 rounded-full">
-                          {new Date(recipe.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-                        </span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[9px] text-satin-copper font-bold uppercase tracking-widest bg-satin-copper/10 px-2.5 py-1 rounded-full">
+                            {new Date(recipe.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </span>
+                          {recipe.estado === 'anulado' && <span className="text-[9px] font-bold uppercase tracking-widest bg-red-50 text-red-700 border border-red-200 px-2 py-1 rounded-full">Anulado</span>}
+                          {recipe.estado === 'dispensado' && <span className="text-[9px] font-bold uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-1 rounded-full">Dispensado</span>}
+                        </div>
                         <button
                           onClick={async () => {
                             const ok = await confirm({
@@ -826,14 +849,53 @@ export const PatientDetail: React.FC = () => {
                       >
                         <Printer size={13} /> {isGeneratingPdf ? 'Generando PDF...' : 'Imprimir Récipe (PDF)'}
                       </button>
-                      <button
-                        onClick={() => handleSendRecipeWhatsApp(recipe)}
-                        className="text-[11px] text-muted-olive font-semibold flex items-center gap-1 hover:underline cursor-pointer border-none bg-transparent w-fit"
-                      >
-                        <Send size={13} /> Enviar por WhatsApp
-                      </button>
-                      {recipe.hash_sha256 && (
-                        <span title="Código de validación SHA-256" className="text-[9px] font-mono text-slate-light">#{recipe.hash_sha256.slice(0, 8).toUpperCase()}</span>
+                      {recipe.estado !== 'anulado' && (
+                        <button
+                          onClick={() => handleSendRecipeWhatsApp(recipe)}
+                          className="text-[11px] text-muted-olive font-semibold flex items-center gap-1 hover:underline cursor-pointer border-none bg-transparent w-fit"
+                        >
+                          <Send size={13} /> Enviar por WhatsApp
+                        </button>
+                      )}
+                      {(recipe.estado ?? 'emitido') === 'emitido' && (
+                        <>
+                          <button
+                            onClick={() => estadoRecipeMutation.mutate({ id: recipe.id, estado: 'dispensado' })}
+                            disabled={estadoRecipeMutation.isPending}
+                            className="text-[11px] text-slate-medium font-semibold flex items-center gap-1 hover:underline cursor-pointer border-none bg-transparent w-fit disabled:opacity-50"
+                          >
+                            <CheckCircle size={13} /> Marcar dispensado
+                          </button>
+                          <button
+                            onClick={() => {
+                              setRecipeCorrigiendo(recipe);
+                              setRecipeMedicamentos(recipe.medicamentos);
+                              setRecipeIndicaciones(recipe.indicaciones ?? '');
+                              setRecipeFecha(new Date().toISOString().split('T')[0]);
+                              setShowRecipeModal(true);
+                            }}
+                            className="text-[11px] text-satin-copper font-semibold flex items-center gap-1 hover:underline cursor-pointer border-none bg-transparent w-fit"
+                          >
+                            <Pencil size={13} /> Corregir
+                          </button>
+                          <button
+                            onClick={async () => {
+                              const ok = await confirm({
+                                title: 'Anular Récipe',
+                                message: 'El récipe quedará anulado y la farmacia lo verá como no válido para despachar. Esta acción no se puede deshacer.',
+                                severity: 'danger'
+                              });
+                              if (ok) estadoRecipeMutation.mutate({ id: recipe.id, estado: 'anulado' });
+                            }}
+                            disabled={estadoRecipeMutation.isPending}
+                            className="text-[11px] text-red-600 font-semibold flex items-center gap-1 hover:underline cursor-pointer border-none bg-transparent w-fit disabled:opacity-50"
+                          >
+                            <Ban size={13} /> Anular
+                          </button>
+                        </>
+                      )}
+                      {recipe.codigo && (
+                        <span title="Código de verificación del QR" className="text-[9px] font-mono text-slate-light">{recipe.codigo}</span>
                       )}
                     </div>
                   </div>
@@ -1052,16 +1114,19 @@ export const PatientDetail: React.FC = () => {
             onSubmit={(e) => {
               e.preventDefault();
               addRecipeMutation.mutate({
-                paciente_id: id ?? '',
-                fecha: recipeFecha,
-                medicamentos: recipeMedicamentos,
-                indicaciones: recipeIndicaciones
+                datos: {
+                  paciente_id: id ?? '',
+                  fecha: recipeFecha,
+                  medicamentos: recipeMedicamentos,
+                  indicaciones: recipeIndicaciones
+                },
+                reemplazaId: recipeCorrigiendo?.id
               });
             }}
             className="glass-panel w-full max-w-sm rounded-2xl shadow-luxury border border-pure-white/50 overflow-hidden flex flex-col"
           >
             <div className="px-5 py-4 border-b border-satin-copper/10 flex justify-between items-center bg-pure-white/20">
-              <h3 id="modal-recipe-title" className="font-display font-medium text-slate-dark text-sm uppercase tracking-wider">Emitir Récipe Médico</h3>
+              <h3 id="modal-recipe-title" className="font-display font-medium text-slate-dark text-sm uppercase tracking-wider">{recipeCorrigiendo ? 'Corregir Récipe Médico' : 'Emitir Récipe Médico'}</h3>
               <button type="button" onClick={() => setShowRecipeModal(false)} aria-label="Cerrar" className="text-slate-light hover:text-slate-dark cursor-pointer border-none bg-transparent"><X size={16} /></button>
             </div>
             <div className="p-5 space-y-4 text-xs font-sans">

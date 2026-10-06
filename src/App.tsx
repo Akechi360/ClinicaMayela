@@ -140,7 +140,7 @@ function App() {
               />
               <Route path="/login" element={<Login />} />
               <Route
-                path="/verificar"
+                path="/v/:codigo"
                 element={
                   <Suspense fallback={<PageLoadSkeleton />}>
                     <VerifyRecipe />

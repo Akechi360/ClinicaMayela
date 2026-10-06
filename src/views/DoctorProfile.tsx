@@ -35,6 +35,8 @@ export const DoctorProfile: React.FC = () => {
   const [horario, setHorario] = useState('');
   const [firma, setFirma] = useState('');
   const [sello, setSello] = useState('');
+  const [consultorioNombre, setConsultorioNombre] = useState('');
+  const [consultorioDireccion, setConsultorioDireccion] = useState('');
   const [mpps, setMpps] = useState('');
   const [col, setCol] = useState('');
   const [linkedin, setLinkedin] = useState('');
@@ -56,6 +58,8 @@ export const DoctorProfile: React.FC = () => {
       else setHorario(String(h));
       setFirma(doctor.firma_base64 || '');
       setSello(doctor.sello_base64 || '');
+      setConsultorioNombre(doctor.consultorio_nombre || '');
+      setConsultorioDireccion(doctor.consultorio_direccion || '');
       setMpps(doctor.mpps || '');
       setCol(doctor.col || '');
     }
@@ -112,6 +116,8 @@ export const DoctorProfile: React.FC = () => {
       horario: horario || undefined,
       firma_base64: firma || null,
       sello_base64: sello || null,
+      consultorio_nombre: consultorioNombre || null,
+      consultorio_direccion: consultorioDireccion || null,
       mpps: mpps || undefined,
       col: col || undefined,
       updated_at: new Date().toISOString()
@@ -193,6 +199,18 @@ export const DoctorProfile: React.FC = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+              <div className="flex flex-col space-y-1">
+                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Consultorio (aparece al verificar el récipe)</label>
+                <input type="text" value={consultorioNombre} onChange={(e) => setConsultorioNombre(e.target.value)}
+                  placeholder="Ej. Clínica Dra. Mayela González"
+                  className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
+              </div>
+              <div className="flex flex-col space-y-1">
+                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Dirección del consultorio</label>
+                <input type="text" value={consultorioDireccion} onChange={(e) => setConsultorioDireccion(e.target.value)}
+                  placeholder="Ej. Av. Principal, Edif. X, piso 2, Valencia"
+                  className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
               </div>
               <div className="flex flex-col space-y-1">
                 <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Horario de Consulta</label>
