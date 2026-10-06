@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbPacientes, dbTratamientos, dbHistoriales, dbConsentimientos, dbDoctor } from '../services/db';
 import { supabase, getSignedUrl } from '../services/supabase';
+import { toStorageRef } from '../lib/storageUrl';
 import type { Paciente, Tratamiento, Consentimiento, MapaFacialCoordenada } from '../types/database.types';
 import { FaceCanvas } from '../components/FaceCanvas';
 import { ErrorBoundary } from '../components/ErrorBoundary';
@@ -40,6 +41,7 @@ export const NewEntry: React.FC = () => {
   const [notasMedicas, setNotasMedicas]   = useState('');
   const [fotoAntes, setFotoAntes]         = useState('');
   const [fotoDespues, setFotoDespues]     = useState('');
+  const [previews, setPreviews]           = useState<{ antes?: string; despues?: string }>({});
   const [isUploading, setIsUploading]     = useState<'antes' | 'despues' | null>(null);
 
   // Step 3
@@ -126,9 +128,11 @@ export const NewEntry: React.FC = () => {
         .from('pacientes-fotos')
         .upload(path, file, { cacheControl: '3600', upsert: false });
       if (error) throw new Error(error.message);
-      const signedUrl = await getSignedUrl('pacientes-fotos', data.path);
-      if (type === 'antes') setFotoAntes(signedUrl);
-      else setFotoDespues(signedUrl);
+      const preview = await getSignedUrl('pacientes-fotos', data.path);
+      setPreviews(p => ({ ...p, [type]: preview }));
+      const ref = toStorageRef('pacientes-fotos', data.path);
+      if (type === 'antes') setFotoAntes(ref);
+      else setFotoDespues(ref);
       toast.dismiss(uploadId);
       toast.success(`Foto ${type === 'antes' ? 'antes' : 'después'} cargada.`);
     } catch (err) {
@@ -253,7 +257,7 @@ export const NewEntry: React.FC = () => {
                   </label>
                   {(tipo === 'antes' ? fotoAntes : fotoDespues) ? (
                     <div className="relative w-full h-40 rounded-xl overflow-hidden border border-satin-copper/20">
-                      <img src={tipo === 'antes' ? fotoAntes : fotoDespues} alt={`Foto ${tipo}`} className="w-full h-full object-cover" />
+                      <img src={previews[tipo]} alt={`Foto ${tipo}`} className="w-full h-full object-cover" />
                       <button type="button"
                         onClick={() => tipo === 'antes' ? setFotoAntes('') : setFotoDespues('')}
                         className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] cursor-pointer">×</button>

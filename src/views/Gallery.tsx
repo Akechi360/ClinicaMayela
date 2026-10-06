@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { dbHistoriales, dbTratamientos } from '../services/db';
-import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
+import { StorageBeforeAfter } from '../components/StorageBeforeAfter';
 import { ImageIcon, ListFilter, Sparkles } from 'lucide-react';
 
 export const Gallery: React.FC = () => {
@@ -72,10 +72,7 @@ export const Gallery: React.FC = () => {
               <div className="space-y-4">
                 {/* Comparador Slider */}
                 <div className="w-full">
-                  <BeforeAfterSlider 
-                    beforeImage={item.foto_antes || ''} 
-                    afterImage={item.foto_despues || ''} 
-                  />
+                  <StorageBeforeAfter before={item.foto_antes} after={item.foto_despues} />
                 </div>
 
                 {/* Info */}

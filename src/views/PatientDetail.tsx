@@ -6,8 +6,9 @@ import { recipeVerifyUrl, recipeQrDataUrl } from '../lib/recipeVerify';
 import { estructurarDictado, useDictado } from '../lib/dictado';
 import { dbProtocolosPeptidos } from '../services/peptidesService';
 import type { PeptideProtocol } from '../types/peptides';
-import { supabase, getSignedUrl } from '../services/supabase';
-import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
+import { supabase } from '../services/supabase';
+import { StorageBeforeAfter } from '../components/StorageBeforeAfter';
+import { toStorageRef, resolveStorageUrl } from '../lib/storageUrl';
 import { FaceCanvas } from '../components/FaceCanvas';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { ComposicionCorporalTab } from '../components/ComposicionCorporalTab';
@@ -291,8 +292,7 @@ export const PatientDetail: React.FC = () => {
         .from('examenes')
         .upload(`${id}/${Date.now()}_${file.name}`, file, { cacheControl: '3600', upsert: false });
       if (storageError) throw new Error(storageError.message);
-      const signedUrl = await getSignedUrl('examenes', storageData.path);
-      setExamenArchivoUrl(signedUrl);
+      setExamenArchivoUrl(toStorageRef('examenes', storageData.path));
       toast.dismiss(uploadToastId);
       toast.success('Archivo subido correctamente.');
     } catch (err) {
@@ -339,10 +339,17 @@ export const PatientDetail: React.FC = () => {
     }
   };
 
-  const handleDownloadExamen = (examen: ExamenLaboratorio) => {
+  const handleDownloadExamen = async (examen: ExamenLaboratorio) => {
     if (!examen.archivo_url) return;
+    let href: string;
+    try {
+      href = await resolveStorageUrl(examen.archivo_url);
+    } catch {
+      toast.error('No se pudo abrir el archivo adjunto.');
+      return;
+    }
     const link = document.createElement('a');
-    link.href = examen.archivo_url;
+    link.href = href;
     link.download = examen.titulo.replace(/\s+/g, '_').toLowerCase();
     document.body.appendChild(link);
     link.click();
@@ -599,7 +606,7 @@ export const PatientDetail: React.FC = () => {
                       {historial.foto_antes && historial.foto_despues ? (
                         <div className="w-full max-w-xs">
                           <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold mb-2.5 text-center tracking-widest">Comparativa Antes / Después</p>
-                          <BeforeAfterSlider beforeImage={historial.foto_antes} afterImage={historial.foto_despues} />
+                          <StorageBeforeAfter before={historial.foto_antes} after={historial.foto_despues} />
                         </div>
                       ) : (
                         <div className="w-full h-60 border border-dashed border-satin-copper/25 rounded-xl flex flex-col items-center justify-center bg-pure-white/10 backdrop-blur-sm">
