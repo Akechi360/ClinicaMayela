@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
   },
   header: {
     borderBottomWidth: 1,
-    borderBottomColor: '#A66E53', // Satin Copper
+    borderBottomColor: '#A891AA', // Satin Copper
     paddingBottom: 10,
     marginBottom: 20,
     flexDirection: 'row',
@@ -21,7 +21,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontFamily: 'Helvetica-Bold',
-    color: '#A66E53',
+    color: '#A891AA',
+    marginBottom: 9,
   },
   subtitle: {
     fontSize: 8,
@@ -32,10 +33,10 @@ const styles = StyleSheet.create({
   metaSection: {
     marginBottom: 20,
     padding: 12,
-    backgroundColor: '#FBF8F6',
+    backgroundColor: '#FAF6F9',
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#F2E7E2',
+    borderColor: '#E8D7E3',
   },
   metaRow: {
     flexDirection: 'row',
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
     left: 40,
     right: 40,
     borderTopWidth: 1,
-    borderTopColor: '#F2E7E2',
+    borderTopColor: '#E8D7E3',
     paddingTop: 8,
     alignItems: 'center',
   },
@@ -122,7 +123,7 @@ export const ConsentimientoPDF: React.FC<ConsentimientoPDFProps> = ({
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Clínica Dra. Mayela González</Text>
-          <Text style={styles.subtitle}>Medicina Estética & Bienestar</Text>
+          <Text style={styles.subtitle}>Medicina Estética & Longevidad</Text>
         </View>
         <View style={{ alignItems: 'flex-end' }}>
           <Text style={{ fontFamily: 'Helvetica-Bold', color: '#4B5663' }}>CONSENTIMIENTO INFORMADO</Text>

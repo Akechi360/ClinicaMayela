@@ -317,7 +317,7 @@ export const SceneContent: React.FC<SceneContentProps> = ({
       <mesh geometry={geometry}>
         <meshBasicMaterial
           wireframe
-          color="#A66E53"
+          color="#A891AA"
           opacity={0.12}
           transparent
           depthWrite={false}

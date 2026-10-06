@@ -48,7 +48,7 @@ const FaceModel: React.FC = () => {
         {/* Solid face - pearlescent rose gold */}
         <mesh ref={meshRef} geometry={geometry}>
           <meshPhysicalMaterial
-            color="#F0DDD4"
+            color="#F8E3EC"
             metalness={0.25}
             roughness={0.35}
             clearcoat={0.8}
@@ -62,7 +62,7 @@ const FaceModel: React.FC = () => {
         {/* Wireframe overlay */}
         <mesh ref={glowRef} geometry={geometry} scale={1.002}>
           <meshBasicMaterial
-            color="#E0BAA8"
+            color="#D0AFC6"
             wireframe
             transparent
             opacity={0.08}
@@ -72,7 +72,7 @@ const FaceModel: React.FC = () => {
         {/* Glow rim - slightly larger */}
         <mesh geometry={geometry} scale={1.015}>
           <meshBasicMaterial
-            color="#E2CCA3"
+            color="#DBBCCC"
             transparent
             opacity={0.04}
             side={THREE.BackSide}
@@ -87,8 +87,8 @@ const Scene: React.FC = () => (
   <>
     <ambientLight intensity={0.6} />
     <directionalLight position={[3, 4, 5]} intensity={0.8} color="#FFFFFF" />
-    <directionalLight position={[-2, 2, -3]} intensity={0.3} color="#E0BAA8" />
-    <pointLight position={[0, 0, 3]} intensity={0.4} color="#E2CCA3" distance={8} />
+    <directionalLight position={[-2, 2, -3]} intensity={0.3} color="#D0AFC6" />
+    <pointLight position={[0, 0, 3]} intensity={0.4} color="#DBBCCC" distance={8} />
     <Suspense fallback={null}>
       <FaceModel />
     </Suspense>
@@ -141,16 +141,16 @@ export const LoginFace3D: React.FC = () => {
 const StaticFallback: React.FC = () => (
   <div className="w-full h-full flex items-center justify-center">
     <svg viewBox="0 0 200 260" fill="none" className="w-48 h-56 opacity-40">
-      <ellipse cx="100" cy="120" rx="65" ry="82" stroke="#E0BAA8" strokeWidth="1" />
-      <path d="M55 90 Q 70 82, 85 88" stroke="#E0BAA8" strokeWidth="0.8" />
-      <path d="M115 88 Q 130 82, 145 90" stroke="#E0BAA8" strokeWidth="0.8" />
-      <path d="M100 95 L 96 130 Q 100 136, 104 130 L 100 95" stroke="#E0BAA8" strokeWidth="0.8" />
-      <path d="M82 150 Q 92 144, 100 146 Q 108 144, 118 150" stroke="#E0BAA8" strokeWidth="0.8" />
-      <ellipse cx="75" cy="100" rx="10" ry="5" stroke="#E0BAA8" strokeWidth="0.8" />
-      <ellipse cx="125" cy="100" rx="10" ry="5" stroke="#E0BAA8" strokeWidth="0.8" />
-      <circle cx="65" cy="86" r="2" fill="#E0BAA8" opacity="0.3" />
-      <circle cx="135" cy="86" r="2" fill="#E0BAA8" opacity="0.3" />
-      <circle cx="100" cy="160" r="2" fill="#E0BAA8" opacity="0.3" />
+      <ellipse cx="100" cy="120" rx="65" ry="82" stroke="#D0AFC6" strokeWidth="1" />
+      <path d="M55 90 Q 70 82, 85 88" stroke="#D0AFC6" strokeWidth="0.8" />
+      <path d="M115 88 Q 130 82, 145 90" stroke="#D0AFC6" strokeWidth="0.8" />
+      <path d="M100 95 L 96 130 Q 100 136, 104 130 L 100 95" stroke="#D0AFC6" strokeWidth="0.8" />
+      <path d="M82 150 Q 92 144, 100 146 Q 108 144, 118 150" stroke="#D0AFC6" strokeWidth="0.8" />
+      <ellipse cx="75" cy="100" rx="10" ry="5" stroke="#D0AFC6" strokeWidth="0.8" />
+      <ellipse cx="125" cy="100" rx="10" ry="5" stroke="#D0AFC6" strokeWidth="0.8" />
+      <circle cx="65" cy="86" r="2" fill="#D0AFC6" opacity="0.3" />
+      <circle cx="135" cy="86" r="2" fill="#D0AFC6" opacity="0.3" />
+      <circle cx="100" cy="160" r="2" fill="#D0AFC6" opacity="0.3" />
     </svg>
   </div>
 );

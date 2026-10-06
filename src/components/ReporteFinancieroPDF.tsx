@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
   },
   header: {
     borderBottomWidth: 2,
-    borderBottomColor: '#9C6348', // Satin Copper Accessible
+    borderBottomColor: '#8F6FA8', // Satin Copper Accessible
     paddingBottom: 12,
     marginBottom: 20,
     flexDirection: 'row',
@@ -21,7 +21,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontFamily: 'Helvetica-Bold',
-    color: '#9C6348',
+    color: '#8F6FA8',
+    marginBottom: 9,
   },
   subtitle: {
     fontSize: 8,
@@ -38,11 +39,11 @@ const styles = StyleSheet.create({
   summaryBox: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#FAF7F5', // Rose Champagne Light
+    backgroundColor: '#FAF6F9', // Rose Champagne Light
     padding: 15,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#F2E7E2',
+    borderColor: '#E8D7E3',
     marginBottom: 20,
   },
   summaryItem: {
@@ -64,10 +65,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 11,
     fontFamily: 'Helvetica-Bold',
-    color: '#9C6348',
+    color: '#8F6FA8',
     marginBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2E7E2',
+    borderBottomColor: '#E8D7E3',
     paddingBottom: 3,
   },
   table: {
@@ -76,9 +77,9 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#FAF7F5',
+    backgroundColor: '#FAF6F9',
     borderBottomWidth: 1,
-    borderBottomColor: '#F2E7E2',
+    borderBottomColor: '#E8D7E3',
     paddingVertical: 5,
     fontFamily: 'Helvetica-Bold',
     color: '#4B5663',
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: '#FBF8F6',
+    borderBottomColor: '#FAF6F9',
     paddingVertical: 6,
     alignItems: 'center',
   },
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
     left: 40,
     right: 40,
     borderTopWidth: 1,
-    borderTopColor: '#F2E7E2',
+    borderTopColor: '#E8D7E3',
     paddingTop: 8,
     alignItems: 'center',
   },
@@ -168,7 +169,7 @@ export const ReporteFinancieroPDF: React.FC<ReporteFinancieroPDFProps> = ({
         <View style={styles.header}>
           <View>
             <Text style={styles.title}>Clínica Dra. Mayela González</Text>
-            <Text style={styles.subtitle}>Reporte Financiero Clínico</Text>
+            <Text style={styles.subtitle}>Medicina Estética & Longevidad</Text>
           </View>
           <View style={styles.metaInfo}>
             <Text>Fecha de Generación: {fechaGeneracion}</Text>
@@ -182,7 +183,7 @@ export const ReporteFinancieroPDF: React.FC<ReporteFinancieroPDFProps> = ({
             <Text style={styles.summaryLabel}>Total Ingresado (Caja)</Text>
             <Text style={styles.summaryValue}>{formatCurrency(totalCaja)}</Text>
           </View>
-          <View style={{ width: 1, backgroundColor: '#F2E7E2' }} />
+          <View style={{ width: 1, backgroundColor: '#E8D7E3' }} />
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>Total Pendiente</Text>
             <Text style={styles.summaryValue}>{formatCurrency(totalPendiente)}</Text>

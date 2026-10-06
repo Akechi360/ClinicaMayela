@@ -69,7 +69,7 @@ export const Dashboard: React.FC = () => {
         );
       case 'en_sala':
         return (
-          <span className="flex items-center gap-1.5 text-[#A0806C] text-[10px] font-semibold uppercase tracking-wider bg-rosa-petalo/10 px-2.5 py-1 rounded-lg">
+          <span className="flex items-center gap-1.5 text-[#6D5572] text-[10px] font-semibold uppercase tracking-wider bg-rosa-petalo/10 px-2.5 py-1 rounded-lg">
             <span className="w-1.5 h-1.5 rounded-full bg-rosa-petalo animate-pulse"></span> En Sala
           </span>
         );
@@ -203,7 +203,7 @@ export const Dashboard: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-xs font-medium shrink-0 ${
                       cita.estado === 'en_sala'
-                        ? 'bg-gradient-to-br from-rosa-petalo/12 to-satin-copper-light/10 text-[#A0806C]'
+                        ? 'bg-gradient-to-br from-rosa-petalo/12 to-satin-copper-light/10 text-[#6D5572]'
                         : 'bg-[#F7F8FA] text-slate-medium'
                     }`}>
                       {cita.paciente?.nombre?.split(' ').map((n: string) => n[0]).slice(0, 2).join('')}
@@ -272,7 +272,7 @@ export const Dashboard: React.FC = () => {
                 <span className="text-xs text-slate-medium flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-rosa-petalo"></span> En Sala
                 </span>
-                <span className="text-xs font-medium text-[#A0806C]">{citasHoy.filter(c => c.estado === 'en_sala').length}</span>
+                <span className="text-xs font-medium text-[#6D5572]">{citasHoy.filter(c => c.estado === 'en_sala').length}</span>
               </div>
               <div className="flex justify-between items-center py-2.5 border-b border-[#F7F8FA]">
                 <span className="text-xs text-slate-medium flex items-center gap-2">
@@ -294,7 +294,7 @@ export const Dashboard: React.FC = () => {
             <div className="mt-4 pt-4 border-t border-[#F0F1F3] space-y-2">
               <button
                 onClick={() => navigate('/agenda')}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-rosa-petalo/10 to-satin-copper-light/8 text-[#A0806C] text-[10px] font-medium uppercase tracking-wider transition-all hover:from-rosa-petalo/15 hover:to-satin-copper-light/12 flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-rosa-petalo/10 to-satin-copper-light/8 text-[#6D5572] text-[10px] font-medium uppercase tracking-wider transition-all hover:from-rosa-petalo/15 hover:to-satin-copper-light/12 flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Calendar size={12} /> Ver Agenda Completa
               </button>

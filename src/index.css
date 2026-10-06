@@ -209,22 +209,22 @@ body {
 }
 
 .swal2-confirm {
-  background: linear-gradient(135deg, #E0BAA8, #E2CCA3) !important;
-  color: #6B4D3A !important;
+  background: linear-gradient(135deg, #D0AFC6, #DBBCCC) !important;
+  color: #4A354E !important;
   font-size: 10px !important;
   font-weight: 600 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.12em !important;
   padding: 0.75rem 1.5rem !important;
   border-radius: 0.75rem !important;
-  box-shadow: 0 2px 12px rgba(224, 186, 168, 0.25) !important;
+  box-shadow: 0 2px 12px rgba(208,175,198, 0.25) !important;
   transition: all 0.3s ease !important;
   border: none !important;
   cursor: pointer !important;
 }
 
 .swal2-confirm:hover {
-  background: linear-gradient(135deg, #D4A899, #DBBF8E) !important;
+  background: linear-gradient(135deg, #A891AA, #E8D7E3) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -286,14 +286,14 @@ body {
   color: #EF4444 !important;
 }
 .swal2-icon.swal2-info {
-  border-color: #E0BAA8 !important;
-  color: #E0BAA8 !important;
+  border-color: #D0AFC6 !important;
+  color: #D0AFC6 !important;
 }
 
 /* For Toasts */
 .swal2-toast {
   background: #FFFFFF !important;
-  border-left: 3px solid #E0BAA8 !important;
+  border-left: 3px solid #D0AFC6 !important;
   border-radius: 0.75rem !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
   padding: 0.75rem 1rem !important;
@@ -309,7 +309,7 @@ body {
   border-left-color: #F59E0B !important;
 }
 .swal2-toast.swal2-icon-info {
-  border-left-color: #E0BAA8 !important;
+  border-left-color: #D0AFC6 !important;
 }
 
 .swal2-toast .swal2-title {
@@ -335,11 +335,11 @@ body {
   --text-muted: #6B7280;
 
   /* Brand Colors */
-  --color-primary: #E0BAA8;
+  --color-primary: #D0AFC6;
   --color-primary-rgb: 224, 186, 168;
-  --color-primary-light: rgba(224, 186, 168, 0.12);
-  --color-secondary: #E2CCA3;
-  --color-secondary-light: rgba(226, 204, 163, 0.10);
+  --color-primary-light: rgba(208,175,198, 0.12);
+  --color-secondary: #DBBCCC;
+  --color-secondary-light: rgba(219,188,204, 0.10);
 
   /* Borders and Shadows */
   --border-color: #2A2A2E;
@@ -350,7 +350,7 @@ body {
   /* Sidebar specific */
   --sidebar-bg: #1A1A1E;
   --sidebar-text: #9CA3AF;
-  --sidebar-active-bg: linear-gradient(135deg, #E0BAA8 0%, #E2CCA3 100%);
+  --sidebar-active-bg: linear-gradient(135deg, #D0AFC6 0%, #DBBCCC 100%);
   --sidebar-active-text: #FFFFFF;
 
   /* Functional colors */
@@ -363,10 +363,10 @@ body {
 
   /* Tailwind CSS override mappings */
   --color-rosa-petalo: var(--color-primary);
-  --color-rosa-petalo-hover: #D4A899;
+  --color-rosa-petalo-hover: #A891AA;
   --color-rosa-petalo-light: var(--color-primary-light);
   --color-satin-copper: var(--color-primary);
-  --color-satin-copper-hover: #D4A899;
+  --color-satin-copper-hover: #A891AA;
   --color-satin-copper-light: var(--color-primary-light);
   --color-rose-champagne: var(--color-secondary);
   --color-rose-champagne-light: var(--bg-tertiary);

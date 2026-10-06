@@ -15,7 +15,7 @@ export const getMarkerColorHex = (prod: string) => {
     return '#3A434D'; // Slate dark
   }
   if (p.includes('hialur') || p.includes('juvederm') || p.includes('restylane')) {
-    return '#A66E53'; // Satin copper
+    return '#A891AA'; // Satin copper
   }
   return '#7A8068'; // Muted olive
 };

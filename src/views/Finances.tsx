@@ -265,8 +265,8 @@ export const Finances: React.FC = () => {
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorIngresos" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#A66E53" stopOpacity={0.35}/>
-                      <stop offset="95%" stopColor="#A66E53" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#A891AA" stopOpacity={0.35}/>
+                      <stop offset="95%" stopColor="#A891AA" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="name" stroke="#8E9AA6" fontSize={9} tickLine={false} axisLine={false} />
@@ -275,7 +275,7 @@ export const Finances: React.FC = () => {
                     contentStyle={{ backgroundColor: '#3A434D', border: 'none', borderRadius: '12px', color: '#FFFFFF', fontSize: '11px', fontFamily: 'sans-serif' }}
                     labelStyle={{ fontWeight: 'bold' }}
                   />
-                  <Area type="monotone" dataKey="Ingresos" stroke="#A66E53" strokeWidth={1.8} fillOpacity={1} fill="url(#colorIngresos)" />
+                  <Area type="monotone" dataKey="Ingresos" stroke="#A891AA" strokeWidth={1.8} fillOpacity={1} fill="url(#colorIngresos)" />
                 </AreaChart>
               </ResponsiveContainer>
             </ErrorBoundary>

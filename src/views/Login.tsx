@@ -110,7 +110,7 @@ export const Login: React.FC = () => {
 
           {/* Logo */}
           <div className="flex items-center gap-3 p-8 relative z-10">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rosa-petalo to-satin-copper-light flex items-center justify-center shadow-[0_2px_10px_rgba(224,186,168,0.25)]">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rosa-petalo to-satin-copper-light flex items-center justify-center shadow-[0_2px_10px_rgba(208,175,198,0.25)]">
               <span className="material-symbols-outlined text-white text-base">spa</span>
             </div>
             <div>
@@ -163,11 +163,11 @@ export const Login: React.FC = () => {
           <div className="absolute inset-0 bg-white/[0.03] backdrop-blur-[1px]" />
           {/* Glows — amplios y difusos */}
           <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full pointer-events-none"
-            style={{ background: 'radial-gradient(circle, rgba(224,186,168,0.10) 0%, rgba(224,186,168,0.04) 40%, transparent 70%)' }} />
+            style={{ background: 'radial-gradient(circle, rgba(208,175,198,0.10) 0%, rgba(208,175,198,0.04) 40%, transparent 70%)' }} />
           <div className="absolute -bottom-24 -left-16 w-72 h-72 rounded-full pointer-events-none"
             style={{ background: 'radial-gradient(circle, rgba(160,170,190,0.07) 0%, rgba(160,170,190,0.03) 40%, transparent 70%)' }} />
           <div className="absolute top-1/3 -left-10 w-56 h-56 rounded-full pointer-events-none"
-            style={{ background: 'radial-gradient(circle, rgba(226,204,163,0.05) 0%, transparent 65%)' }} />
+            style={{ background: 'radial-gradient(circle, rgba(219,188,204,0.05) 0%, transparent 65%)' }} />
           {/* Top + left light borders */}
           <div className="absolute top-0 left-8 right-8 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent)' }} />
           <div className="absolute top-8 bottom-8 left-0 w-px" style={{ background: 'linear-gradient(180deg, transparent, rgba(255,255,255,0.04), transparent)' }} />
