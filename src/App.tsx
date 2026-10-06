@@ -28,6 +28,10 @@ const PeptidesProtocol = lazy(() => import('./views/PeptidesProtocol').then(m =>
 const PeptidesConsent = lazy(() => import('./views/PeptidesConsent').then(m => ({ default: m.PeptidesConsent })));
 const PeptidesReport = lazy(() => import('./views/PeptidesReport').then(m => ({ default: m.PeptidesReport })));
 const VerifyRecipe = lazy(() => import('./views/VerifyRecipe').then(m => ({ default: m.VerifyRecipe })));
+const AvisoLegal = lazy(() => import('./views/legal/paginas').then(m => ({ default: m.AvisoLegal })));
+const Privacidad = lazy(() => import('./views/legal/paginas').then(m => ({ default: m.Privacidad })));
+const Seguridad = lazy(() => import('./views/legal/paginas').then(m => ({ default: m.Seguridad })));
+const Cookies = lazy(() => import('./views/legal/paginas').then(m => ({ default: m.Cookies })));
 const LandingPage = lazy(() => import('./views/LandingPage').then(m => ({ default: m.LandingPage })));
 
 const queryClient = new QueryClient({
@@ -141,6 +145,10 @@ function App() {
                 }
               />
               <Route path="/login" element={<Login />} />
+              {[['/aviso-legal', AvisoLegal], ['/privacidad', Privacidad], ['/seguridad', Seguridad], ['/cookies', Cookies]].map(([path, Page]) => {
+                const P = Page as React.LazyExoticComponent<React.FC>;
+                return <Route key={path as string} path={path as string} element={<Suspense fallback={<PageLoadSkeleton />}><P /></Suspense>} />;
+              })}
               <Route
                 path="/v/:codigo"
                 element={

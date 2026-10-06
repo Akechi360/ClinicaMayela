@@ -5,6 +5,7 @@ const LINKS = [
   { href: '#pilares', label: 'Terapias' },
   { href: '#peptidos', label: 'Péptidos' },
   { href: '#dra-mayela', label: 'Dra. Mayela' },
+  { href: '#seguridad', label: 'Seguridad' },
 ];
 
 const EASE = [0.16, 1, 0.3, 1] as const;

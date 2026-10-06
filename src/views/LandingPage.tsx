@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
 import { PerformanceMonitor } from '@react-three/drei';
@@ -16,6 +16,10 @@ import {
   MessageCircle,
   Clock,
   MapPin,
+  Lock,
+  Scale,
+  FileText,
+  Cookie,
 } from 'lucide-react';
 import { NumberTicker } from '../components/motion/NumberTicker';
 import { MedicalPointCloud } from '../components/landing/MedicalPointCloud';
@@ -423,6 +427,45 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
+          SEGURIDAD Y TRANSPARENCIA — políticas legales
+      ───────────────────────────────────────────────────────────── */}
+      <section id="seguridad" className="py-20 sm:py-24 px-4 sm:px-8 max-w-7xl mx-auto relative z-10">
+        <div className="max-w-2xl mb-10">
+          <div className="text-[10px] font-bold text-aurora-deep uppercase tracking-[0.25em] flex items-center gap-2 mb-3">
+            <ShieldCheck size={14} />
+            <span>Seguridad y transparencia</span>
+          </div>
+          <h2 className="font-fraunces text-3xl sm:text-4xl text-ink font-normal leading-tight">
+            Tu información médica, protegida y a tu alcance.
+          </h2>
+          <p className="text-sm text-lilac-muted mt-3 leading-relaxed">
+            Secreto médico, acceso restringido, bitácora de auditoría y récipes verificables por código QR. Aquí explicamos cómo cuidamos tus datos y qué normas nos orientan.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { to: '/aviso-legal', icon: <Scale size={20} />, t: 'Aviso legal', d: 'Quiénes somos, alcance de la información y riesgos de los procedimientos.' },
+            { to: '/privacidad', icon: <FileText size={20} />, t: 'Privacidad y datos', d: 'Qué datos tratamos, para qué, quién accede y cómo ejercer tus derechos.' },
+            { to: '/seguridad', icon: <Lock size={20} />, t: 'Seguridad y normativa', d: 'Medidas técnicas, leyes venezolanas aplicables y estándares de referencia.' },
+            { to: '/cookies', icon: <Cookie size={20} />, t: 'Cookies', d: 'No usamos cookies de seguimiento ni publicidad. Mira qué guarda el sitio.' },
+          ].map((c) => (
+            <Link
+              key={c.to}
+              to={c.to}
+              className="group rounded-2xl bg-white/60 border border-ink/10 p-5 backdrop-blur-md hover:border-aurora-deep/50 hover:shadow-lg transition-all"
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-aurora-violet/30 to-aurora-rose/30 flex items-center justify-center text-aurora-deep mb-3">
+                {c.icon}
+              </div>
+              <h3 className="font-fraunces text-lg text-ink mb-1">{c.t}</h3>
+              <p className="text-xs text-lilac-muted leading-relaxed">{c.d}</p>
+              <span className="inline-block mt-3 text-[11px] font-semibold text-aurora-deep group-hover:underline">Leer →</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ─────────────────────────────────────────────────────────────
           7. FOOTER
       ───────────────────────────────────────────────────────────── */}
       <footer className="border-t border-ink/10 bg-white/50 backdrop-blur-md pt-16 pb-12 px-4 sm:px-8 relative z-10">
@@ -490,9 +533,13 @@ export const LandingPage: React.FC = () => {
             © {new Date().getFullYear()} Clínica Dra. Mayela González. Todos los derechos reservados.
           </div>
           <div className="flex gap-4 mt-2 sm:mt-0">
-            <span>Aviso de Privacidad Sanitaria</span>
+            <Link to="/aviso-legal" className="hover:text-aurora-deep">Aviso legal</Link>
             <span>·</span>
-            <span>Consentimiento Informado Ley Médica</span>
+            <Link to="/privacidad" className="hover:text-aurora-deep">Privacidad</Link>
+            <span>·</span>
+            <Link to="/seguridad" className="hover:text-aurora-deep">Seguridad y normativa</Link>
+            <span>·</span>
+            <Link to="/cookies" className="hover:text-aurora-deep">Cookies</Link>
           </div>
         </div>
       </footer>
