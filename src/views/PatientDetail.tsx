@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbDoctor, dbConsentimientos } from '../services/db';
+import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbRecipePlantillas, dbDoctor, dbConsentimientos } from '../services/db';
+import { recipeVerifyUrl, recipeQrDataUrl } from '../lib/recipeVerify';
+import { estructurarDictado, useDictado } from '../lib/dictado';
 import { dbProtocolosPeptidos } from '../services/peptidesService';
 import type { PeptideProtocol } from '../types/peptides';
 import { supabase, getSignedUrl } from '../services/supabase';
@@ -28,7 +30,10 @@ import {
   Printer,
   X,
   FlaskConical,
-  Pencil
+  Pencil,
+  Mic,
+  Send,
+  BookmarkPlus
 } from 'lucide-react';
 
 type ActiveTab = 'historial' | 'mapa' | 'citas' | 'finanzas' | 'examenes' | 'recipes' | 'consentimientos' | 'composicion' | 'peptidos';
@@ -170,6 +175,14 @@ export const PatientDetail: React.FC = () => {
     },
     onError: (err: Error) => toast.error(`Error al eliminar: ${err.message}`)
   });
+
+  const { data: plantillas = [] } = useQuery({ queryKey: ['recipe-plantillas'], queryFn: dbRecipePlantillas.listar });
+  const savePlantillaMutation = useMutation({
+    mutationFn: dbRecipePlantillas.insertar,
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['recipe-plantillas'] }); toast.success('Plantilla guardada.'); },
+    onError: (err: Error) => toast.error(`Error al guardar plantilla: ${err.message}`)
+  });
+  const dictado = useDictado((texto) => setRecipeMedicamentos((prev) => (prev ? prev + '\n' : '') + estructurarDictado(texto)));
 
   const addRecipeMutation = useMutation({
     mutationFn: dbRecipes.insertar,
@@ -318,6 +331,16 @@ export const PatientDetail: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  const handleSendRecipeWhatsApp = (recipe: RecipeMedico) => {
+    if (!paciente || !recipe.hash_sha256) return;
+    let tel = (paciente.telefono ?? '').replace(/\D/g, '');
+    if (tel.startsWith('0')) tel = '58' + tel.slice(1);
+    if (!tel) { toast.error('El paciente no tiene teléfono registrado.'); return; }
+    const fecha = new Date(recipe.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
+    const msg = `Hola ${paciente.nombre}, le comparto su récipe médico del ${fecha}, emitido por ${recipe.doctor_nombre ?? 'la Dra. Mayela González'}. Puede mostrarlo en la farmacia; se verifica su autenticidad con este enlace:\n${recipeVerifyUrl(recipe.id, recipe.hash_sha256)}`;
+    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
   const handleDownloadRecipe = async (recipe: RecipeMedico) => {
     if (!paciente) return;
     const toastId = toast.loading('Generando PDF del récipe...');
@@ -325,16 +348,21 @@ export const PatientDetail: React.FC = () => {
     try {
       const { pdf } = await import('@react-pdf/renderer');
       const { RecipePDF } = await import('../components/RecipePDF');
+      const qr = recipe.hash_sha256 ? await recipeQrDataUrl(recipeVerifyUrl(recipe.id, recipe.hash_sha256)) : undefined;
       const blob = await pdf(
         <RecipePDF
           pacienteNombre={paciente.nombre}
           pacienteDni={paciente.cedula ?? ''}
           fecha={new Date(recipe.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-          doctorNombre={doctor?.nombre ?? 'Dra. Mayela González'}
+          doctorNombre={recipe.doctor_nombre ?? doctor?.nombre ?? 'Dra. Mayela González'}
           doctorEspecialidad={doctor?.especialidad ?? 'Medicina Estética & Bienestar'}
-          doctorCedula={doctor?.cedula ?? '12345678-A'}
-          doctorMpps={doctor?.mpps ?? undefined}
-          doctorCol={doctor?.col ?? undefined}
+          doctorTelefono={doctor?.telefono || undefined}
+          doctorMpps={recipe.doctor_mpps ?? doctor?.mpps ?? undefined}
+          doctorCol={recipe.doctor_col ?? doctor?.col ?? undefined}
+          firma={doctor?.firma_base64}
+          sello={doctor?.sello_base64}
+          qr={qr}
+          codigo={recipe.hash_sha256 ? recipe.hash_sha256.slice(0, 16).toUpperCase() : undefined}
           medicamentos={recipe.medicamentos}
           indicaciones={recipe.indicaciones}
         />
@@ -790,13 +818,24 @@ export const PatientDetail: React.FC = () => {
                         )}
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleDownloadRecipe(recipe)}
-                      disabled={isGeneratingPdf}
-                      className="text-[11px] text-satin-copper font-semibold flex items-center gap-1 hover:underline cursor-pointer border-none bg-transparent disabled:opacity-50 w-fit"
-                    >
-                      <Printer size={13} /> {isGeneratingPdf ? 'Generando PDF...' : 'Imprimir Récipe (PDF)'}
-                    </button>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                      <button
+                        onClick={() => handleDownloadRecipe(recipe)}
+                        disabled={isGeneratingPdf}
+                        className="text-[11px] text-satin-copper font-semibold flex items-center gap-1 hover:underline cursor-pointer border-none bg-transparent disabled:opacity-50 w-fit"
+                      >
+                        <Printer size={13} /> {isGeneratingPdf ? 'Generando PDF...' : 'Imprimir Récipe (PDF)'}
+                      </button>
+                      <button
+                        onClick={() => handleSendRecipeWhatsApp(recipe)}
+                        className="text-[11px] text-muted-olive font-semibold flex items-center gap-1 hover:underline cursor-pointer border-none bg-transparent w-fit"
+                      >
+                        <Send size={13} /> Enviar por WhatsApp
+                      </button>
+                      {recipe.hash_sha256 && (
+                        <span title="Código de validación SHA-256" className="text-[9px] font-mono text-slate-light">#{recipe.hash_sha256.slice(0, 8).toUpperCase()}</span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1030,8 +1069,31 @@ export const PatientDetail: React.FC = () => {
                 <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Fecha de Emisión</label>
                 <input type="date" required value={recipeFecha} onChange={(e) => setRecipeFecha(e.target.value)} className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans font-semibold" />
               </div>
+              {plantillas.length > 0 && (
+                <div>
+                  <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Plantilla (régimen frecuente)</label>
+                  <select
+                    defaultValue=""
+                    onChange={(e) => {
+                      const p = plantillas.find((x) => x.id === e.target.value);
+                      if (p) { setRecipeMedicamentos(p.medicamentos); setRecipeIndicaciones(p.indicaciones ?? ''); }
+                    }}
+                    className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans font-semibold"
+                  >
+                    <option value="">Seleccionar plantilla…</option>
+                    {plantillas.map((p) => <option key={p.id} value={p.id}>{p.nombre}</option>)}
+                  </select>
+                </div>
+              )}
               <div>
-                <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Prescripción (Medicamentos / Dosificación)</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[8px] uppercase tracking-wider text-slate-medium font-bold">Prescripción (Medicamentos / Dosificación)</label>
+                  {dictado.soportado && (
+                    <button type="button" onClick={dictado.alternar} className={`flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-full border cursor-pointer ${dictado.escuchando ? 'bg-red-500 text-pure-white border-red-500 animate-pulse' : 'bg-pure-white/60 text-satin-copper border-satin-copper/30'}`}>
+                      <Mic size={11} /> {dictado.escuchando ? 'Escuchando… (toque para terminar)' : 'Dictar por voz'}
+                    </button>
+                  )}
+                </div>
                 <textarea required placeholder="ej. 1. Restylane Lip Volume 1ml" value={recipeMedicamentos} onChange={(e) => setRecipeMedicamentos(e.target.value)} rows={4} className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans font-semibold resize-none" />
               </div>
               <div>
@@ -1040,6 +1102,18 @@ export const PatientDetail: React.FC = () => {
               </div>
             </div>
             <div className="px-5 py-3.5 bg-pure-white/20 border-t border-satin-copper/10 flex justify-end gap-2.5">
+              <button
+                type="button"
+                disabled={!recipeMedicamentos}
+                onClick={() => {
+                  const nombre = window.prompt('Nombre de la plantilla (ej. Post-tratamiento facial):');
+                  if (nombre?.trim()) savePlantillaMutation.mutate({ nombre: nombre.trim(), medicamentos: recipeMedicamentos, indicaciones: recipeIndicaciones || null });
+                }}
+                title="Guardar como plantilla"
+                className="mr-auto px-3 py-2 border border-satin-copper/30 text-satin-copper hover:bg-satin-copper/5 disabled:opacity-40 transition-all rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer flex items-center gap-1"
+              >
+                <BookmarkPlus size={12} /> Plantilla
+              </button>
               <button type="button" onClick={() => setShowRecipeModal(false)} className="px-4 py-2 border border-slate-medium/20 text-slate-medium hover:bg-slate-medium/5 transition-all rounded-lg font-bold text-[10px] uppercase tracking-wider cursor-pointer">Cancelar</button>
               <button type="submit" disabled={addRecipeMutation.isPending || !recipeMedicamentos} className="px-4 py-2 bg-satin-copper hover:bg-satin-copper-hover disabled:opacity-50 text-pure-white transition-all rounded-lg font-bold text-[10px] uppercase tracking-wider shadow-md cursor-pointer">
                 {addRecipeMutation.isPending ? 'Guardando...' : 'Emitir Récipe'}

@@ -14,6 +14,8 @@ import type {
   HistorialClinico,
   ExamenLaboratorio,
   RecipeMedico,
+  RecipePlantilla,
+  RecipeVerificado,
 } from '../types/database.types';
 
 // ─────────────────────────────────────────────
@@ -419,7 +421,7 @@ export const dbConsentimientos = {
 // RÉCIPES MÉDICOS
 // ─────────────────────────────────────────────
 
-type RecipeInsert = Omit<RecipeMedico, 'id' | 'created_at'>;
+type RecipeInsert = Pick<RecipeMedico, 'paciente_id' | 'fecha' | 'medicamentos' | 'indicaciones'>;
 
 export const dbRecipes = {
   listarPorPaciente: async (pacienteId: string): Promise<RecipeMedico[]> => {
@@ -447,6 +449,30 @@ export const dbRecipes = {
       .eq('id', id);
     if (error) throw new Error(error.message);
   }
+};
+
+export const dbRecipePlantillas = {
+  listar: async (): Promise<RecipePlantilla[]> => {
+    const { data, error } = await supabase.from('recipe_plantillas').select('*').order('nombre');
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  },
+  insertar: async (p: Omit<RecipePlantilla, 'id'>): Promise<RecipePlantilla> => {
+    const { data, error } = await supabase.from('recipe_plantillas').insert(p).select().single();
+    if (error) throw new Error(error.message);
+    return data;
+  },
+  eliminar: async (id: string): Promise<void> => {
+    const { error } = await supabase.from('recipe_plantillas').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  }
+};
+
+/** Verificación pública del récipe (la usa la farmacia al escanear el QR; no requiere sesión). */
+export const verificarRecipe = async (id: string, hash: string): Promise<RecipeVerificado> => {
+  const { data, error } = await supabase.rpc('verificar_recipe', { p_id: id, p_hash: hash });
+  if (error) throw new Error(error.message);
+  return data as RecipeVerificado;
 };
 
 // ─────────────────────────────────────────────

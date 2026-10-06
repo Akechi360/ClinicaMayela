@@ -81,6 +81,8 @@ export interface DoctorProfile {
   instagram?:   string | null;
   mpps?:        string | null;
   col?:         string | null;
+  firma_base64?: string | null;
+  sello_base64?: string | null;
   updated_at?:  string | null;
 }
 
@@ -147,7 +149,33 @@ export interface RecipeMedico {
   fecha: string;
   medicamentos: string;
   indicaciones?: string;
+  /** Identidad y hash congelados al firmar (los fija el servidor) */
+  doctor_nombre?: string | null;
+  doctor_mpps?: string | null;
+  doctor_col?: string | null;
+  hash_sha256?: string | null;
   created_at?: string;
+}
+
+export interface RecipePlantilla {
+  id: string;
+  nombre: string;
+  medicamentos: string;
+  indicaciones?: string | null;
+}
+
+export interface RecipeVerificado {
+  valido: boolean;
+  fecha?: string;
+  medicamentos?: string;
+  indicaciones?: string | null;
+  paciente?: string;
+  doctor_nombre?: string;
+  doctor_mpps?: string;
+  doctor_col?: string;
+  especialidad?: string;
+  firma?: string | null;
+  sello?: string | null;
 }
 
 export interface Consentimiento {

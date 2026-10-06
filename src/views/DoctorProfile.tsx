@@ -28,12 +28,13 @@ export const DoctorProfile: React.FC = () => {
 
   const [nombre, setNombre] = useState('');
   const [especialidad, setEspecialidad] = useState('');
-  const [cedulaProf, setCedulaProf] = useState('');
   const [correo, setCorreo] = useState('');
   const [telefono, setTelefono] = useState('');
   const [foto, setFoto] = useState('');
   const [biografia, setBiografia] = useState('');
   const [horario, setHorario] = useState('');
+  const [firma, setFirma] = useState('');
+  const [sello, setSello] = useState('');
   const [mpps, setMpps] = useState('');
   const [col, setCol] = useState('');
   const [linkedin, setLinkedin] = useState('');
@@ -45,7 +46,6 @@ export const DoctorProfile: React.FC = () => {
     if (doctor) {
       setNombre(doctor.nombre || '');
       setEspecialidad(doctor.especialidad || '');
-      setCedulaProf(doctor.cedula_prof || '');
       setCorreo(doctor.correo || '');
       setTelefono(doctor.telefono || '');
       setFoto(doctor.foto || '');
@@ -54,6 +54,8 @@ export const DoctorProfile: React.FC = () => {
       if (!h) setHorario('');
       else if (typeof h === 'object') setHorario(Object.entries(h).map(([k, v]) => `${k}: ${v}`).join(', '));
       else setHorario(String(h));
+      setFirma(doctor.firma_base64 || '');
+      setSello(doctor.sello_base64 || '');
       setMpps(doctor.mpps || '');
       setCol(doctor.col || '');
     }
@@ -71,9 +73,29 @@ export const DoctorProfile: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  /** Reduce la imagen a máx. 420 px y la guarda como PNG (conserva transparencia) para incrustarla en el récipe. */
+  const handleSelloFirma = (set: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 420 / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * k);
+      c.height = Math.round(img.height * k);
+      c.getContext('2d')?.drawImage(img, 0, 0, c.width, c.height);
+      set(c.toDataURL('image/png'));
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); toast.error('No se pudo leer la imagen.'); };
+    img.src = url;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nombre || !especialidad || !cedulaProf || !correo || !telefono) {
+    if (!nombre || !especialidad || !correo || !telefono) {
       setErrorMessage('Por favor rellena todos los campos obligatorios.');
       setTimeout(() => setErrorMessage(''), 3000);
       return;
@@ -83,12 +105,13 @@ export const DoctorProfile: React.FC = () => {
       id: doctor.id,
       nombre,
       especialidad,
-      cedula_prof: cedulaProf,
       correo,
       telefono,
       foto,
       biografia,
       horario: horario || undefined,
+      firma_base64: firma || null,
+      sello_base64: sello || null,
       mpps: mpps || undefined,
       col: col || undefined,
       updated_at: new Date().toISOString()
@@ -142,24 +165,34 @@ export const DoctorProfile: React.FC = () => {
                   placeholder="Ej. Medicina Estética"
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
               </div>
-              {/* CORREGIDO: label dice Cédula Profesional, Tailwind uppercase lo renderiza en mayúsculas */}
-              <div className="flex flex-col space-y-1">
-                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Cédula Profesional *</label>
-                <input type="text" required value={cedulaProf} onChange={(e) => setCedulaProf(e.target.value)}
-                  placeholder="Ej. 12345678-A"
-                  className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
-              </div>
               <div className="flex flex-col space-y-1">
                 <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Registro MPPS</label>
                 <input type="text" value={mpps} onChange={(e) => setMpps(e.target.value)}
-                  placeholder="Ej. MPPS-12345"
+                  placeholder="Ej. 652562"
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
               </div>
               <div className="flex flex-col space-y-1">
                 <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Colegio de Médicos (COL)</label>
                 <input type="text" value={col} onChange={(e) => setCol(e.target.value)}
-                  placeholder="Ej. COL-67890"
+                  placeholder="Ej. 7645"
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
+              </div>
+              <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {([['Firma digitalizada', firma, setFirma], ['Sello', sello, setSello]] as const).map(([label, valor, set]) => (
+                  <div key={label} className="flex flex-col space-y-1">
+                    <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">{label} (PNG, fondo transparente)</label>
+                    <div className="flex items-center gap-3 bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2">
+                      <div className="w-20 h-12 bg-pure-white/60 rounded flex items-center justify-center overflow-hidden shrink-0">
+                        {valor ? <img src={valor} alt={label} className="max-w-full max-h-full object-contain" /> : <span className="text-[9px] text-slate-light">Sin imagen</span>}
+                      </div>
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-satin-copper cursor-pointer hover:underline">
+                        Subir
+                        <input type="file" accept="image/*" onChange={handleSelloFirma(set)} className="hidden" />
+                      </label>
+                      {valor && <button type="button" onClick={() => set('')} className="text-[10px] text-red-500 hover:underline cursor-pointer border-none bg-transparent">Quitar</button>}
+                    </div>
+                  </div>
+                ))}
               </div>
               <div className="flex flex-col space-y-1">
                 <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Horario de Consulta</label>
@@ -240,7 +273,7 @@ export const DoctorProfile: React.FC = () => {
                   </div>
                 </div>
                 <div className="space-y-2.5 text-xs text-slate-medium border-t border-satin-copper/10 pt-4">
-                  <p className="flex items-center gap-2"><Shield size={13} className="text-satin-copper-light" /> Cédula: <span className="font-semibold text-slate-dark">{cedulaProf || 'Pendiente'}</span></p>
+                  <p className="flex items-center gap-2"><Shield size={13} className="text-satin-copper-light" /> MPPS <span className="font-semibold text-slate-dark">{mpps || 'Pendiente'}</span> · COL <span className="font-semibold text-slate-dark">{col || 'Pendiente'}</span></p>
                   <p className="flex items-center gap-2"><Calendar size={13} className="text-satin-copper-light" /> Horario: <span className="font-semibold text-slate-dark">{horario || 'Lunes a Viernes'}</span></p>
                   <p className="flex items-center gap-2"><Mail size={13} className="text-satin-copper-light" /> Correo: <span className="font-semibold text-slate-dark truncate max-w-[200px]">{correo || 'doctora@clinica.com'}</span></p>
                   <p className="flex items-center gap-2"><Phone size={13} className="text-satin-copper-light" /> Teléfono: <span className="font-semibold text-slate-dark">{telefono || 'Sin registrar'}</span></p>

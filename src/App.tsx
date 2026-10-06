@@ -26,6 +26,7 @@ const DoctorProfile = lazy(() => import('./views/DoctorProfile').then(m => ({ de
 const PeptidesProtocol = lazy(() => import('./views/PeptidesProtocol').then(m => ({ default: m.PeptidesProtocol })));
 const PeptidesConsent = lazy(() => import('./views/PeptidesConsent').then(m => ({ default: m.PeptidesConsent })));
 const PeptidesReport = lazy(() => import('./views/PeptidesReport').then(m => ({ default: m.PeptidesReport })));
+const VerifyRecipe = lazy(() => import('./views/VerifyRecipe').then(m => ({ default: m.VerifyRecipe })));
 const LandingPage = lazy(() => import('./views/LandingPage').then(m => ({ default: m.LandingPage })));
 
 const queryClient = new QueryClient({
@@ -138,6 +139,14 @@ function App() {
                 }
               />
               <Route path="/login" element={<Login />} />
+              <Route
+                path="/verificar"
+                element={
+                  <Suspense fallback={<PageLoadSkeleton />}>
+                    <VerifyRecipe />
+                  </Suspense>
+                }
+              />
               <Route
                 path="/*"
                 element={

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Image, StyleSheet } from '@react-pdf/renderer';
 
 const styles = StyleSheet.create({
   page: {
@@ -11,7 +11,7 @@ const styles = StyleSheet.create({
   },
   header: {
     borderBottomWidth: 2,
-    borderBottomColor: '#9C6348', // Satin Copper Accessible
+    borderBottomColor: '#8F6FA8', // Satin Copper Accessible
     paddingBottom: 15,
     marginBottom: 25,
     flexDirection: 'row',
@@ -21,7 +21,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontFamily: 'Helvetica-Bold',
-    color: '#9C6348',
+    color: '#8F6FA8',
+    marginBottom: 9,
   },
   subtitle: {
     fontSize: 9,
@@ -45,10 +46,10 @@ const styles = StyleSheet.create({
   patientBox: {
     marginBottom: 25,
     padding: 12,
-    backgroundColor: '#FAF7F5', // Rose Champagne Light
+    backgroundColor: '#FAF6F9', // Rose Champagne Light
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#F2E7E2',
+    borderColor: '#E8D7E3',
   },
   patientRow: {
     flexDirection: 'row',
@@ -69,10 +70,10 @@ const styles = StyleSheet.create({
   rxTitle: {
     fontSize: 14,
     fontFamily: 'Helvetica-Bold',
-    color: '#9C6348',
+    color: '#8F6FA8',
     marginBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2E7E2',
+    borderBottomColor: '#E8D7E3',
     paddingBottom: 4,
   },
   rxContent: {
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
     left: 50,
     right: 50,
     borderTopWidth: 1,
-    borderTopColor: '#F2E7E2',
+    borderTopColor: '#E8D7E3',
     paddingTop: 10,
     alignItems: 'center',
   },
@@ -132,9 +133,15 @@ interface RecipePDFProps {
   fecha: string;
   doctorNombre: string;
   doctorEspecialidad: string;
-  doctorCedula: string;
+  doctorTelefono?: string;
   doctorMpps?: string;
   doctorCol?: string;
+  /** Firma y sello digitalizados (data URL PNG) */
+  firma?: string | null;
+  sello?: string | null;
+  /** QR de validación y código corto del hash SHA-256 */
+  qr?: string;
+  codigo?: string;
   medicamentos: string;
   indicaciones?: string;
 }
@@ -145,9 +152,13 @@ export const RecipePDF: React.FC<RecipePDFProps> = ({
   fecha,
   doctorNombre,
   doctorEspecialidad,
-  doctorCedula,
+  doctorTelefono,
   doctorMpps,
   doctorCol,
+  firma,
+  sello,
+  qr,
+  codigo,
   medicamentos,
   indicaciones
 }) => (
@@ -157,14 +168,13 @@ export const RecipePDF: React.FC<RecipePDFProps> = ({
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Clínica Dra. Mayela González</Text>
-          <Text style={styles.subtitle}>Medicina Estética & Bienestar</Text>
+          <Text style={styles.subtitle}>Medicina Estética & Longevidad</Text>
         </View>
         <View style={styles.doctorInfo}>
           <Text style={styles.doctorName}>{doctorNombre}</Text>
           <Text>{doctorEspecialidad}</Text>
-          <Text>Cédula: {doctorCedula}</Text>
-          {doctorMpps && <Text>MPPS: {doctorMpps}</Text>}
-          {doctorCol && <Text>COL: {doctorCol}</Text>}
+          {doctorMpps && <Text>MPPS N° {doctorMpps}</Text>}
+          {doctorCol && <Text>Colegio de Médicos N° {doctorCol}</Text>}
         </View>
       </View>
 
@@ -197,22 +207,32 @@ export const RecipePDF: React.FC<RecipePDFProps> = ({
         )}
       </View>
 
-      {/* Firma Médica */}
-      <View style={styles.signatureSection}>
-        <View style={styles.signatureBox}>
-          <View style={{ height: 45 }} />
+      {/* Firma, sello y validación */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 30, marginBottom: 48 }}>
+        <View style={{ width: '45%', alignItems: 'center' }}>
+          <View style={{ height: 64, justifyContent: 'flex-end', alignItems: 'center', flexDirection: 'row' }}>
+            {firma ? <Image src={firma} style={{ height: 56, maxWidth: 120, objectFit: 'contain' }} /> : null}
+            {sello ? <Image src={sello} style={{ height: 60, maxWidth: 80, objectFit: 'contain', marginLeft: 6 }} /> : null}
+          </View>
           <View style={styles.signatureLine} />
           <Text style={{ fontFamily: 'Helvetica-Bold', fontSize: 9 }}>{doctorNombre}</Text>
           <Text style={{ fontSize: 7.5, color: '#5F6C7A' }}>Médico Tratante</Text>
-          {doctorMpps && doctorCol && (
-            <Text style={{ fontSize: 7, color: '#5F6C7A' }}>MPPS {doctorMpps} • COL {doctorCol}</Text>
+          {(doctorMpps || doctorCol) && (
+            <Text style={{ fontSize: 7, color: '#5F6C7A' }}>MPPS {doctorMpps ?? '—'} • COL {doctorCol ?? '—'}</Text>
           )}
         </View>
+        {qr ? (
+          <View style={{ alignItems: 'center', width: 110 }}>
+            <Image src={qr} style={{ width: 84, height: 84 }} />
+            <Text style={{ fontSize: 6.5, color: '#5F6C7A', textAlign: 'center', marginTop: 3 }}>Escanee para verificar la autenticidad de este récipe</Text>
+            {codigo ? <Text style={{ fontSize: 6.5, fontFamily: 'Courier', color: '#3A434D', marginTop: 1 }}>{codigo}</Text> : null}
+          </View>
+        ) : null}
       </View>
 
       {/* Pie de Página */}
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Clínica Dra. Mayela González Estética Premium • Calle de la Salud 123 • Tel: +34 600 999 888 • www.clinicamayela.com</Text>
+        <Text style={styles.footerText}>Clínica Dra. Mayela González{doctorTelefono ? ` • Tel: ${doctorTelefono}` : ''} • Récipe digital con validación por código QR</Text>
       </View>
     </Page>
   </Document>
