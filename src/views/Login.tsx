@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { useToast } from '../components/Toast';
+import { CLAVE_SESION_EXPIRADA } from '../lib/inactividad';
 import { useConfirm } from '../components/ConfirmDialog';
 import { DOMWebGLErrorBoundary } from '../components/FaceCanvas/DOMWebGLErrorBoundary';
 
@@ -20,6 +21,16 @@ export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(CLAVE_SESION_EXPIRADA)) {
+        sessionStorage.removeItem(CLAVE_SESION_EXPIRADA);
+        toast.warning('Tu sesión se cerró por inactividad. Inicia sesión de nuevo.', 6000);
+      }
+    } catch { /* sin sessionStorage */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

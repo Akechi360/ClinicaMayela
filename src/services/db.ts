@@ -459,6 +459,12 @@ export const dbRecipes = {
   }
 };
 
+/** Deja constancia en la bitácora de auditoría de que se consultó una ficha (una entrada cada 10 min por registro). */
+export const registrarAcceso = async (tabla: 'pacientes', registroId: string): Promise<void> => {
+  const { error } = await supabase.rpc('registrar_acceso', { p_tabla: tabla, p_registro: registroId });
+  if (error) console.error('No se pudo registrar el acceso:', error.message);
+};
+
 export const dbRecipePlantillas = {
   listar: async (): Promise<RecipePlantilla[]> => {
     const { data, error } = await supabase.from('recipe_plantillas').select('*').order('nombre');

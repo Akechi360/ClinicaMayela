@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbRecipePlantillas, dbDoctor, dbConsentimientos } from '../services/db';
+import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbRecipePlantillas, dbDoctor, dbConsentimientos, registrarAcceso } from '../services/db';
 import { recipeVerifyUrl, recipeQrDataUrl } from '../lib/recipeVerify';
 import { estructurarDictado, useDictado } from '../lib/dictado';
 import { dbProtocolosPeptidos } from '../services/peptidesService';
@@ -180,6 +180,10 @@ export const PatientDetail: React.FC = () => {
     },
     onError: (err: Error) => toast.error(`Error al eliminar: ${err.message}`)
   });
+
+  useEffect(() => {
+    if (id) void registrarAcceso('pacientes', id);
+  }, [id]);
 
   const { data: plantillas = [] } = useQuery({ queryKey: ['recipe-plantillas'], queryFn: dbRecipePlantillas.listar });
   const savePlantillaMutation = useMutation({

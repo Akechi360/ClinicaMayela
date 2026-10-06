@@ -5,6 +5,7 @@ import { Sidebar } from './components/Sidebar';
 import { Topbar } from './components/Topbar';
 import { WhatsappSimulator } from './components/WhatsappSimulator';
 import { PageLoadSkeleton } from './components/PageLoadSkeleton';
+import { InactivityGuard } from './components/InactivityGuard';
 import { ToastProvider } from './components/Toast';
 import { ConfirmProvider } from './components/ConfirmDialog';
 import { Login } from './views/Login';
@@ -119,6 +120,7 @@ const AppLayout: React.FC = () => {
       </div>
 
       <WhatsappSimulator />
+      <InactivityGuard />
     </div>
   );
 };
