@@ -249,6 +249,9 @@ export interface Consentimiento {
   firma_base64?: string | null;
   version: number;
   clausulas: string[];
+  /** Fecha y hora exactas de la firma (la fija el servidor) y versión del aviso legal vigente al firmar */
+  firmado_en?: string | null;
+  doc_version?: string | null;
   created_at: string;
 }
 

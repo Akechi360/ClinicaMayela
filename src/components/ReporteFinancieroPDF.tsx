@@ -215,7 +215,7 @@ export const ReporteFinancieroPDF: React.FC<ReporteFinancieroPDFProps> = ({
 
         {/* Pie de Página */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Clínica Dra. Mayela González Estética Premium • Calle de la Salud 123 • Tel: +34 600 999 888 • www.clinicamayela.com</Text>
+          <Text style={styles.footerText}>Clínica Dra. Mayela González · Informe generado electrónicamente</Text>
         </View>
       </Page>
     </Document>

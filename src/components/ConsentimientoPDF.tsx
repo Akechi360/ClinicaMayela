@@ -1,5 +1,6 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
+import { AVISO_LEGAL_MEDICO } from '../data/avisoLegalMedico';
 
 const styles = StyleSheet.create({
   page: {
@@ -82,6 +83,33 @@ const styles = StyleSheet.create({
     height: 60,
     marginBottom: 5,
   },
+  legalTitle: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 10,
+    color: '#4A354E',
+    marginTop: 14,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  legalText: {
+    fontSize: 9,
+    color: '#4B5663',
+    textAlign: 'justify',
+    marginBottom: 6,
+    lineHeight: 1.45,
+  },
+  metaFirma: {
+    marginTop: 18,
+    padding: 8,
+    backgroundColor: '#FAF6F9',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: '#E8D7E3',
+    fontSize: 8,
+    color: '#4B5663',
+    lineHeight: 1.5,
+  },
   footer: {
     position: 'absolute',
     bottom: 30,
@@ -106,6 +134,12 @@ interface ConsentimientoPDFProps {
   doctorNombre: string;
   firmaBase64: string | null;
   clausulas: string[];
+  doctorMpps?: string | null;
+  doctorCol?: string | null;
+  /** Fecha y hora de firma ya formateadas (hora de Caracas); la fija el servidor al guardar la firma. */
+  firmadoEn?: string;
+  docVersion?: string | null;
+  docId?: string;
 }
 
 export const ConsentimientoPDF: React.FC<ConsentimientoPDFProps> = ({
@@ -115,7 +149,12 @@ export const ConsentimientoPDF: React.FC<ConsentimientoPDFProps> = ({
   fecha,
   doctorNombre,
   firmaBase64,
-  clausulas
+  clausulas,
+  doctorMpps,
+  doctorCol,
+  firmadoEn,
+  docVersion,
+  docId,
 }) => (
   <Document>
     <Page size="A4" style={styles.page}>
@@ -147,7 +186,7 @@ export const ConsentimientoPDF: React.FC<ConsentimientoPDFProps> = ({
         </View>
         <View style={styles.metaRow}>
           <Text style={styles.metaLabel}>Médico Tratante:</Text>
-          <Text style={styles.metaValue}>{doctorNombre}</Text>
+          <Text style={styles.metaValue}>{doctorNombre}{doctorMpps || doctorCol ? ` (MPPS ${doctorMpps ?? '—'} · COL ${doctorCol ?? '—'})` : ''}</Text>
         </View>
       </View>
 
@@ -164,8 +203,17 @@ export const ConsentimientoPDF: React.FC<ConsentimientoPDFProps> = ({
         </Text>
       ))}
 
+      {/* Aviso legal y descargo médico */}
+      <Text style={[styles.clausulaTitle, { marginTop: 18 }]}>Aviso legal y descargo médico</Text>
+      {AVISO_LEGAL_MEDICO.map((b, i) => (
+        <View key={b.titulo} wrap={false}>
+          <Text style={styles.legalTitle}>{i + 1}. {b.titulo}</Text>
+          <Text style={styles.legalText}>{b.texto}</Text>
+        </View>
+      ))}
+
       {/* Seccion de Firmas */}
-      <View style={styles.signatureSection}>
+      <View style={styles.signatureSection} wrap={false}>
         {/* Firma Profesional */}
         <View style={styles.signatureBox}>
           <View style={{ height: 60 }} />
@@ -189,9 +237,17 @@ export const ConsentimientoPDF: React.FC<ConsentimientoPDFProps> = ({
         </View>
       </View>
 
+      <View style={styles.metaFirma} wrap={false}>
+        <Text style={{ fontFamily: 'Helvetica-Bold' }}>Registro de firma electrónica</Text>
+        <Text>Firmado el: {firmadoEn || 'PENDIENTE DE FIRMA'}</Text>
+        <Text>Paciente: {pacienteNombre} · Documento de identidad: {pacienteDni}</Text>
+        <Text>Médico tratante: {doctorNombre}{doctorMpps ? ` · MPPS ${doctorMpps}` : ''}{doctorCol ? ` · COL ${doctorCol}` : ''}</Text>
+        <Text>Versión del documento legal: {docVersion || '—'}{docId ? ` · ID ${docId}` : ''}</Text>
+      </View>
+
       {/* Pie de Pagina */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Clínica Dra. Mayela González Estética Premium • Calle de la Salud 123 • www.clinicamayela.com</Text>
+      <View style={styles.footer} fixed>
+        <Text style={styles.footerText}>Clínica Dra. Mayela González · Consentimiento informado generado electrónicamente</Text>
       </View>
     </Page>
   </Document>

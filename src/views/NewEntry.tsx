@@ -5,6 +5,7 @@ import { dbPacientes, dbTratamientos, dbHistoriales, dbConsentimientos, dbDoctor
 import { supabase, getSignedUrl } from '../services/supabase';
 import { toStorageRef } from '../lib/storageUrl';
 import { AlertasClinicas } from '../components/PatologiasUi';
+import { LEGAL_VERSION } from '../data/avisoLegalMedico';
 import { alertasPara } from '../data/patologias';
 import type { Paciente, Tratamiento, Consentimiento, MapaFacialCoordenada } from '../types/database.types';
 import { FaceCanvas } from '../components/FaceCanvas';
@@ -99,6 +100,7 @@ export const NewEntry: React.FC = () => {
           doctor_nombre:     doctor?.nombre ?? 'Doctora',
           fecha,
           firma_base64:      firmaBase64,
+          doc_version:       LEGAL_VERSION,
           estado:            'Activo',
           clausulas:         CLAUSULAS_DEFAULT
         } as Omit<Consentimiento, 'id' | 'created_at'>);

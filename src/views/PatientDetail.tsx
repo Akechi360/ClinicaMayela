@@ -16,6 +16,7 @@ import { EventosAdversosTab } from '../components/EventosAdversosTab';
 import { PatologiasSelector, EtiquetasPatologia, AlertasClinicas } from '../components/PatologiasUi';
 import { PesoProtocolo } from '../components/PesoMeta';
 import { alertasPara } from '../data/patologias';
+import { fechaHoraCaracas } from '../lib/fechas';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
 import type { ExamenLaboratorio, RecipeMedico, Consentimiento, Paciente, DoctorProfile, MapaFacialCoordenada } from '../types/database.types';
@@ -339,6 +340,11 @@ export const PatientDetail: React.FC = () => {
           doctorNombre={doc.doctor_nombre}
           firmaBase64={doc.firma_base64 ?? null}
           clausulas={doc.clausulas ?? []}
+          doctorMpps={doctor?.mpps}
+          doctorCol={doctor?.col}
+          firmadoEn={fechaHoraCaracas(doc.firmado_en)}
+          docVersion={doc.doc_version}
+          docId={doc.id}
         />
       ).toBlob();
       const url = URL.createObjectURL(blob);

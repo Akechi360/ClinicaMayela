@@ -380,7 +380,7 @@ export const dbConsentimientos = {
   listar: async (): Promise<Consentimiento[]> => {
     const { data, error } = await supabase
       .from('consentimientos')
-      .select('id, paciente_id, paciente_nombre, paciente_dni, tratamiento_nombre, fecha, doctor_nombre, estado, version, clausulas, created_at')
+      .select('id, paciente_id, paciente_nombre, paciente_dni, tratamiento_nombre, fecha, doctor_nombre, estado, version, clausulas, firmado_en, doc_version, created_at')
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];

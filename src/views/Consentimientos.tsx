@@ -3,6 +3,8 @@ import { Search, FileText, PenTool, CheckCircle, Clock, Archive, Download, Plus,
 import { SignaturePadModal } from '../components/SignaturePadModal';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbDoctor, dbPacientes, dbConsentimientos } from '../services/db';
+import { LEGAL_VERSION } from '../data/avisoLegalMedico';
+import { fechaHoraCaracas } from '../lib/fechas';
 import type { Consentimiento } from '../types/database.types';
 import { useToast } from '../components/Toast';
 
@@ -128,6 +130,11 @@ export const Consentimientos: React.FC = () => {
           doctorNombre={doc.doctor_nombre}
           firmaBase64={doc.firma_base64 || null}
           clausulas={doc.clausulas || CLAUSULAS_POR_TRATAMIENTO[doc.tratamiento_nombre] || []}
+          doctorMpps={doctor?.mpps}
+          doctorCol={doctor?.col}
+          firmadoEn={fechaHoraCaracas(doc.firmado_en)}
+          docVersion={doc.doc_version}
+          docId={doc.id}
         />
       ).toBlob();
       
@@ -198,6 +205,7 @@ export const Consentimientos: React.FC = () => {
       estado: 'Pendiente',
       firma_base64: null,
       version: 1,
+      doc_version: LEGAL_VERSION,
       clausulas: CLAUSULAS_POR_TRATAMIENTO[nuevoTratamiento] || []
     });
   };
@@ -382,6 +390,14 @@ export const Consentimientos: React.FC = () => {
                 <div className="flex justify-between">
                   <span className="text-slate-medium font-semibold">Fecha Emisión:</span>
                   <span className="text-slate-dark font-bold">{selectedDocFromList.fecha}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-medium font-semibold">Firmado:</span>
+                  <span className="text-slate-dark font-bold">{selectedDocFromList.firmado_en ? fechaHoraCaracas(selectedDocFromList.firmado_en) : 'Pendiente'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-medium font-semibold">Aviso legal (versión):</span>
+                  <span className="text-slate-dark font-bold">{selectedDocFromList.doc_version ?? '—'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-medium font-semibold">Historial Versión:</span>

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbPacientes, dbDoctor } from '../services/db';
 import { dbProtocolosPeptidos } from '../services/peptidesService';
+import { AVISO_LEGAL_MEDICO, LEGAL_VERSION } from '../data/avisoLegalMedico';
 import { useToast } from '../components/Toast';
 import { SignaturePadModal } from '../components/SignaturePadModal';
 import { CATEGORY_LABELS, ROUTE_LABELS } from '../types/peptides';
@@ -236,9 +237,21 @@ export const PeptidesConsent: React.FC = () => {
           </p>
         </div>
 
+        {/* Aviso legal y descargo médico */}
+        <div className="space-y-3">
+          <h2 className="text-sm font-bold text-slate-dark uppercase tracking-wider">6. Aviso Legal y Descargo Médico</h2>
+          {AVISO_LEGAL_MEDICO.map((b, i) => (
+            <div key={b.titulo}>
+              <p className="text-xs font-bold text-slate-dark">{String.fromCharCode(65 + i)}. {b.titulo}</p>
+              <p className="text-xs text-slate-medium leading-relaxed mt-0.5">{b.texto}</p>
+            </div>
+          ))}
+          <p className="text-[10px] text-slate-light">Versión del aviso legal: {LEGAL_VERSION}. La fecha y hora exactas de la firma se registran al firmar.</p>
+        </div>
+
         {/* Checkboxes */}
         <div className="space-y-4 print:hidden">
-          <h2 className="text-sm font-bold text-slate-dark uppercase tracking-wider">6. Declaraciones del Paciente</h2>
+          <h2 className="text-sm font-bold text-slate-dark uppercase tracking-wider">7. Declaraciones del Paciente</h2>
 
           <label className="flex items-start gap-3 cursor-pointer group">
             <input
@@ -283,7 +296,7 @@ export const PeptidesConsent: React.FC = () => {
 
         {/* Print-only checkbox text */}
         <div className="hidden print:block space-y-3">
-          <h2 className="text-sm font-bold text-slate-dark uppercase tracking-wider">6. Declaraciones del Paciente</h2>
+          <h2 className="text-sm font-bold text-slate-dark uppercase tracking-wider">7. Declaraciones del Paciente</h2>
           <p className="text-xs text-slate-medium">☐ Me comprometo a realizar check-ins de seguimiento cada {protocol.intervalo_seguimiento} días.</p>
           <p className="text-xs text-slate-medium">☐ Entiendo que puedo revocar este consentimiento en cualquier momento.</p>
           <p className="text-xs text-slate-medium">☐ Asumo los riesgos inherentes, habiendo sido informado(a) adecuadamente.</p>
