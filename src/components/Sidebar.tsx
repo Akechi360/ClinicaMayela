@@ -17,7 +17,8 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  FlaskConical
+  FlaskConical,
+  Calculator
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -55,6 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const adminItems = [
     { name: 'Tratamientos', path: '/tratamientos', icon: <Sparkles size={18} /> },
     { name: 'Péptidos', path: '/peptides', icon: <FlaskConical size={18} /> },
+    { name: 'Calculadora', path: '/calculadora', icon: <Calculator size={18} /> },
     { name: 'Galería', path: '/galeria', icon: <Image size={18} />, badge: 'BETA' },
     { name: 'Finanzas', path: '/finanzas', icon: <DollarSign size={18} /> },
   ];
