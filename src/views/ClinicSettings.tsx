@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Save, Shield, MessageSquare, QrCode } from 'lucide-react';
 import { getClinicSettings, updateClinicSettings } from '../services/db';
 import { useToast } from '../components/Toast';
+import { CalendarioSuscripcion } from '../components/CalendarioSuscripcion';
 
 export const ClinicSettings: React.FC = () => {
   const queryClient = useQueryClient();
@@ -144,6 +145,8 @@ export const ClinicSettings: React.FC = () => {
             </div>
           </div>
         </section>
+
+        {dbSettings?.id && <CalendarioSuscripcion settingsId={dbSettings.id} token={dbSettings.calendar_token} />}
 
         {/* Save button */}
         <div className="flex justify-end pt-4 pb-12">

@@ -148,6 +148,8 @@ export interface ClinicSettings {
   bot_qr_base64?:      string | null;
   hora_recordatorio?:  string;
   mensaje_bienvenida?: string;
+  /** Token secreto del enlace de suscripción a Google Calendar */
+  calendar_token?:     string | null;
   updated_at?:         string;
 }
 

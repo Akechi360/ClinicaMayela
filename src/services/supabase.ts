@@ -10,7 +10,7 @@ if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KE
   );
 }
 
-let supabaseUrl = String(rawUrl).trim();
+export let supabaseUrl = String(rawUrl).trim();
 if (!supabaseUrl.startsWith('http')) {
   supabaseUrl = 'https://' + supabaseUrl;
 }

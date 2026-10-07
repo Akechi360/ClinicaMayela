@@ -14,6 +14,8 @@ import {
   Loader2
 } from 'lucide-react';
 import { useToast } from '../components/Toast';
+import { descargarIcs, googleCalendarUrl, type EventoCal } from '../lib/calendario';
+import { enlaceWa } from '../lib/whatsapp';
 import { useConfirm } from '../components/ConfirmDialog';
 
 type EstadoCita = 'pendiente' | 'confirmado' | 'en_sala' | 'completado' | 'cancelado';
@@ -34,6 +36,22 @@ const ESTADO_LABEL: Record<string, string> = {
   en_sala:    'En Sala',
   completado: 'Completado',
   cancelado:  'Cancelado',
+};
+
+const LUGAR_CLINICA = 'Clínica Dra. Mayela González, Av. Principal de Las Mercedes, Caracas';
+
+/** Evento de calendario de una cita (para la doctora: lleva el nombre del paciente). */
+const eventoDeCita = (c: CitaRelacional, paraPaciente = false): EventoCal => {
+  const paciente = [c.paciente?.nombre, c.paciente?.apellido].filter(Boolean).join(' ');
+  const trat = c.tratamiento?.nombre ?? 'Cita';
+  return {
+    id: c.id,
+    titulo: paraPaciente ? `Cita en Clínica Dra. Mayela González — ${trat}` : `${paciente} · ${trat}`,
+    inicio: new Date(c.fecha_hora),
+    duracionMin: c.tratamiento?.duracion_minutos ?? 30,
+    detalle: paraPaciente ? 'Cita con la Dra. Mayela González. Si necesitas cambiarla, escríbenos por WhatsApp.' : [c.notas ? `Notas: ${c.notas}` : '', `Estado: ${c.estado}`].filter(Boolean).join('\n'),
+    lugar: LUGAR_CLINICA,
+  };
 };
 
 export const Agenda: React.FC = () => {
@@ -418,6 +436,29 @@ export const Agenda: React.FC = () => {
                   <p className="italic text-slate-medium text-[11px]">&ldquo;{selectedCita.notas}&rdquo;</p>
                 </div>
               )}
+              <div className="pt-1">
+                <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold mb-2">Calendario</p>
+                <div className="flex flex-wrap gap-2">
+                  <a
+                    href={googleCalendarUrl(eventoDeCita(selectedCita))}
+                    target="_blank" rel="noopener noreferrer"
+                    className="px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider border border-satin-copper/30 text-satin-copper hover:bg-satin-copper/10 no-underline"
+                  >Google Calendar</a>
+                  <button
+                    type="button"
+                    onClick={() => descargarIcs(eventoDeCita(selectedCita), 'cita.ics')}
+                    className="px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider border border-satin-copper/30 text-satin-copper hover:bg-satin-copper/10 cursor-pointer"
+                  >Archivo .ics</button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = enlaceWa(selectedCita.paciente?.telefono, `Hola ${selectedCita.paciente?.nombre ?? ''}, te confirmamos tu cita en la Clínica Dra. Mayela González el ${new Date(selectedCita.fecha_hora).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })} a las ${new Date(selectedCita.fecha_hora).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}.\n\nAñádela a tu calendario:\n${googleCalendarUrl(eventoDeCita(selectedCita, true))}`);
+                      if (url) window.open(url, '_blank'); else toast.error('El paciente no tiene teléfono registrado.');
+                    }}
+                    className="px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider border border-muted-olive/40 text-muted-olive hover:bg-muted-olive/10 cursor-pointer"
+                  >Enviar al paciente</button>
+                </div>
+              </div>
               <div className="pt-2">
                 <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold mb-2">Cambiar Estado</p>
                 <div className="flex flex-wrap gap-2">
