@@ -16,6 +16,7 @@ import { EventosAdversosTab } from '../components/EventosAdversosTab';
 import { PatologiasSelector, EtiquetasPatologia, AlertasClinicas } from '../components/PatologiasUi';
 import { PesoProtocolo } from '../components/PesoMeta';
 import { alertasPara } from '../data/patologias';
+import { OrdenLaboratorioModal, OrdenesEmitidas } from '../components/OrdenLaboratorio';
 import { fechaHoraCaracas } from '../lib/fechas';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
@@ -55,6 +56,7 @@ export const PatientDetail: React.FC = () => {
   const queryClient = useQueryClient();
 
   const [showExamenModal, setShowExamenModal] = useState(false);
+  const [showOrdenLab, setShowOrdenLab] = useState(false);
   const [showRecipeModal, setShowRecipeModal] = useState(false);
 
   const [examenTitulo, setExamenTitulo] = useState('');
@@ -776,13 +778,22 @@ export const PatientDetail: React.FC = () => {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h3 className="text-base font-display font-medium text-slate-dark">Exámenes de Laboratorio</h3>
+              <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setShowOrdenLab(true)}
+                className="border border-satin-copper/40 text-satin-copper hover:bg-satin-copper/10 text-[11px] font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <FlaskConical size={13} /> Generar orden de laboratorio
+              </button>
               <button
                 onClick={() => setShowExamenModal(true)}
                 className="bg-satin-copper hover:bg-satin-copper-hover text-pure-white text-[11px] font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <Upload size={13} /> Cargar Examen
               </button>
+              </div>
             </div>
+            <OrdenesEmitidas paciente={paciente} doctor={doctor} />
             {examenes.length === 0 ? (
               <div className="py-12 text-center border border-dashed border-satin-copper/25 rounded-2xl bg-pure-white/15 backdrop-blur-md">
                 <FileText className="mx-auto text-slate-light mb-2 opacity-50" size={32} />
@@ -1147,6 +1158,8 @@ export const PatientDetail: React.FC = () => {
           </form>
         </div>
       )}
+
+      {showOrdenLab && <OrdenLaboratorioModal paciente={paciente} doctor={doctor} onClose={() => setShowOrdenLab(false)} />}
 
       {/* Modal Récipe */}
       {showRecipeModal && (
