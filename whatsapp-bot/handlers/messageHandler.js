@@ -1,3 +1,4 @@
+import { ahoraCaracas, fechaHoraCaracas, textoFechaHora } from './reminderSchedule.js';
 const MENU_PRINCIPAL = `
 👋 Hola, soy el asistente de *Clínica Dra. Mayela González*.
 
@@ -90,7 +91,7 @@ export async function handleIncomingMessage(sock, msg, supabase) {
             .limit(1);
           const cita = data?.[0];
           await reply(cita
-            ? `📋 Tu próxima cita es el *${new Date(cita.fecha_hora).toLocaleString('es-MX')}*\nTratamiento: ${cita.tratamiento?.nombre || 'Consulta'}`
+            ? `📋 Tu próxima cita es el *${textoFechaHora(cita.fecha_hora)}*\nTratamiento: ${cita.tratamiento?.nombre || 'Consulta'}`
             : '❌ No tienes citas pendientes.');
           SESSION.delete(phone);
         } else if (text === '3') {
@@ -116,7 +117,7 @@ export async function handleIncomingMessage(sock, msg, supabase) {
           if (data?.[0]) {
             const cita = data[0];
             await supabase.rpc('cancelar_cita', { p_cita_id: cita.id });
-            await reply(`✅ Tu cita del *${new Date(cita.fecha_hora).toLocaleString('es-MX')}* ha sido cancelada.`);
+            await reply(`✅ Tu cita del *${textoFechaHora(cita.fecha_hora)}* ha sido cancelada.`);
 
             await supabase.from('notificaciones').insert({
               tipo: 'cita_cancelada_whatsapp',
@@ -147,16 +148,16 @@ export async function handleIncomingMessage(sock, msg, supabase) {
 
       case 'esperando_fecha': {
         const [d, m, y] = text.split('/');
-        const fecha = new Date(`${y}-${m}-${d}`);
-        if (isNaN(fecha.getTime())) {
+        const dia = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        if (!fechaHoraCaracas(dia, 12, 0)) {
           await reply('❌ Fecha inválida. Escríbela así: *DD/MM/AAAA*');
           return;
         }
-        if (fecha < new Date(new Date().toDateString())) {
+        if (dia < ahoraCaracas().dia) {
           await reply('❌ No puedes agendar en una fecha pasada. Intenta de nuevo.');
           return;
         }
-        SESSION.set(phone, { ...estado, step: 'esperando_hora', fecha: fecha.toISOString() });
+        SESSION.set(phone, { ...estado, step: 'esperando_hora', fecha: dia });
         await reply('🕐 ¿A qué hora? Escribe la hora así: *10:00* o *15:30*');
         break;
       }
@@ -168,8 +169,12 @@ export async function handleIncomingMessage(sock, msg, supabase) {
           return;
         }
         const [, hh, mm] = match;
-        const fechaHora = new Date(estado.fecha);
-        fechaHora.setHours(parseInt(hh), parseInt(mm), 0, 0);
+        // La hora que escribe el paciente es hora de Caracas (el servidor está en UTC)
+        const fechaHora = fechaHoraCaracas(estado.fecha, hh, mm);
+        if (!fechaHora) {
+          await reply('❌ Hora inválida. Escríbela así: *10:00* o *15:30*');
+          return;
+        }
 
         const paciente = await findOrCreatePatient(supabase, phone, estado.nombre);
         const tratamientoId = await getDefaultTratamiento(supabase);
@@ -193,7 +198,7 @@ export async function handleIncomingMessage(sock, msg, supabase) {
           metadata: { telefono: phone, fecha: fechaHora.toISOString() }
         });
 
-        await reply(`✅ ¡Cita agendada!\n📅 Fecha: *${fechaHora.toLocaleString('es-MX')}*\n\nTe enviaremos un recordatorio el día anterior. ¡Hasta pronto!`);
+        await reply(`✅ ¡Cita agendada!\n📅 Fecha: *${textoFechaHora(fechaHora)}*\n\nTe enviaremos un recordatorio el día anterior. ¡Hasta pronto!`);
         SESSION.delete(phone);
         break;
       }

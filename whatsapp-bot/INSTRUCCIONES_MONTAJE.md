@@ -26,5 +26,5 @@ Desde la app se programan mensajes en la tabla `seguimientos_tratamiento` (cuida
 con una pausa de 4 s entre mensajes. Cada mensaje se reintenta hasta 3 veces; si falla queda con `estado = 'error'`.
 
 - Para que funcione hay que **volver a desplegar el bot** con esta versión (`bot.js` + `handlers/followupJob.js`).
-- Los recordatorios de citas (9:00) ahora usan la hora de Caracas; antes dependían de la zona horaria del servidor.
+- Los recordatorios de citas ahora respetan la hora de Ajustes (`hora_recordatorio`) en hora de Caracas, una vez al día. Antes ignoraban el ajuste y dependían de la zona horaria del servidor (UTC), igual que las citas agendadas por WhatsApp, que quedaban 4 h corridas.
 - Pruebas del job: `node --test handlers/followupJob.test.js`.

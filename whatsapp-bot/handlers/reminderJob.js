@@ -1,8 +1,10 @@
+import { ahoraCaracas, diaSiguiente } from './reminderSchedule.js';
+
 export async function sendDailyReminders(sock, supabase) {
-  const mañana = new Date();
-  mañana.setDate(mañana.getDate() + 1);
-  const inicio = new Date(mañana.setHours(0, 0, 0, 0)).toISOString();
-  const fin = new Date(mañana.setHours(23, 59, 59, 0)).toISOString();
+  // "Mañana" según el calendario de Caracas (el servidor corre en UTC)
+  const manana = diaSiguiente(ahoraCaracas().dia);
+  const inicio = new Date(`${manana}T00:00:00-04:00`).toISOString();
+  const fin = new Date(`${manana}T23:59:59-04:00`).toISOString();
 
   const { data: citas, error } = await supabase
     .from('citas')
@@ -20,7 +22,7 @@ export async function sendDailyReminders(sock, supabase) {
     const paciente = Array.isArray(cita.paciente) ? cita.paciente[0] : cita.paciente;
     const tratamiento = Array.isArray(cita.tratamiento) ? cita.tratamiento[0] : cita.tratamiento;
     const tel = paciente?.telefono?.replace(/\D/g, '');
-    const hora = new Date(cita.fecha_hora).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    const hora = new Date(cita.fecha_hora).toLocaleTimeString('es-MX', { timeZone: 'America/Caracas', hour: '2-digit', minute: '2-digit' });
 
     if (!tel) continue;
 

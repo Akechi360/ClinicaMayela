@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, User } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import type { Paciente } from '../types/database.types';
+import { sanitizarBusqueda } from '../lib/busqueda';
 
 export const GlobalSearch: React.FC = () => {
   const [query, setQuery] = useState('');
@@ -21,7 +22,9 @@ export const GlobalSearch: React.FC = () => {
 
     const timer = setTimeout(async () => {
       setLoading(true);
-      const searchTerm = `%${query}%`;
+      const limpio = sanitizarBusqueda(query);
+      if (limpio.length < 2) { setResults([]); setIsOpen(false); setLoading(false); return; }
+      const searchTerm = `%${limpio}%`;
       const { data } = await supabase
         .from('pacientes')
         .select('id, nombre, apellido, cedula, telefono, foto_perfil')
