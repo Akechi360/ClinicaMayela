@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { dbPacientes, dbTratamientos, dbHistoriales, dbConsentimientos, dbDoctor } from '../services/db';
+import { dbPacientes, dbTratamientos, dbHistoriales, dbConsentimientos, dbDoctor, dbSeguimientos } from '../services/db';
 import { supabase, getSignedUrl } from '../services/supabase';
 import { toStorageRef } from '../lib/storageUrl';
 import { AlertasClinicas } from '../components/PatologiasUi';
-import { LEGAL_VERSION } from '../data/avisoLegalMedico';
+import { AVISO_LEGAL_MEDICO, LEGAL_VERSION } from '../data/avisoLegalMedico';
+import { categoriaPorTratamiento } from '../data/cuidadosPostTratamiento';
+import { planCuidados } from '../lib/seguimientos';
 import { alertasPara } from '../data/patologias';
 import type { Paciente, Tratamiento, Consentimiento, MapaFacialCoordenada } from '../types/database.types';
 import { FaceCanvas } from '../components/FaceCanvas';
@@ -54,6 +56,7 @@ export const NewEntry: React.FC = () => {
   const [firmaBase64, setFirmaBase64]     = useState<string | null>(null);
   const [showSignModal, setShowSignModal] = useState(false);
   const [consentAccepted, setConsentAccepted] = useState(false);
+  const [programarCuidados, setProgramarCuidados] = useState(false);
 
   const { data: pacientes = [] } = useQuery<Paciente[]>({
     queryKey: ['pacientes'],
@@ -91,6 +94,11 @@ export const NewEntry: React.FC = () => {
         mapa_facial_coordenadas: mapaCoords
       });
 
+      if (programarCuidados && selectedPaciente) {
+        const items = planCuidados({ pacienteId, nombre: selectedPaciente.nombre, categoria: categoriaPorTratamiento(`${selectedTratamiento?.nombre ?? ''} ${producto}`), ahora: new Date(), r24: true, r72: true, controlDias: null, incluirCuidadosAhora: true });
+        await dbSeguimientos.programar(items);
+      }
+
       if (consentAccepted && selectedPaciente && selectedTratamiento) {
         await dbConsentimientos.insertar({
           paciente_id:       pacienteId,
@@ -107,6 +115,7 @@ export const NewEntry: React.FC = () => {
       }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['seguimientos', pacienteId] });
       queryClient.invalidateQueries({ queryKey: ['paciente-historiales', pacienteId] });
       queryClient.invalidateQueries({ queryKey: ['paciente-consentimientos', pacienteId] });
       toast.success('Procedimiento registrado correctamente.');
@@ -314,6 +323,24 @@ export const NewEntry: React.FC = () => {
                 </div>
               ))}
             </div>
+
+            {/* Aviso legal y descargo médico */}
+            <div className="space-y-2">
+              <p className="text-[8px] uppercase tracking-wider text-slate-medium font-bold">Aviso legal y descargo médico (v{LEGAL_VERSION})</p>
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                {AVISO_LEGAL_MEDICO.map((b) => (
+                  <div key={b.titulo} className="bg-pure-white/20 p-3 rounded-xl border border-satin-copper/10 text-[11px] text-slate-medium leading-relaxed">
+                    <p className="font-bold text-slate-dark mb-0.5">{b.titulo}</p>{b.texto}
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-slate-light">La fecha y hora exactas de la firma, la cédula, el médico y la versión del documento se registran automáticamente.</p>
+            </div>
+
+            <label className="flex items-center gap-2 text-[11px] text-slate-dark cursor-pointer">
+              <input type="checkbox" checked={programarCuidados} onChange={(e) => setProgramarCuidados(e.target.checked)} className="w-3.5 h-3.5 accent-[#A891AA]" />
+              Enviar cuidados post-tratamiento por WhatsApp (el bot los envía y hace seguimiento a las 24 h y 72 h)
+            </label>
 
             {/* Firma */}
             <div>

@@ -18,6 +18,7 @@ import { PesoProtocolo } from '../components/PesoMeta';
 import { alertasPara } from '../data/patologias';
 import { OrdenLaboratorioModal, OrdenesEmitidas } from '../components/OrdenLaboratorio';
 import { fechaHoraCaracas } from '../lib/fechas';
+import { CuidadosPostModal, RecordatoriosDosisModal, SeguimientosLista } from '../components/Seguimientos';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
 import type { ExamenLaboratorio, RecipeMedico, Consentimiento, Paciente, DoctorProfile, MapaFacialCoordenada } from '../types/database.types';
@@ -57,6 +58,8 @@ export const PatientDetail: React.FC = () => {
 
   const [showExamenModal, setShowExamenModal] = useState(false);
   const [showOrdenLab, setShowOrdenLab] = useState(false);
+  const [cuidadosDe, setCuidadosDe] = useState<{ tratamiento?: string | null; citaId?: string | null } | null>(null);
+  const [dosisDe, setDosisDe] = useState<PeptideProtocol | null>(null);
   const [showRecipeModal, setShowRecipeModal] = useState(false);
 
   const [examenTitulo, setExamenTitulo] = useState('');
@@ -609,6 +612,12 @@ export const PatientDetail: React.FC = () => {
                           {new Date(historial.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </span>
                         <h3 className="text-lg font-display font-medium text-slate-dark mt-3">{historial.tratamiento?.nombre}</h3>
+                        <button
+                          onClick={() => setCuidadosDe({ tratamiento: historial.tratamiento?.nombre ?? historial.producto, citaId: historial.cita_id ?? null })}
+                          className="mt-3 text-[10px] font-bold text-muted-olive border border-muted-olive/40 rounded-full px-3 py-1 hover:bg-muted-olive/10 cursor-pointer flex items-center gap-1.5"
+                        >
+                          📲 Enviar cuidados post-tratamiento
+                        </button>
                       </div>
                       <div className="space-y-3.5 border-t border-rose-champagne pt-4 text-xs">
                         <div className="flex gap-3">
@@ -1005,7 +1014,12 @@ export const PatientDetail: React.FC = () => {
         )}
 
         {/* Péptidos */}
-        {activeTab === 'eventos' && id && <EventosAdversosTab pacienteId={id} />}
+        {activeTab === 'eventos' && id && (
+          <div className="space-y-8">
+            <EventosAdversosTab pacienteId={id} />
+            <SeguimientosLista pacienteId={id} />
+          </div>
+        )}
 
         {activeTab === 'peptidos' && (
           <div className="space-y-6">
@@ -1056,6 +1070,7 @@ export const PatientDetail: React.FC = () => {
                       </p>
                     </div>
                     <PesoProtocolo mediciones={mediciones} fechaInicio={proto.fecha_inicio} />
+                    <button onClick={() => setDosisDe(proto)} className="text-[10px] font-bold text-satin-copper border border-satin-copper/40 rounded-full px-3 py-1 hover:bg-satin-copper/10 cursor-pointer w-fit">🔔 Recordatorios de dosis por WhatsApp</button>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Link
@@ -1159,6 +1174,8 @@ export const PatientDetail: React.FC = () => {
         </div>
       )}
 
+      {cuidadosDe && <CuidadosPostModal paciente={paciente} tratamiento={cuidadosDe.tratamiento} citaId={cuidadosDe.citaId} onClose={() => setCuidadosDe(null)} />}
+      {dosisDe && <RecordatoriosDosisModal paciente={paciente} protocolo={dosisDe} onClose={() => setDosisDe(null)} />}
       {showOrdenLab && <OrdenLaboratorioModal paciente={paciente} doctor={doctor} onClose={() => setShowOrdenLab(false)} />}
 
       {/* Modal Récipe */}

@@ -17,3 +17,14 @@
 - El bot solo funciona mientras la PC esté encendida con internet
 - Si el bot se desconecta, se reconecta automáticamente
 - Los datos de autenticación se guardan en `/auth_session` (NO borrar)
+
+## Seguimientos post-tratamiento (cola de mensajes)
+
+Desde la app se programan mensajes en la tabla `seguimientos_tratamiento` (cuidados post-tratamiento, chequeos a las
+24 h y 72 h, recordatorios de control y de dosis de péptidos). El bot revisa la cola **cada 5 minutos**
+(`handlers/followupJob.js`) y envía lo que ya llegó a su hora, **solo entre las 7:00 y las 21:00 (hora de Caracas)**,
+con una pausa de 4 s entre mensajes. Cada mensaje se reintenta hasta 3 veces; si falla queda con `estado = 'error'`.
+
+- Para que funcione hay que **volver a desplegar el bot** con esta versión (`bot.js` + `handlers/followupJob.js`).
+- Los recordatorios de citas (9:00) ahora usan la hora de Caracas; antes dependían de la zona horaria del servidor.
+- Pruebas del job: `node --test handlers/followupJob.test.js`.

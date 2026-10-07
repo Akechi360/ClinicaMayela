@@ -7,6 +7,7 @@ import cron from 'node-cron';
 import pino from 'pino';
 import { handleIncomingMessage } from './handlers/messageHandler.js';
 import { sendDailyReminders } from './handlers/reminderJob.js';
+import { sendPendingFollowups } from './handlers/followupJob.js';
 import 'dotenv/config';
 
 const logger = pino({ level: 'silent' });
@@ -15,6 +16,9 @@ const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 let reconnectAttempts = 0;
 const MAX_RECONNECT_DELAY = 60000;
 let botStatus = 'starting';
+// Conexión vigente: se reemplaza en cada reconexión; los cron la leen en vez de capturar una conexión vieja
+let currentSock = null;
+let jobsStarted = false;
 
 function getReconnectDelay() {
   const delay = Math.min(5000 * Math.pow(2, reconnectAttempts), MAX_RECONNECT_DELAY);
@@ -33,6 +37,7 @@ async function startBot() {
   });
 
   applyAntibanMiddleware(sock);
+  currentSock = sock;
 
   sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
     if (qr) {
@@ -87,11 +92,20 @@ async function startBot() {
     }
   });
 
-  cron.schedule('0 9 * * *', () => {
-    sendDailyReminders(sock, supabase).catch(err =>
-      console.error('Error sending reminders:', err)
-    );
-  });
+  // Las tareas programadas se crean UNA sola vez (antes se duplicaban en cada reconexión)
+  if (!jobsStarted) {
+    jobsStarted = true;
+    // Recordatorios de citas de mañana: 9:00 hora de Caracas
+    cron.schedule('0 9 * * *', () => {
+      if (botStatus !== 'connected') return;
+      sendDailyReminders(currentSock, supabase).catch(err => console.error('Error sending reminders:', err));
+    }, { timezone: 'America/Caracas' });
+    // Cuidados post-tratamiento, chequeos 24/72 h, controles y dosis de péptidos: cada 5 minutos
+    cron.schedule('*/5 * * * *', () => {
+      if (botStatus !== 'connected') return;
+      sendPendingFollowups(currentSock, supabase).catch(err => console.error('Error sending follow-ups:', err));
+    });
+  }
 }
 
 // Health check HTTP server para Render

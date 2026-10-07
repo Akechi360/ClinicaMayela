@@ -499,6 +499,10 @@ export const dbSeguimientos = {
     const { error } = await supabase.from('seguimientos_tratamiento').insert(items);
     if (error) throw new Error(error.message);
   },
+  cancelarPendientesProtocolo: async (protocoloId: string, tipos: Seguimiento['tipo'][]): Promise<void> => {
+    const { error } = await supabase.from('seguimientos_tratamiento').update({ estado: 'cancelado' }).eq('protocolo_id', protocoloId).eq('estado', 'pendiente').in('tipo', tipos);
+    if (error) throw new Error(error.message);
+  },
   cancelar: async (id: string): Promise<void> => {
     const { error } = await supabase.from('seguimientos_tratamiento').update({ estado: 'cancelado' }).eq('id', id).eq('estado', 'pendiente');
     if (error) throw new Error(error.message);
