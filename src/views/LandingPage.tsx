@@ -1,4 +1,5 @@
 import React, { Suspense, useEffect, useState, useRef } from 'react';
+import logoCompleto from '../assets/brand/completo.png';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
@@ -471,14 +472,7 @@ export const LandingPage: React.FC = () => {
       <footer className="border-t border-ink/10 bg-white/50 backdrop-blur-md pt-16 pb-12 px-4 sm:px-8 relative z-10">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
           <div className="md:col-span-2 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-aurora-deep to-aurora-rose flex items-center justify-center font-fraunces font-bold text-white">
-                M
-              </div>
-              <span className="font-fraunces text-xl font-medium tracking-wide text-ink">
-                Clínica Dra. Mayela González
-              </span>
-            </div>
+            <img src={logoCompleto} alt="Clínica Dra. Mayela González" className="h-24 w-auto" />
             <p className="text-xs text-lilac-muted max-w-sm leading-relaxed">
               Centro especializado en Medicina Estética, Longevidad Celular, Armonización Facial y Terapias con Péptidos Bioactivos.
             </p>

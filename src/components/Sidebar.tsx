@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import logoSimbolo from '../assets/brand/simbolo.png';
 import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { dbDoctor } from '../services/db';
@@ -174,9 +175,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <X size={15} />
           </button>
 
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-rosa-petalo to-satin-copper-light flex items-center justify-center transition-transform duration-700 group-hover:rotate-12">
-            <span className="material-symbols-outlined text-white text-lg font-light">spa</span>
-          </div>
+          <img src={logoSimbolo} alt="Clínica Dra. Mayela González" className={collapsed ? 'h-9 w-auto' : 'h-14 w-auto'} />
           {!collapsed && (
             <>
               <h1 className="text-sm font-display font-medium text-slate-dark tracking-[0.15em] uppercase mt-3 transition-colors group-hover:text-rosa-petalo duration-500">Rejuvenece</h1>

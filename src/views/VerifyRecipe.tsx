@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import logoNombre from '../assets/brand/nombre.png';
 import { Link, useParams } from 'react-router-dom';
 import { ShieldCheck, ShieldX, ShieldAlert, Clock, ArrowRight, Loader2, MapPin, Phone } from 'lucide-react';
 import { verificarRecipe } from '../services/db';
@@ -72,7 +73,7 @@ export const VerifyRecipe: React.FC = () => {
     <div className="min-h-screen bg-lilac-pearl text-ink">
       <header className="border-b border-lilac-soft bg-white/70 backdrop-blur">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
-          <span className="font-fraunces text-base text-lilac-deep">Clínica Dra. Mayela González</span>
+          <img src={logoNombre} alt="Clínica Dra. Mayela González" className="h-9 w-auto" />
           {badge && <span className={`rounded-full border px-3 py-1 text-[11px] font-semibold ${badge.clase}`}>{badge.texto}</span>}
         </div>
       </header>

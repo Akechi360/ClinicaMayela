@@ -1,4 +1,5 @@
 import React from 'react';
+import logoNombre from '../../assets/brand/nombre.png';
 import { Image, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 
 /** Identidad visual común de TODOS los PDF de la clínica (la del consentimiento): cambiar aquí cambia todos. */
@@ -38,7 +39,7 @@ export const pdfStyles = StyleSheet.create({
 export const PdfHeader: React.FC<{ titulo: string; lineas?: (string | null | undefined | false)[] }> = ({ titulo, lineas = [] }) => (
   <View style={pdfStyles.header}>
     <View>
-      <Text style={pdfStyles.title}>Clínica Dra. Mayela González</Text>
+      <Image src={logoNombre} style={{ width: 180, height: 76, objectFit: 'contain', marginBottom: 2 }} />
       <Text style={pdfStyles.subtitle}>Medicina Estética & Longevidad</Text>
     </View>
     <View style={{ alignItems: 'flex-end' }}>

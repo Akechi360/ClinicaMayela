@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import logoNombre from '../../assets/brand/nombre.png';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 const LINKS = [
@@ -70,10 +71,7 @@ export const LandingNav: React.FC<Props> = ({ onLogoClick, onPortal, onSchedule 
           aria-label="Ir al inicio"
           className="flex min-w-0 cursor-pointer items-center gap-2.5 text-left"
         >
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#5E4760]/55">
-            <span className="font-fraunces text-[11px] font-medium italic leading-none">M</span>
-          </span>
-          <span className="text-[12px] font-medium leading-[1.15] tracking-[-0.01em] sm:text-[13px]">Clínica Dra. Mayela González</span>
+          <img src={logoNombre} alt="Clínica Dra. Mayela González" className="h-12 w-auto sm:h-14" />
         </button>
 
         <nav aria-label="Principal" className="hidden items-center gap-8 text-[12px] lg:flex">

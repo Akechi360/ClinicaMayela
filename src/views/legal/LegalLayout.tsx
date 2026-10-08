@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import logoNombre from '../../assets/brand/nombre.png';
 import { Link, NavLink } from 'react-router-dom';
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
 import { ACTUALIZADO, PAGINAS_LEGALES } from './datos';
@@ -17,7 +18,7 @@ export const LegalLayout: React.FC<{ titulo: string; resumen: string; children: 
           <Link to="/" className="flex items-center gap-2 text-xs font-semibold text-lilac-deep hover:text-ink">
             <ArrowLeft size={14} /> Volver al sitio
           </Link>
-          <span className="font-fraunces text-base text-ink hidden sm:block">Clínica Dra. Mayela González</span>
+          <img src={logoNombre} alt="Clínica Dra. Mayela González" className="h-9 w-auto hidden sm:block" />
         </div>
         <nav aria-label="Documentos legales" className="max-w-4xl mx-auto px-4 sm:px-8 pb-3 flex gap-2 overflow-x-auto">
           {PAGINAS_LEGALES.map((p) => (

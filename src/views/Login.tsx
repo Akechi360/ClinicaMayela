@@ -1,4 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
+import logoSimbolo from '../assets/brand/simbolo.png';
+import logoNombre from '../assets/brand/nombre.png';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../services/supabase';
@@ -120,13 +122,8 @@ export const Login: React.FC = () => {
           <div className="absolute bottom-32 left-6 w-12 h-12 rounded-full border border-satin-copper-light/[0.08] pointer-events-none" />
 
           {/* Logo */}
-          <div className="flex items-center gap-3 p-8 relative z-10">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rosa-petalo to-satin-copper-light flex items-center justify-center shadow-[0_2px_10px_rgba(208,175,198,0.25)]">
-              <span className="material-symbols-outlined text-white text-base">spa</span>
-            </div>
-            <div>
-              <h1 className="text-sm font-display font-medium text-slate-dark tracking-[0.12em] uppercase leading-none">Clínica Dra. Mayela González</h1>
-            </div>
+          <div className="p-8 relative z-10">
+            <img src={logoNombre} alt="Clínica Dra. Mayela González" className="h-16 w-auto" />
           </div>
 
           {/* 3D Face Canvas */}
@@ -187,9 +184,7 @@ export const Login: React.FC = () => {
 
             {/* Mobile logo */}
             <div className="flex md:hidden items-center gap-3 mb-8">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-rosa-petalo to-satin-copper-light flex items-center justify-center">
-                <span className="material-symbols-outlined text-white text-base">spa</span>
-              </div>
+              <img src={logoSimbolo} alt="" className="h-10 w-auto" />
               <div>
                 <h1 className="text-sm font-display font-medium text-white tracking-[0.12em] uppercase">Clínica Dra. Mayela González</h1>
               </div>
