@@ -178,7 +178,7 @@ export const DoctorProfile: React.FC = () => {
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
               </div>
               <div className="flex flex-col space-y-1">
-                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Colegio de Médicos (COL)</label>
+                <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">Colegio de Médicos (CM)</label>
                 <input type="text" value={col} onChange={(e) => setCol(e.target.value)}
                   placeholder="Ej. 7645"
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
@@ -291,7 +291,7 @@ export const DoctorProfile: React.FC = () => {
                   </div>
                 </div>
                 <div className="space-y-2.5 text-xs text-slate-medium border-t border-satin-copper/10 pt-4">
-                  <p className="flex items-center gap-2"><Shield size={13} className="text-satin-copper-light" /> MPPS <span className="font-semibold text-slate-dark">{mpps || 'Pendiente'}</span> · COL <span className="font-semibold text-slate-dark">{col || 'Pendiente'}</span></p>
+                  <p className="flex items-center gap-2"><Shield size={13} className="text-satin-copper-light" /> MPPS <span className="font-semibold text-slate-dark">{mpps || 'Pendiente'}</span> · CM <span className="font-semibold text-slate-dark">{col || 'Pendiente'}</span></p>
                   <p className="flex items-center gap-2"><Calendar size={13} className="text-satin-copper-light" /> Horario: <span className="font-semibold text-slate-dark">{horario || 'Lunes a Viernes'}</span></p>
                   <p className="flex items-center gap-2"><Mail size={13} className="text-satin-copper-light" /> Correo: <span className="font-semibold text-slate-dark truncate max-w-[200px]">{correo || 'doctora@clinica.com'}</span></p>
                   <p className="flex items-center gap-2"><Phone size={13} className="text-satin-copper-light" /> Teléfono: <span className="font-semibold text-slate-dark">{telefono || 'Sin registrar'}</span></p>

@@ -217,7 +217,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {!collapsed && doctor && (
           <div className="flex items-center gap-3 p-2 bg-[#F7F8FA] rounded-xl select-none">
             <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#EEEEF0] shadow-sm shrink-0">
-              <img src={doctor.foto || ''} alt={doctor.nombre || ''} className="w-full h-full object-cover" />
+              {doctor.foto
+                ? <img src={doctor.foto} alt={doctor.nombre || ''} className="w-full h-full object-cover" />
+                : <img src={logoSimbolo} alt="" className="w-full h-full object-contain p-1" />}
             </div>
             <div className="truncate min-w-0 flex-1">
               <p className="text-[9px] font-semibold text-slate-dark truncate leading-tight">{doctor.nombre}</p>

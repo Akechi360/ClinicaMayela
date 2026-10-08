@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import logoSimbolo from '../assets/brand/simbolo.png';
 import { useLocation, Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { dbDoctor, dbNotificaciones } from '../services/db';
@@ -154,11 +155,9 @@ export const Topbar: React.FC<TopbarProps> = ({
               aria-label="Ver perfil profesional"
               className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg overflow-hidden border border-[#EEEEF0] hover:border-rosa-petalo shadow-sm cursor-pointer transition-all duration-300 hover:scale-105"
             >
-              <img
-                alt={doctor.nombre}
-                src={doctor.foto_perfil ?? doctor.foto ?? undefined}
-                className="w-full h-full object-cover"
-              />
+              {(doctor.foto_perfil ?? doctor.foto)
+                ? <img alt={doctor.nombre} src={(doctor.foto_perfil ?? doctor.foto) as string} className="w-full h-full object-cover" />
+                : <img alt={doctor.nombre} src={logoSimbolo} className="w-full h-full object-contain p-1" />}
             </Link>
           )}
         </div>
