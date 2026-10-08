@@ -1,131 +1,23 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { PDF, PdfPage, PdfHeader, pdfStyles as base } from './pdf/pdfBase';
 
 const styles = StyleSheet.create({
-  page: {
-    padding: 40,
-    fontFamily: 'Helvetica',
-    fontSize: 9,
-    color: '#3A434D', // Slate Dark
-    lineHeight: 1.5,
-  },
-  header: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#8F6FA8', // Satin Copper Accessible
-    paddingBottom: 12,
-    marginBottom: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 18,
-    fontFamily: 'Helvetica-Bold',
-    color: '#8F6FA8',
-    marginBottom: 9,
-  },
-  subtitle: {
-    fontSize: 8,
-    color: '#5F6C7A', // Slate Light Accessible
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginTop: 2,
-  },
-  metaInfo: {
-    alignItems: 'flex-end',
-    fontSize: 8,
-    color: '#5F6C7A',
-  },
   summaryBox: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#FAF6F9', // Rose Champagne Light
-    padding: 15,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E8D7E3',
-    marginBottom: 20,
+    flexDirection: 'row', justifyContent: 'space-between', backgroundColor: PDF.fondo, padding: 15,
+    borderRadius: 6, borderWidth: 1, borderColor: PDF.borde, marginBottom: 20,
   },
-  summaryItem: {
-    alignItems: 'center',
-    width: '45%',
-  },
-  summaryLabel: {
-    fontSize: 8,
-    color: '#5F6C7A',
-    textTransform: 'uppercase',
-    marginBottom: 4,
-    fontFamily: 'Helvetica-Bold',
-  },
-  summaryValue: {
-    fontSize: 16,
-    fontFamily: 'Helvetica-Bold',
-    color: '#3A434D',
-  },
-  sectionTitle: {
-    fontSize: 11,
-    fontFamily: 'Helvetica-Bold',
-    color: '#8F6FA8',
-    marginBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E8D7E3',
-    paddingBottom: 3,
-  },
-  table: {
-    width: '100%',
-    marginBottom: 20,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: '#FAF6F9',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E8D7E3',
-    paddingVertical: 5,
-    fontFamily: 'Helvetica-Bold',
-    color: '#4B5663',
-  },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#FAF6F9',
-    paddingVertical: 6,
-    alignItems: 'center',
-  },
-  colPatient: {
-    width: '35%',
-    paddingLeft: 5,
-  },
-  colDate: {
-    width: '20%',
-    textAlign: 'center',
-  },
-  colMethod: {
-    width: '15%',
-    textAlign: 'center',
-  },
-  colStatus: {
-    width: '15%',
-    textAlign: 'center',
-  },
-  colAmount: {
-    width: '15%',
-    textAlign: 'right',
-    paddingRight: 5,
-  },
-  footer: {
-    position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
-    borderTopWidth: 1,
-    borderTopColor: '#E8D7E3',
-    paddingTop: 8,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 7,
-    color: '#5F6C7A',
-  }
+  summaryItem: { alignItems: 'center', width: '45%' },
+  summaryLabel: { fontSize: 8, color: PDF.etiqueta, textTransform: 'uppercase', marginBottom: 4, fontFamily: 'Helvetica-Bold' },
+  summaryValue: { fontSize: 16, fontFamily: 'Helvetica-Bold', color: PDF.texto },
+  table: { width: '100%', marginBottom: 20 },
+  tableHeader: { flexDirection: 'row', backgroundColor: PDF.fondo, borderBottomWidth: 1, borderBottomColor: PDF.borde, paddingVertical: 5, fontFamily: 'Helvetica-Bold', color: PDF.etiqueta },
+  tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: PDF.fondo, paddingVertical: 6, alignItems: 'center', fontSize: 9 },
+  colPatient: { width: '35%', paddingLeft: 5 },
+  colDate: { width: '20%', textAlign: 'center' },
+  colMethod: { width: '15%', textAlign: 'center' },
+  colStatus: { width: '15%', textAlign: 'center' },
+  colAmount: { width: '15%', textAlign: 'right', paddingRight: 5 },
 });
 
 interface TransactionItem {
@@ -164,18 +56,8 @@ export const ReporteFinancieroPDF: React.FC<ReporteFinancieroPDFProps> = ({
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        {/* Cabecera */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>Clínica Dra. Mayela González</Text>
-            <Text style={styles.subtitle}>Medicina Estética & Longevidad</Text>
-          </View>
-          <View style={styles.metaInfo}>
-            <Text>Fecha de Generación: {fechaGeneracion}</Text>
-            <Text>Total Transacciones: {transacciones.length}</Text>
-          </View>
-        </View>
+      <PdfPage texto="Informe generado electrónicamente">
+        <PdfHeader titulo="INFORME FINANCIERO" lineas={[`Fecha: ${fechaGeneracion}`, `Total transacciones: ${transacciones.length}`]} />
 
         {/* Resumen de Caja */}
         <View style={styles.summaryBox}>
@@ -183,27 +65,24 @@ export const ReporteFinancieroPDF: React.FC<ReporteFinancieroPDFProps> = ({
             <Text style={styles.summaryLabel}>Total Ingresado (Caja)</Text>
             <Text style={styles.summaryValue}>{formatCurrency(totalCaja)}</Text>
           </View>
-          <View style={{ width: 1, backgroundColor: '#E8D7E3' }} />
+          <View style={{ width: 1, backgroundColor: PDF.borde }} />
           <View style={styles.summaryItem}>
             <Text style={styles.summaryLabel}>Total Pendiente</Text>
             <Text style={styles.summaryValue}>{formatCurrency(totalPendiente)}</Text>
           </View>
         </View>
 
-        {/* Sección Tabla */}
-        <Text style={styles.sectionTitle}>Transacciones Recientes</Text>
+        <Text style={base.section}>Transacciones Recientes</Text>
         <View style={styles.table}>
-          {/* Cabecera de Tabla */}
-          <View style={styles.tableHeader}>
+          <View style={styles.tableHeader} fixed>
             <Text style={styles.colPatient}>Paciente</Text>
             <Text style={styles.colDate}>Fecha</Text>
             <Text style={styles.colMethod}>Método</Text>
             <Text style={styles.colStatus}>Estado</Text>
             <Text style={styles.colAmount}>Monto</Text>
           </View>
-          {/* Filas */}
           {transacciones.map((tr) => (
-            <View key={tr.id} style={styles.tableRow}>
+            <View key={tr.id} style={styles.tableRow} wrap={false}>
               <Text style={styles.colPatient}>{tr.paciente?.nombre || 'Paciente Desconocido'}</Text>
               <Text style={styles.colDate}>{tr.fecha}</Text>
               <Text style={styles.colMethod}>{tr.metodo_pago ? (tr.metodo_pago === 'pago_movil' ? 'PAGO MÓVIL' : tr.metodo_pago.toUpperCase()) : 'N/A'}</Text>
@@ -212,12 +91,7 @@ export const ReporteFinancieroPDF: React.FC<ReporteFinancieroPDFProps> = ({
             </View>
           ))}
         </View>
-
-        {/* Pie de Página */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Clínica Dra. Mayela González · Informe generado electrónicamente</Text>
-        </View>
-      </Page>
+      </PdfPage>
     </Document>
   );
 };

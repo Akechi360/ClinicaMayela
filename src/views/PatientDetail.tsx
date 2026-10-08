@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbRecipePlantillas, dbDoctor, dbConsentimientos, registrarAcceso, dbEventosAdversos, dbComposicionCorporal } from '../services/db';
+import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbRecipePlantillas, dbDoctor, dbConsentimientos, registrarAcceso, dbEventosAdversos, dbComposicionCorporal, dbOrdenesLab } from '../services/db';
 import { recipeVerifyUrl, recipeQrDataUrl } from '../lib/recipeVerify';
 import { estructurarDictado, useDictado } from '../lib/dictado';
 import { dbProtocolosPeptidos } from '../services/peptidesService';
@@ -370,6 +370,60 @@ export const PatientDetail: React.FC = () => {
     }
   };
 
+  const handleDownloadHistoria = async () => {
+    if (!paciente) return;
+    const toastId = toast.loading("Generando historia clínica...");
+    setIsGeneratingPdf(true);
+    try {
+      const ordenes = await dbOrdenesLab.listarPorPaciente(paciente.id);
+      const { pdf } = await import("@react-pdf/renderer");
+      const { HistoriaClinicaPDF } = await import("../components/HistoriaClinicaPDF");
+      const larga = (f: string) => new Date(f.length === 10 ? f + "T00:00:00" : f).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+      const nac = paciente.fecha_nacimiento ? new Date(paciente.fecha_nacimiento) : null;
+      const edad = nac ? Math.floor((Date.now() - nac.getTime()) / 31557600000) : null;
+      const blob = await pdf(
+        <HistoriaClinicaPDF
+          paciente={{
+            nombre: [paciente.nombre, paciente.apellido].filter(Boolean).join(" "), cedula: paciente.cedula, fechaNacimiento: nac ? larga(paciente.fecha_nacimiento!) : null, edad,
+            genero: paciente.genero, telefono: paciente.telefono, email: paciente.email, expediente: paciente.id.slice(0, 8).toUpperCase(),
+            antecedentes: paciente.antecedentes, alergias: paciente.alergias, patologias: paciente.patologias, notas: paciente.notas,
+            estaturaCm: paciente.estatura_cm, pesoMetaKg: paciente.peso_meta_kg,
+          }}
+          mediciones={mediciones.map((m) => ({ fecha: larga(m.fecha), pesoKg: m.peso_kg, grasaPct: m.grasa_pct }))}
+          procedimientos={historiales.map((h) => ({ fecha: larga(h.fecha), tratamiento: h.tratamiento?.nombre ?? h.producto ?? "Procedimiento", producto: h.producto, cantidad: h.cantidad, lote: h.lote, tecnica: h.tecnica, notas: h.notas_medicas }))}
+          peptidos={protocolosPeptidos.map((x) => ({ fechaInicio: larga(x.fecha_inicio), estado: x.estado, duracionSemanas: x.duracion_semanas, nombres: x.peptidos_seleccionados.map((sp) => sp.peptide.name), notas: x.notas_medico }))}
+          eventos={eventosAdversos.map((e) => ({ fecha: larga(e.fecha_inicio), tipo: e.tipo, severidad: e.severidad, estado: e.estado, conducta: e.conducta }))}
+          examenes={examenes.map((x) => ({ fecha: larga(x.fecha), titulo: x.titulo, notas: x.notas }))}
+          ordenes={ordenes.map((o) => ({ fecha: larga(o.fecha), perfil: o.perfil, estudios: o.estudios }))}
+          consentimientos={consentimientos.map((c) => ({ fecha: c.fecha, tratamiento: c.tratamiento_nombre, firmadoEn: c.firmado_en ? fechaHoraCaracas(c.firmado_en) : null }))}
+          fechaEmision={larga(new Date().toISOString())}
+          doctorNombre={doctor?.nombre ?? "Dra. Mayela González"}
+          doctorEspecialidad={doctor?.especialidad}
+          doctorMpps={doctor?.mpps}
+          doctorCol={doctor?.col}
+          doctorTelefono={doctor?.telefono}
+          firma={doctor?.firma_base64}
+          sello={doctor?.sello_base64}
+        />
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `historia_clinica_${paciente.nombre.replace(/s+/g, "_").toLowerCase()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.dismiss(toastId);
+      toast.success("Historia clínica descargada.");
+    } catch {
+      toast.dismiss(toastId);
+      toast.error("Error al generar la historia clínica.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
   const handleDownloadExamen = async (examen: ExamenLaboratorio) => {
     if (!examen.archivo_url) return;
     let href: string;
@@ -513,6 +567,14 @@ export const PatientDetail: React.FC = () => {
               className="flex-1 sm:flex-none bg-satin-copper hover:bg-satin-copper-hover text-pure-white text-xs font-semibold py-2.5 px-5 rounded-xl transition-all flex items-center justify-center gap-2"
             >
               <Plus size={15} /> Registrar Procedimiento
+            </button>
+            <button
+              onClick={handleDownloadHistoria}
+              disabled={isGeneratingPdf}
+              className="w-10 h-10 rounded-xl flex items-center justify-center border border-satin-copper/25 text-satin-copper hover:bg-satin-copper/10 transition-all cursor-pointer disabled:opacity-50"
+              title="Descargar historia clínica (PDF)"
+            >
+              <Download size={15} />
             </button>
             <button
               onClick={() => setShowEditPatientModal(true)}
