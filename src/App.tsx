@@ -28,6 +28,7 @@ const PeptidesProtocol = lazy(() => import('./views/PeptidesProtocol').then(m =>
 const CalculadoraPeptidos = lazy(() => import('./views/CalculadoraPeptidos').then(m => ({ default: m.CalculadoraPeptidos })));
 const PeptidesConsent = lazy(() => import('./views/PeptidesConsent').then(m => ({ default: m.PeptidesConsent })));
 const PeptidesReport = lazy(() => import('./views/PeptidesReport').then(m => ({ default: m.PeptidesReport })));
+const FichaIngresoPublica = lazy(() => import('./views/FichaIngresoPublica').then(m => ({ default: m.FichaIngresoPublica })));
 const VerifyRecipe = lazy(() => import('./views/VerifyRecipe').then(m => ({ default: m.VerifyRecipe })));
 const AvisoLegal = lazy(() => import('./views/legal/paginas').then(m => ({ default: m.AvisoLegal })));
 const Privacidad = lazy(() => import('./views/legal/paginas').then(m => ({ default: m.Privacidad })));
@@ -151,6 +152,14 @@ function App() {
                 const P = Page as React.LazyExoticComponent<React.FC>;
                 return <Route key={path as string} path={path as string} element={<Suspense fallback={<PageLoadSkeleton />}><P /></Suspense>} />;
               })}
+              <Route
+                path="/f/:codigo"
+                element={
+                  <Suspense fallback={<PageLoadSkeleton />}>
+                    <FichaIngresoPublica />
+                  </Suspense>
+                }
+              />
               <Route
                 path="/v/:codigo"
                 element={

@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbRecipePlantillas, dbDoctor, dbConsentimientos, registrarAcceso, dbEventosAdversos, dbComposicionCorporal, dbOrdenesLab } from '../services/db';
+import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbRecipePlantillas, dbDoctor, dbConsentimientos, registrarAcceso, dbFichas, dbEventosAdversos, dbComposicionCorporal, dbOrdenesLab } from '../services/db';
 import { recipeVerifyUrl, recipeQrDataUrl } from '../lib/recipeVerify';
 import { telefonoWa } from '../lib/whatsapp';
+import { EnviarFichaModal } from '../components/EnviarFichaModal';
+import { fusionarFicha, type FichaIngreso } from '../lib/fichaIngreso';
 import { estructurarDictado, useDictado } from '../lib/dictado';
 import { dbProtocolosPeptidos } from '../services/peptidesService';
 import type { PeptideProtocol } from '../types/peptides';
@@ -43,6 +45,7 @@ import {
   Mic,
   Send,
   BookmarkPlus,
+  ClipboardList,
   CheckCircle,
   Ban
 } from 'lucide-react';
@@ -77,6 +80,9 @@ export const PatientDetail: React.FC = () => {
 
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [showEditPatientModal, setShowEditPatientModal] = useState(false);
+  const [showFichaModal, setShowFichaModal] = useState(false);
+  /** Ficha recibida que se está cargando en el formulario de edición (la Dra. revisa y confirma) */
+  const [fichaAplicar, setFichaAplicar] = useState<FichaIngreso | null>(null);
   const [editNombre, setEditNombre] = useState('');
   const [editApellido, setEditApellido] = useState('');
   const [editCedula, setEditCedula] = useState('');
@@ -141,11 +147,19 @@ export const PatientDetail: React.FC = () => {
 
   const editPacienteMutation = useMutation({
     mutationFn: (datos: Partial<Paciente>) => dbPacientes.actualizar(id!, datos),
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['paciente', id] });
       queryClient.invalidateQueries({ queryKey: ['pacientes'] });
       setShowEditPatientModal(false);
-      toast.success('Paciente actualizado.');
+      if (fichaAplicar && id) {
+        try { await dbFichas.marcarAplicada(fichaAplicar.id, id); } catch { /* la ficha queda como recibida */ }
+        setFichaAplicar(null);
+        queryClient.invalidateQueries({ queryKey: ['ficha-recibida', id] });
+        queryClient.invalidateQueries({ queryKey: ['fichas-recibidas'] });
+        toast.success('Ficha cargada y paciente actualizado.');
+      } else {
+        toast.success('Paciente actualizado.');
+      }
     },
     onError: (err: Error) => toast.error(`Error: ${err.message}`),
   });
@@ -165,8 +179,29 @@ export const PatientDetail: React.FC = () => {
       setEditEstatura(paciente.estatura_cm?.toString() ?? '');
       setEditPesoMeta(paciente.peso_meta_kg?.toString() ?? '');
       setEditPatologias(paciente.patologias ?? []);
+      if (fichaAplicar?.datos) {
+        const m = fusionarFicha(paciente, fichaAplicar.datos);
+        setEditNombre(m.nombre);
+        setEditApellido(m.apellido);
+        setEditCedula(m.cedula);
+        setEditTelefono(m.telefono);
+        setEditEmail(m.email);
+        setEditFechaNac(m.fecha_nacimiento);
+        setEditGenero(m.genero);
+        setEditEstatura(m.estatura_cm?.toString() ?? '');
+        setEditPatologias(m.patologias);
+        setEditAlergias(m.alergias);
+        setEditAntecedentes(m.antecedentes);
+        setEditNotas(m.notas);
+      }
     }
-  }, [showEditPatientModal, paciente]);
+  }, [showEditPatientModal, paciente, fichaAplicar]);
+
+  const { data: fichaRecibida } = useQuery({
+    queryKey: ['ficha-recibida', id],
+    queryFn: () => dbFichas.recibidaDePaciente(id!),
+    enabled: !!id,
+  });
 
   const deleteProtocolMutation = useMutation({
     mutationFn: dbProtocolosPeptidos.eliminar,
@@ -627,7 +662,14 @@ export const PatientDetail: React.FC = () => {
               <Download size={15} />
             </button>
             <button
-              onClick={() => setShowEditPatientModal(true)}
+              onClick={() => setShowFichaModal(true)}
+              className="w-10 h-10 rounded-xl flex items-center justify-center border border-satin-copper/25 text-satin-copper hover:bg-satin-copper/10 transition-all cursor-pointer"
+              title="Enviar ficha de ingreso al paciente"
+            >
+              <ClipboardList size={15} />
+            </button>
+            <button
+              onClick={() => { setFichaAplicar(null); setShowEditPatientModal(true); }}
               className="w-10 h-10 rounded-xl flex items-center justify-center border border-satin-copper/25 text-satin-copper hover:bg-satin-copper/10 transition-all cursor-pointer"
               title="Editar paciente"
             >
@@ -680,6 +722,38 @@ export const PatientDetail: React.FC = () => {
           <p className="text-xs text-slate-medium italic line-clamp-2 leading-relaxed">{paciente.notas || 'Sin registrar'}</p>
         </div>
       </div>
+
+      {fichaRecibida?.datos && (
+        <div className="glass-panel rounded-2xl border border-satin-copper/30 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="text-xs">
+            <p className="font-bold text-satin-copper uppercase tracking-wider text-[10px] flex items-center gap-1.5"><ClipboardList size={13} /> Ficha de ingreso recibida</p>
+            <p className="text-slate-medium mt-1">
+              El paciente completó su ficha{fichaRecibida.recibida_en ? ` el ${new Date(fichaRecibida.recibida_en).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}` : ''}.
+              Revisa y confirma para cargarla en su expediente.
+            </p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={() => { setFichaAplicar(fichaRecibida); setShowEditPatientModal(true); }}
+              className="satin-button text-pure-white text-[10px] font-bold tracking-wider uppercase py-2 px-4 rounded-lg cursor-pointer"
+            >
+              Revisar y cargar
+            </button>
+            <button
+              onClick={async () => {
+                const ok = await confirm({ title: 'Descartar ficha', message: 'La ficha recibida se eliminará sin cargarse.', severity: 'danger' });
+                if (!ok) return;
+                await dbFichas.descartar(fichaRecibida.id);
+                queryClient.invalidateQueries({ queryKey: ['ficha-recibida', id] });
+                queryClient.invalidateQueries({ queryKey: ['fichas-recibidas'] });
+              }}
+              className="border border-red-200 text-red-600 hover:bg-red-50 text-[10px] font-bold tracking-wider uppercase py-2 px-3 rounded-lg cursor-pointer"
+            >
+              Descartar
+            </button>
+          </div>
+        </div>
+      )}
 
       <AlertasClinicas alertas={alertasPara(paciente.patologias, 'inyectable')} titulo="Precauciones antes de infiltrar" />
 
@@ -1376,6 +1450,10 @@ export const PatientDetail: React.FC = () => {
       )}
 
       {/* Modal Editar Paciente */}
+      {showFichaModal && paciente && (
+        <EnviarFichaModal pacienteId={paciente.id} nombre={paciente.nombre} telefono={paciente.telefono} onClose={() => setShowFichaModal(false)} />
+      )}
+
       {showEditPatientModal && (
         <div className="fixed inset-0 bg-slate-dark/45 backdrop-blur-md flex items-center justify-center z-[90] p-4">
           <form

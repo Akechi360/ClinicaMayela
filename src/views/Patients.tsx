@@ -1,15 +1,45 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { dbPacientes, dbCitas } from '../services/db';
-import { Search, UserPlus, Phone, Mail, Award, Calendar, Eye, X, Pencil, Trash2 } from 'lucide-react';
+import { dbPacientes, dbCitas, dbFichas } from '../services/db';
+import { EnviarFichaModal } from '../components/EnviarFichaModal';
+import { fichaAPaciente, type FichaIngreso } from '../lib/fichaIngreso';
+import { etiquetaPatologia } from '../data/patologias';
+import { Search, UserPlus, Phone, Mail, Award, Calendar, Eye, X, Pencil, Trash2, ClipboardList, Check } from 'lucide-react';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export const Patients: React.FC = () => {
   const queryClient = useQueryClient();
   const toast = useToast();
   const confirm = useConfirm();
+  const navigate = useNavigate();
+  const [showFichaModal, setShowFichaModal] = useState(false);
+
+  const { data: fichasRecibidas = [] } = useQuery({ queryKey: ['fichas-recibidas'], queryFn: dbFichas.listarRecibidas });
+
+  /** Carga la ficha recibida: crea el paciente con todos sus datos y abre su expediente para revisarlo. */
+  const cargarFichaMutation = useMutation({
+    mutationFn: async (f: FichaIngreso) => {
+      if (!f.datos) throw new Error('La ficha no tiene datos.');
+      const nuevo = await dbPacientes.insertar(fichaAPaciente(f.datos));
+      await dbFichas.marcarAplicada(f.id, nuevo.id);
+      return nuevo;
+    },
+    onSuccess: (nuevo) => {
+      queryClient.invalidateQueries({ queryKey: ['pacientes'] });
+      queryClient.invalidateQueries({ queryKey: ['fichas-recibidas'] });
+      toast.success('Ficha cargada. Revisa el expediente del paciente.');
+      navigate(`/pacientes/${nuevo.id}`);
+    },
+    onError: (err: Error) => toast.error(`No se pudo cargar la ficha: ${err.message}`),
+  });
+
+  const descartarFichaMutation = useMutation({
+    mutationFn: dbFichas.descartar,
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['fichas-recibidas'] }); toast.success('Ficha descartada.'); },
+    onError: (err: Error) => toast.error(`Error: ${err.message}`),
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [filterVip, setFilterVip] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -164,13 +194,67 @@ export const Patients: React.FC = () => {
           </h2>
           <p className="text-xs text-slate-light mt-0.5">Fichas clínicas y registro general de pacientes de la clínica.</p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="bg-satin-copper hover:bg-satin-copper-hover text-pure-white text-[10px] font-bold tracking-[0.15em] uppercase py-3 px-5 rounded-xl transition-all duration-300 shadow-lg shadow-satin-copper/10 flex items-center gap-2 cursor-pointer"
-        >
-          <UserPlus size={13} /> Registrar Paciente
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setShowFichaModal(true)}
+            className="border border-satin-copper/30 text-satin-copper hover:bg-satin-copper/10 text-[10px] font-bold tracking-[0.15em] uppercase py-3 px-5 rounded-xl transition-all duration-300 flex items-center gap-2 cursor-pointer"
+          >
+            <ClipboardList size={13} /> Enviar ficha de ingreso
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="bg-satin-copper hover:bg-satin-copper-hover text-pure-white text-[10px] font-bold tracking-[0.15em] uppercase py-3 px-5 rounded-xl transition-all duration-300 shadow-lg shadow-satin-copper/10 flex items-center gap-2 cursor-pointer"
+          >
+            <UserPlus size={13} /> Registrar Paciente
+          </button>
+        </div>
       </div>
+
+      {/* Fichas de ingreso recibidas */}
+      {fichasRecibidas.length > 0 && (
+        <div className="glass-panel rounded-2xl border border-satin-copper/25 p-4 shadow-luxury space-y-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-satin-copper flex items-center gap-2">
+            <ClipboardList size={13} /> Fichas de ingreso recibidas ({fichasRecibidas.length})
+          </p>
+          {fichasRecibidas.map((f) => (
+            <div key={f.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl bg-pure-white/40 p-3">
+              <div className="text-xs">
+                <p className="font-semibold text-slate-dark">{f.datos?.nombre} {f.datos?.apellido}</p>
+                <p className="text-[11px] text-slate-medium">
+                  {f.paciente_id ? 'Actualiza un expediente existente' : 'Paciente nuevo'}
+                  {f.datos?.patologias?.length ? ` · ${f.datos.patologias.map(etiquetaPatologia).join(', ')}` : ' · Sin patologías declaradas'}
+                </p>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                {f.paciente_id ? (
+                  <Link to={`/pacientes/${f.paciente_id}`} className="satin-button text-pure-white text-[10px] font-bold tracking-wider uppercase py-2 px-4 rounded-lg flex items-center gap-1.5">
+                    <Check size={12} /> Revisar y cargar
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => cargarFichaMutation.mutate(f)}
+                    disabled={cargarFichaMutation.isPending}
+                    className="satin-button text-pure-white text-[10px] font-bold tracking-wider uppercase py-2 px-4 rounded-lg flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Check size={12} /> Cargar paciente
+                  </button>
+                )}
+                <button
+                  onClick={async () => {
+                    const ok = await confirm({ title: 'Descartar ficha', message: 'La ficha recibida se eliminará sin cargarse.', severity: 'danger' });
+                    if (ok) descartarFichaMutation.mutate(f.id);
+                  }}
+                  className="border border-red-200 text-red-600 hover:bg-red-50 text-[10px] font-bold tracking-wider uppercase py-2 px-3 rounded-lg cursor-pointer"
+                >
+                  Descartar
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showFichaModal && <EnviarFichaModal onClose={() => setShowFichaModal(false)} />}
 
       {/* Filters and Search (Glassmorphic) */}
       <div className="flex flex-col md:flex-row gap-4 justify-between items-center glass-panel p-4 rounded-2xl shadow-luxury border border-pure-white/40 w-full">

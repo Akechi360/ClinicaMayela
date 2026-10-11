@@ -21,6 +21,7 @@ import type {
   RecipePlantilla,
   RecipeVerificado,
 } from '../types/database.types';
+import type { FichaIngreso } from '../lib/fichaIngreso';
 
 // ─────────────────────────────────────────────
 // PACIENTES
@@ -663,3 +664,69 @@ export async function getDashboardStats() {
 
 export const getClinicSettings = dbClinicSettings.obtener;
 export const updateClinicSettings = dbClinicSettings.actualizar;
+
+// ─────────────────────────────────────────────
+// FICHAS DE INGRESO (el paciente llena sus datos y antecedentes por enlace)
+// ─────────────────────────────────────────────
+
+export const dbFichas = {
+  /** Crea un enlace de un solo uso (7 días). pacienteId null = paciente nuevo. */
+  crear: async (pacienteId: string | null = null): Promise<FichaIngreso> => {
+    const { data, error } = await supabase
+      .from('fichas_ingreso')
+      .insert({ paciente_id: pacienteId, token: 'pendiente' })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as FichaIngreso;
+  },
+  listarRecibidas: async (): Promise<FichaIngreso[]> => {
+    const { data, error } = await supabase
+      .from('fichas_ingreso')
+      .select('*')
+      .eq('estado', 'recibida')
+      .order('recibida_en', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as FichaIngreso[];
+  },
+  recibidaDePaciente: async (pacienteId: string): Promise<FichaIngreso | null> => {
+    const { data, error } = await supabase
+      .from('fichas_ingreso')
+      .select('*')
+      .eq('paciente_id', pacienteId)
+      .eq('estado', 'recibida')
+      .order('recibida_en', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return (data ?? null) as FichaIngreso | null;
+  },
+  /** Una vez cargada, se borran los datos crudos de la ficha. */
+  marcarAplicada: async (id: string, pacienteId: string): Promise<void> => {
+    const { error } = await supabase
+      .from('fichas_ingreso')
+      .update({ estado: 'aplicada', aplicada_en: new Date().toISOString(), datos: null, paciente_id: pacienteId })
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+  },
+  descartar: async (id: string): Promise<void> => {
+    const { error } = await supabase.from('fichas_ingreso').update({ estado: 'descartada', datos: null }).eq('id', id);
+    if (error) throw new Error(error.message);
+  },
+};
+
+export interface FichaRespuestaPublica { ok: boolean; motivo?: string; nombre?: string | null }
+
+/** Pública (sin sesión): ¿el enlace de la ficha sirve? */
+export const fichaObtener = async (token: string): Promise<FichaRespuestaPublica> => {
+  const { data, error } = await supabase.rpc('ficha_obtener', { p_token: token });
+  if (error) throw new Error(error.message);
+  return data as FichaRespuestaPublica;
+};
+
+/** Pública (sin sesión): el paciente envía su ficha (una sola vez). */
+export const fichaEnviar = async (token: string, datos: Record<string, unknown>): Promise<FichaRespuestaPublica> => {
+  const { data, error } = await supabase.rpc('ficha_enviar', { p_token: token, p_datos: datos });
+  if (error) throw new Error(error.message);
+  return data as FichaRespuestaPublica;
+};
