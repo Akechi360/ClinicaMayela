@@ -22,6 +22,7 @@ import type {
   RecipeVerificado,
 } from '../types/database.types';
 import type { FichaIngreso } from '../lib/fichaIngreso';
+import { fechasVaciasANull } from '../lib/saneo';
 
 // ─────────────────────────────────────────────
 // PACIENTES
@@ -59,7 +60,7 @@ export const dbPacientes = {
   insertar: async (datos: Omit<Paciente, 'id' | 'creado_en'>): Promise<Paciente> => {
     const { data, error } = await supabase
       .from('pacientes')
-      .insert(datos)
+      .insert(fechasVaciasANull(datos, ['fecha_nacimiento']))
       .select()
       .single();
     if (error) throw new Error(error.message);
@@ -68,7 +69,7 @@ export const dbPacientes = {
   actualizar: async (id: string, datos: Partial<Paciente>): Promise<Paciente> => {
     const { data, error } = await supabase
       .from('pacientes')
-      .update(datos)
+      .update(fechasVaciasANull(datos, ['fecha_nacimiento']))
       .eq('id', id)
       .select()
       .single();

@@ -710,7 +710,7 @@ export const PatientDetail: React.FC = () => {
         </div>
         <div className="space-y-1">
           <p className="text-[9px] uppercase tracking-wider text-slate-light font-bold">Datos Personales</p>
-          <p className="text-xs text-slate-dark font-medium">Nacimiento: {new Date(paciente.fecha_nacimiento ?? '').toLocaleDateString()}</p>
+          <p className="text-xs text-slate-dark font-medium">Nacimiento: {paciente.fecha_nacimiento ? new Date(paciente.fecha_nacimiento + 'T00:00:00').toLocaleDateString('es-ES') : '—'}</p>
           <p className="text-xs text-slate-dark font-medium">Género: {paciente.genero || 'Sin especificar'}</p>
         </div>
         <div className="space-y-1">
