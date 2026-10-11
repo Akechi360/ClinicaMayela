@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbRecipePlantillas, dbDoctor, dbConsentimientos, registrarAcceso, dbEventosAdversos, dbComposicionCorporal, dbOrdenesLab } from '../services/db';
 import { recipeVerifyUrl, recipeQrDataUrl } from '../lib/recipeVerify';
+import { telefonoWa } from '../lib/whatsapp';
 import { estructurarDictado, useDictado } from '../lib/dictado';
 import { dbProtocolosPeptidos } from '../services/peptidesService';
 import type { PeptideProtocol } from '../types/peptides';
@@ -441,57 +442,103 @@ export const PatientDetail: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  const handleSendRecipeWhatsApp = (recipe: RecipeMedico) => {
-    if (!paciente || !recipe.codigo) return;
+  /** Genera el PDF del récipe (con firma, sello y QR de verificación). */
+  const construirRecipePdf = async (recipe: RecipeMedico): Promise<Blob> => {
+    if (!paciente) throw new Error('Paciente no cargado');
+    const { pdf } = await import('@react-pdf/renderer');
+    const { RecipePDF } = await import('../components/RecipePDF');
+    const qr = recipe.codigo ? await recipeQrDataUrl(recipeVerifyUrl(recipe.codigo)) : undefined;
+    return pdf(
+      <RecipePDF
+        pacienteNombre={paciente.nombre}
+        pacienteDni={paciente.cedula ?? ''}
+        fecha={new Date(recipe.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+        doctorNombre={recipe.doctor_nombre ?? doctor?.nombre ?? 'Dra. Mayela González'}
+        doctorEspecialidad={doctor?.especialidad ?? 'Medicina Estética & Bienestar'}
+        doctorTelefono={doctor?.telefono || undefined}
+        doctorMpps={recipe.doctor_mpps ?? doctor?.mpps ?? undefined}
+        doctorCol={recipe.doctor_col ?? doctor?.col ?? undefined}
+        firma={doctor?.firma_base64}
+        sello={doctor?.sello_base64}
+        qr={qr}
+        codigo={recipe.codigo}
+        medicamentos={recipe.medicamentos}
+        indicaciones={recipe.indicaciones}
+      />
+    ).toBlob();
+  };
+
+  const avisarSinFirmaSello = () => {
+    if (!doctor?.firma_base64 || !doctor?.sello_base64) {
+      toast.warning('Este récipe saldrá sin ' + (!doctor?.firma_base64 && !doctor?.sello_base64 ? 'firma ni sello' : !doctor?.firma_base64 ? 'firma' : 'sello') + '. Súbelos en Perfil.', 6000);
+    }
+  };
+
+  const nombreArchivoRecipe = (recipe: RecipeMedico) =>
+    `recipe_${(paciente?.nombre ?? 'paciente').replace(/\s+/g, '_').toLowerCase()}_${recipe.id}.pdf`;
+
+  const descargarBlob = (blob: Blob, nombre: string) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = nombre;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  };
+
+  /** Envía el PDF del récipe al paciente (por si extravió el físico). La farmacia verifica con el QR del propio PDF. */
+  const handleSendRecipeWhatsApp = async (recipe: RecipeMedico) => {
+    if (!paciente) return;
     if (recipe.estado === 'anulado') { toast.error('Este récipe está anulado.'); return; }
-    let tel = (paciente.telefono ?? '').replace(/\D/g, '');
-    if (tel.startsWith('0')) tel = '58' + tel.slice(1);
+    const tel = telefonoWa(paciente.telefono);
     if (!tel) { toast.error('El paciente no tiene teléfono registrado.'); return; }
+    avisarSinFirmaSello();
+
     const fecha = new Date(recipe.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
-    const msg = `Hola ${paciente.nombre}, le comparto su récipe médico del ${fecha}, emitido por ${recipe.doctor_nombre ?? 'la Dra. Mayela González'}. Puede mostrarlo en la farmacia; se verifica su autenticidad con este enlace:\n${recipeVerifyUrl(recipe.codigo)}`;
-    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+    const msg = `Hola ${paciente.nombre}, le comparto su récipe médico del ${fecha}, emitido por ${recipe.doctor_nombre ?? 'la Dra. Mayela González'}. Puede presentarlo en la farmacia (impreso o desde su teléfono): el código QR del documento permite verificar su autenticidad.`;
+
+    // En celulares con "compartir archivos" se adjunta el PDF directamente. En computador: se descarga y se abre el chat.
+    const puedeCompartir = typeof navigator.canShare === 'function'
+      && navigator.canShare({ files: [new File([], 'r.pdf', { type: 'application/pdf' })] });
+    // Se abre la pestaña de inmediato (antes de generar el PDF) para que el navegador no la bloquee
+    const ventana = puedeCompartir ? null : window.open('', '_blank');
+
+    const toastId = toast.loading('Preparando el récipe en PDF...');
+    setIsGeneratingPdf(true);
+    try {
+      const blob = await construirRecipePdf(recipe);
+      const nombre = nombreArchivoRecipe(recipe);
+      toast.dismiss(toastId);
+      if (puedeCompartir) {
+        await navigator.share({ files: [new File([blob], nombre, { type: 'application/pdf' })], title: 'Récipe médico', text: msg });
+      } else {
+        descargarBlob(blob, nombre);
+        const url = `https://wa.me/${tel}?text=${encodeURIComponent(msg)}`;
+        if (ventana) ventana.location.href = url; else window.open(url, '_blank');
+        toast.success('PDF descargado. En el chat de WhatsApp que se abrió, adjúntalo (clip → Documento) y envía.', 9000);
+      }
+    } catch (error) {
+      toast.dismiss(toastId);
+      ventana?.close();
+      if ((error as { name?: string })?.name !== 'AbortError') toast.error('No se pudo preparar el récipe para enviar.');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const handleDownloadRecipe = async (recipe: RecipeMedico) => {
     if (!paciente) return;
-    if (!doctor?.firma_base64 || !doctor?.sello_base64) {
-      toast.warning('Este récipe saldrá sin ' + (!doctor?.firma_base64 && !doctor?.sello_base64 ? 'firma ni sello' : !doctor?.firma_base64 ? 'firma' : 'sello') + '. Súbelos en Perfil.', 6000);
-    }
+    avisarSinFirmaSello();
     const toastId = toast.loading('Generando PDF del récipe...');
     setIsGeneratingPdf(true);
     try {
-      const { pdf } = await import('@react-pdf/renderer');
-      const { RecipePDF } = await import('../components/RecipePDF');
-      const qr = recipe.codigo ? await recipeQrDataUrl(recipeVerifyUrl(recipe.codigo)) : undefined;
-      const blob = await pdf(
-        <RecipePDF
-          pacienteNombre={paciente.nombre}
-          pacienteDni={paciente.cedula ?? ''}
-          fecha={new Date(recipe.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-          doctorNombre={recipe.doctor_nombre ?? doctor?.nombre ?? 'Dra. Mayela González'}
-          doctorEspecialidad={doctor?.especialidad ?? 'Medicina Estética & Bienestar'}
-          doctorTelefono={doctor?.telefono || undefined}
-          doctorMpps={recipe.doctor_mpps ?? doctor?.mpps ?? undefined}
-          doctorCol={recipe.doctor_col ?? doctor?.col ?? undefined}
-          firma={doctor?.firma_base64}
-          sello={doctor?.sello_base64}
-          qr={qr}
-          codigo={recipe.codigo}
-          medicamentos={recipe.medicamentos}
-          indicaciones={recipe.indicaciones}
-        />
-      ).toBlob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `recipe_${paciente.nombre.replace(/\s+/g, '_').toLowerCase()}_${recipe.id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      const blob = await construirRecipePdf(recipe);
+      descargarBlob(blob, nombreArchivoRecipe(recipe));
       toast.dismiss(toastId);
       toast.success('Récipe descargado correctamente.');
-    } catch (error) {
+    } catch {
       toast.dismiss(toastId);
       toast.error('Error al generar el récipe PDF.');
     } finally {
@@ -981,7 +1028,7 @@ export const PatientDetail: React.FC = () => {
                           onClick={() => handleSendRecipeWhatsApp(recipe)}
                           className="text-[11px] text-muted-olive font-semibold flex items-center gap-1 hover:underline cursor-pointer border-none bg-transparent w-fit"
                         >
-                          <Send size={13} /> Enviar por WhatsApp
+                          <Send size={13} /> Enviar PDF por WhatsApp
                         </button>
                       )}
                       {(recipe.estado ?? 'emitido') === 'emitido' && (
