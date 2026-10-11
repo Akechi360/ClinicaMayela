@@ -454,6 +454,9 @@ export const PatientDetail: React.FC = () => {
 
   const handleDownloadRecipe = async (recipe: RecipeMedico) => {
     if (!paciente) return;
+    if (!doctor?.firma_base64 || !doctor?.sello_base64) {
+      toast.warning('Este récipe saldrá sin ' + (!doctor?.firma_base64 && !doctor?.sello_base64 ? 'firma ni sello' : !doctor?.firma_base64 ? 'firma' : 'sello') + '. Súbelos en Perfil.', 6000);
+    }
     const toastId = toast.loading('Generando PDF del récipe...');
     setIsGeneratingPdf(true);
     try {

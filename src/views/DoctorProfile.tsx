@@ -77,8 +77,14 @@ export const DoctorProfile: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  /** La firma y el sello se guardan al subirlos (no dependen de pulsar "Guardar"). */
+  const persistirImagen = (campo: 'firma_base64' | 'sello_base64', valor: string | null) => {
+    if (!doctor?.id) return;
+    updateMutation.mutate({ id: doctor.id, [campo]: valor, updated_at: new Date().toISOString() });
+  };
+
   /** Reduce la imagen a máx. 420 px y la guarda como PNG (conserva transparencia) para incrustarla en el récipe. */
-  const handleSelloFirma = (set: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelloFirma = (set: (v: string) => void, campo: 'firma_base64' | 'sello_base64') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
@@ -90,7 +96,9 @@ export const DoctorProfile: React.FC = () => {
       c.width = Math.round(img.width * k);
       c.height = Math.round(img.height * k);
       c.getContext('2d')?.drawImage(img, 0, 0, c.width, c.height);
-      set(c.toDataURL('image/png'));
+      const png = c.toDataURL('image/png');
+      set(png);
+      persistirImagen(campo, png);
       URL.revokeObjectURL(url);
     };
     img.onerror = () => { URL.revokeObjectURL(url); toast.error('No se pudo leer la imagen.'); };
@@ -184,7 +192,7 @@ export const DoctorProfile: React.FC = () => {
                   className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper placeholder:text-slate-light/60 font-sans" />
               </div>
               <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {([['Firma digitalizada', firma, setFirma], ['Sello', sello, setSello]] as const).map(([label, valor, set]) => (
+                {([['Firma digitalizada', firma, setFirma, 'firma_base64'], ['Sello', sello, setSello, 'sello_base64']] as const).map(([label, valor, set, campo]) => (
                   <div key={label} className="flex flex-col space-y-1">
                     <label className="text-[10px] uppercase tracking-wider text-slate-medium font-semibold">{label} (PNG, fondo transparente)</label>
                     <div className="flex items-center gap-3 bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2">
@@ -193,9 +201,9 @@ export const DoctorProfile: React.FC = () => {
                       </div>
                       <label className="text-[10px] font-bold uppercase tracking-wider text-satin-copper cursor-pointer hover:underline">
                         Subir
-                        <input type="file" accept="image/*" onChange={handleSelloFirma(set)} className="hidden" />
+                        <input type="file" accept="image/*" onChange={handleSelloFirma(set, campo)} className="hidden" />
                       </label>
-                      {valor && <button type="button" onClick={() => set('')} className="text-[10px] text-red-500 hover:underline cursor-pointer border-none bg-transparent">Quitar</button>}
+                      {valor && <button type="button" onClick={() => { set(''); persistirImagen(campo, null); }} className="text-[10px] text-red-500 hover:underline cursor-pointer border-none bg-transparent">Quitar</button>}
                     </div>
                   </div>
                 ))}
