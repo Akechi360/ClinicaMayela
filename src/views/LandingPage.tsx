@@ -34,6 +34,9 @@ gsap.registerPlugin(ScrollTrigger);
 // Easing limpio para hover/tap de botones — sin resorte, sin rebote.
 const tapTransition = { duration: 0.2, ease: 'easeOut' as const };
 
+/** WhatsApp de la clínica (formato internacional sin "+"): +58 424-5500042 */
+const WHATSAPP_CLINICA = "584245500042";
+
 const MORPHING_MESSAGES = [
   'Ciencia Aplicada\na Tu Longevidad.',
   'Medicina Celular\ny Precisión Clínica.',
@@ -98,7 +101,7 @@ export const LandingPage: React.FC = () => {
   }, []);
 
   const handleOpenWhatsApp = (mensaje: string) => {
-    const tel = "584120000000";
+    const tel = WHATSAPP_CLINICA;
     const url = `https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, '_blank');
   };
