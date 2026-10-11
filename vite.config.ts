@@ -10,13 +10,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'logo.svg', 'models/face.obj', 'background.png'],
+      includeAssets: ['favicon.png', 'apple-touch-icon.png', 'models/face.obj'],
       manifest: {
         name: 'Clínica Dra. Mayela González',
         short_name: 'Mayela',
-        description: 'Aplicación clínica de medicina estética y bienestar de la Dra. Mayela Silva',
-        theme_color: '#3A434D', // Slate Dark
-        background_color: '#FAF7F5', // Rose Champagne Light
+        description: 'Aplicación clínica de medicina estética y longevidad de la Dra. Mayela González',
+        theme_color: '#4A354E', // lila profundo (barra del app instalada)
+        background_color: '#FAF6F9', // lila perla (pantalla de carga)
+        lang: 'es',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
@@ -28,7 +29,14 @@ export default defineConfig({
           {
             src: 'icon-512.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: 'icon-maskable-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       },
