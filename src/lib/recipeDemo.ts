@@ -7,6 +7,7 @@ const base: RecipeVerificado = {
   fecha: '2026-10-06',
   medicamentos:
     '1. Meropenem 1 g — 1 g cada 8 horas — por 7 días\n2. Ibuprofeno 400 mg — 400 mg — dos veces al día — por 5 días\n3. Vitamina C inyectable — 1 ampolla — semanal — por 4 semanas',
+  antecedentes: 'Patologías previas: Diabetes tipo 2, Hipertensión arterial.\nAlergias: penicilina.',
   indicaciones: 'Administrar el meropenem diluido en 100 cc de solución 0.9 % vía endovenosa en 1 hora. Reposo relativo.',
   paciente: 'Luisa Elena Ruiz Machado',
   paciente_cedula: 'V-***3650',

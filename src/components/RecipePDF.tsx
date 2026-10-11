@@ -25,6 +25,8 @@ interface RecipePDFProps {
   codigo?: string;
   medicamentos: string;
   indicaciones?: string;
+  /** Antecedentes y alergias relevantes (para farmacia, seguro u otro médico) */
+  antecedentes?: string | null;
 }
 
 export const RecipePDF: React.FC<RecipePDFProps> = ({
@@ -41,7 +43,8 @@ export const RecipePDF: React.FC<RecipePDFProps> = ({
   qr,
   codigo,
   medicamentos,
-  indicaciones
+  indicaciones,
+  antecedentes
 }) => (
   <Document>
     <PdfPage texto="Récipe digital con validación por código QR" telefono={doctorTelefono}>
@@ -53,6 +56,13 @@ export const RecipePDF: React.FC<RecipePDFProps> = ({
         <MetaRow label="Médico Tratante:">{textoMedico(doctorNombre, doctorMpps, doctorCol)}</MetaRow>
         {doctorEspecialidad ? <MetaRow label="Especialidad:">{doctorEspecialidad}</MetaRow> : null}
       </View>
+
+      {antecedentes ? (
+        <View style={{ marginBottom: 14 }} wrap={false}>
+          <Text style={styles.indicationsTitle}>Antecedentes y alergias relevantes:</Text>
+          <Text style={styles.indicationsContent}>{antecedentes}</Text>
+        </View>
+      ) : null}
 
       {/* Rp. Prescripción */}
       <Text style={base.section}>Rp. Prescripción Médica</Text>

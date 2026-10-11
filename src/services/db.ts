@@ -426,7 +426,7 @@ export const dbConsentimientos = {
 // RÉCIPES MÉDICOS
 // ─────────────────────────────────────────────
 
-type RecipeInsert = Pick<RecipeMedico, 'paciente_id' | 'fecha' | 'medicamentos' | 'indicaciones'>;
+type RecipeInsert = Pick<RecipeMedico, 'paciente_id' | 'fecha' | 'medicamentos' | 'indicaciones' | 'antecedentes'>;
 
 export const dbRecipes = {
   listarPorPaciente: async (pacienteId: string): Promise<RecipeMedico[]> => {

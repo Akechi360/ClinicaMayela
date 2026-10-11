@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbRecipePlantillas, dbDoctor, dbConsentimientos, registrarAcceso, dbFichas, dbEventosAdversos, dbComposicionCorporal, dbOrdenesLab } from '../services/db';
 import { recipeVerifyUrl, recipeQrDataUrl } from '../lib/recipeVerify';
 import { telefonoWa } from '../lib/whatsapp';
+import { textoAntecedentes } from '../lib/recipeAntecedentes';
 import { EnviarFichaModal } from '../components/EnviarFichaModal';
 import { fusionarFicha, type FichaIngreso } from '../lib/fichaIngreso';
 import { estructurarDictado, useDictado } from '../lib/dictado';
@@ -74,6 +75,7 @@ export const PatientDetail: React.FC = () => {
 
   const [recipeMedicamentos, setRecipeMedicamentos] = useState('');
   const [recipeIndicaciones, setRecipeIndicaciones] = useState('');
+  const [recipeAntecedentes, setRecipeAntecedentes] = useState('');
   const [recipeFecha, setRecipeFecha] = useState(new Date().toISOString().split('T')[0]);
   /** Récipe que se está corrigiendo (se anula y se enlaza al nuevo) */
   const [recipeCorrigiendo, setRecipeCorrigiendo] = useState<RecipeMedico | null>(null);
@@ -263,6 +265,7 @@ export const PatientDetail: React.FC = () => {
       setRecipeCorrigiendo(null);
       setRecipeMedicamentos('');
       setRecipeIndicaciones('');
+      setRecipeAntecedentes('');
       setRecipeFecha(new Date().toISOString().split('T')[0]);
       toast.success(v.reemplazaId ? 'Récipe corregido: la versión anterior quedó anulada y enlazada a la nueva.' : 'Récipe médico emitido correctamente.');
     },
@@ -499,6 +502,7 @@ export const PatientDetail: React.FC = () => {
         codigo={recipe.codigo}
         medicamentos={recipe.medicamentos}
         indicaciones={recipe.indicaciones}
+        antecedentes={recipe.antecedentes}
       />
     ).toBlob();
   };
@@ -1038,7 +1042,7 @@ export const PatientDetail: React.FC = () => {
             <div className="flex justify-between items-center">
               <h3 className="text-base font-display font-medium text-slate-dark">Récipes Médicos</h3>
               <button
-                onClick={() => { setRecipeCorrigiendo(null); setShowRecipeModal(true); }}
+                onClick={() => { setRecipeCorrigiendo(null); setRecipeAntecedentes(paciente ? textoAntecedentes(paciente) : ''); setShowRecipeModal(true); }}
                 className="bg-satin-copper hover:bg-satin-copper-hover text-pure-white text-[11px] font-bold py-2 px-4 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
               >
                 <Plus size={13} /> Emitir Récipe
@@ -1081,6 +1085,12 @@ export const PatientDetail: React.FC = () => {
                           <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold">Prescripción (Rx)</p>
                           <p className="text-xs text-slate-dark mt-0.5 whitespace-pre-line leading-relaxed font-semibold">{recipe.medicamentos}</p>
                         </div>
+                        {recipe.antecedentes && (
+                          <div>
+                            <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold">Antecedentes y alergias</p>
+                            <p className="text-xs text-slate-medium mt-0.5 whitespace-pre-line leading-relaxed">{recipe.antecedentes}</p>
+                          </div>
+                        )}
                         {recipe.indicaciones && (
                           <div>
                             <p className="text-[8px] uppercase tracking-wider text-slate-light font-bold">Indicaciones</p>
@@ -1119,6 +1129,7 @@ export const PatientDetail: React.FC = () => {
                               setRecipeCorrigiendo(recipe);
                               setRecipeMedicamentos(recipe.medicamentos);
                               setRecipeIndicaciones(recipe.indicaciones ?? '');
+                              setRecipeAntecedentes(recipe.antecedentes ?? '');
                               setRecipeFecha(new Date().toISOString().split('T')[0]);
                               setShowRecipeModal(true);
                             }}
@@ -1379,7 +1390,8 @@ export const PatientDetail: React.FC = () => {
                   paciente_id: id ?? '',
                   fecha: recipeFecha,
                   medicamentos: recipeMedicamentos,
-                  indicaciones: recipeIndicaciones
+                  indicaciones: recipeIndicaciones,
+                  antecedentes: recipeAntecedentes
                 },
                 reemplazaId: recipeCorrigiendo?.id
               });
@@ -1421,6 +1433,20 @@ export const PatientDetail: React.FC = () => {
                   )}
                 </div>
                 <textarea required placeholder="ej. 1. Restylane Lip Volume 1ml" value={recipeMedicamentos} onChange={(e) => setRecipeMedicamentos(e.target.value)} rows={4} className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans font-semibold resize-none" />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[8px] uppercase tracking-wider text-slate-medium font-bold">Antecedentes y alergias (se imprimen en el récipe)</label>
+                  <button
+                    type="button"
+                    onClick={() => paciente && setRecipeAntecedentes(textoAntecedentes(paciente))}
+                    className="text-[9px] font-bold uppercase tracking-wider text-satin-copper hover:underline cursor-pointer border-none bg-transparent"
+                  >
+                    Recargar del expediente
+                  </button>
+                </div>
+                <textarea placeholder="Sin antecedentes registrados. Puedes dejarlo vacío." value={recipeAntecedentes} onChange={(e) => setRecipeAntecedentes(e.target.value)} rows={3} className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-sans font-semibold resize-none" />
+                <p className="text-[9px] text-slate-light mt-1">Lo verán la farmacia, el seguro u otro médico, también en la verificación por QR. Borra lo que no deba aparecer.</p>
               </div>
               <div>
                 <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Indicaciones Adicionales</label>

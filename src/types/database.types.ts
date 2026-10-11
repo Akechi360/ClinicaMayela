@@ -206,6 +206,8 @@ export interface RecipeMedico {
   /** Código corto público del QR (/v/<codigo>) */
   codigo?: string;
   reemplazado_por?: string | null;
+  /** Antecedentes y alergias relevantes (sellados con el récipe) */
+  antecedentes?: string | null;
   created_at?: string;
 }
 
@@ -225,6 +227,7 @@ export interface RecipeVerificado {
   fecha?: string;
   medicamentos?: string;
   indicaciones?: string | null;
+  antecedentes?: string | null;
   paciente?: string;
   /** Cédula enmascarada por el servidor, p. ej. V-***3650 */
   paciente_cedula?: string | null;

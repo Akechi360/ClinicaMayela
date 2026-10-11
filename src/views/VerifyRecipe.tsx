@@ -174,6 +174,13 @@ export const VerifyRecipe: React.FC = () => {
               </section>
             </div>
 
+            {r.antecedentes && (
+              <section className="rounded-2xl border border-lilac-soft bg-white px-5 py-4">
+                <Etiqueta>Antecedentes y alergias relevantes</Etiqueta>
+                <p className="mt-1 whitespace-pre-line text-sm text-lilac-deep">{r.antecedentes}</p>
+              </section>
+            )}
+
             <section className="rounded-2xl border border-lilac-soft bg-white">
               <div className="flex items-center justify-between border-b border-lilac-soft px-5 py-3">
                 <Etiqueta>Medicamentos prescritos</Etiqueta>
