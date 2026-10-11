@@ -33,6 +33,9 @@ export default defineConfig({
         ]
       },
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         maximumFileSizeToCacheInBytes: 3000000,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,obj}'],
         runtimeCaching: [
@@ -59,11 +62,10 @@ export default defineConfig({
             }
           },
           {
-            urlPattern: /.*/,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'app-cache'
-            }
+            // Datos clínicos (Supabase): SIEMPRE de la red. Antes un catch-all StaleWhileRevalidate devolvía
+            // respuestas viejas (p. ej. el perfil sin la firma recién subida) y dejaba datos de pacientes en caché.
+            urlPattern: /^https:\/\/[^/]+\.supabase\.co\/.*/i,
+            handler: 'NetworkOnly'
           }
         ]
       }
