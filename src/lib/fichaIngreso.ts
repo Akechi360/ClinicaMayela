@@ -1,5 +1,6 @@
 import type { Paciente } from '../types/database.types';
 import { urlPublica } from './recipeVerify';
+import type { DatosLongevidad } from '../data/longevidad';
 
 /** Datos que el paciente declara en su ficha de ingreso (validados y limitados por el servidor). */
 export interface FichaDatos {
@@ -9,7 +10,7 @@ export interface FichaDatos {
   telefono: string;
   email: string;
   fecha_nacimiento: string | null;
-  genero: 'Femenino' | 'Masculino' | null;
+  genero: 'Femenino' | 'Masculino' | 'Otro' | null;
   estatura_cm: number | null;
   patologias: string[];
   alergias: string;
@@ -18,6 +19,8 @@ export interface FichaDatos {
   motivo: string;
   veracidad: boolean;
   privacidad: boolean;
+  /** Historia de longevidad (solo si la ficha la pidió) */
+  longevidad?: DatosLongevidad | null;
 }
 
 export interface FichaIngreso {
@@ -25,6 +28,7 @@ export interface FichaIngreso {
   token: string;
   paciente_id: string | null;
   estado: 'pendiente' | 'recibida' | 'aplicada' | 'descartada';
+  incluye_longevidad?: boolean;
   expira_en: string;
   datos: FichaDatos | null;
   recibida_en: string | null;

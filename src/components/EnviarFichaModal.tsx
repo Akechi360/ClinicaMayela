@@ -21,6 +21,8 @@ export const EnviarFichaModal: React.FC<Props> = ({ pacienteId = null, nombre, t
   const [qr, setQr] = useState('');
   const [error, setError] = useState('');
   const [tel, setTel] = useState(telefono ?? '');
+  const [fichaId, setFichaId] = useState('');
+  const [longevidad, setLongevidad] = useState(false);
   const creada = useRef(false);
 
   useEffect(() => {
@@ -30,6 +32,7 @@ export const EnviarFichaModal: React.FC<Props> = ({ pacienteId = null, nombre, t
       .crear(pacienteId)
       .then(async (f) => {
         const u = fichaUrl(f.token);
+        setFichaId(f.id);
         setUrl(u);
         setQr(await recipeQrDataUrl(u));
       })
@@ -38,6 +41,12 @@ export const EnviarFichaModal: React.FC<Props> = ({ pacienteId = null, nombre, t
 
   const mensaje = `Hola${nombre ? ` ${nombre.split(' ')[0]}` : ''}, para agilizar su atención en la Clínica Dra. Mayela González, por favor complete su ficha de ingreso (toma unos 3 minutos):\n${url}`;
   const wa = url ? enlaceWa(tel, mensaje) : null;
+
+  const alternarLongevidad = async (valor: boolean) => {
+    setLongevidad(valor);
+    try { await dbFichas.definirLongevidad(fichaId, valor); }
+    catch { setLongevidad(!valor); toast.error('No se pudo cambiar la opción. Intenta de nuevo.'); }
+  };
 
   const copiar = async () => {
     try { await navigator.clipboard.writeText(url); toast.success('Enlace copiado.'); }
@@ -59,6 +68,13 @@ export const EnviarFichaModal: React.FC<Props> = ({ pacienteId = null, nombre, t
               <p className="text-slate-medium">
                 El paciente completa sus datos y antecedentes desde su teléfono. Luego tú los cargas con un botón. El enlace sirve una sola vez y vence en 7 días.
               </p>
+              <label className="flex cursor-pointer items-start gap-2.5 rounded-lg bg-pure-white/50 px-3 py-2.5 text-slate-dark">
+                <input type="checkbox" checked={longevidad} onChange={(e) => alternarLongevidad(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[#A891AA]" />
+                <span>
+                  <span className="font-semibold">Incluir historia de longevidad</span>
+                  <span className="block text-[10px] text-slate-medium">Añade pasos de estilo de vida, sueño, nutrición, antecedentes familiares y tratamientos previos.</span>
+                </span>
+              </label>
               {qr && <img src={qr} alt="Código QR de la ficha de ingreso" className="mx-auto h-40 w-40 rounded-lg bg-white p-1" />}
               <p className="break-all rounded-lg bg-pure-white/50 px-3 py-2 font-mono text-[10px] text-slate-dark">{url}</p>
               {!telefono && (

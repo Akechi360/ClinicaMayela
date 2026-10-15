@@ -32,6 +32,8 @@ export interface HistoriaClinicaPDFProps {
   examenes: { fecha: string; titulo: string; notas?: string | null }[];
   ordenes: { fecha: string; perfil: string; estudios: string[] }[];
   consentimientos: { fecha: string; tratamiento: string; firmadoEn?: string | null }[];
+  /** Última evaluación de la historia de longevidad (si existe) */
+  longevidad?: { fecha: string; secciones: { seccion: string; lineas: { label: string; valor: string }[] }[] } | null;
   fechaEmision: string;
   doctorNombre: string;
   doctorEspecialidad?: string | null;
@@ -161,6 +163,19 @@ export const HistoriaClinicaPDF: React.FC<HistoriaClinicaPDFProps> = (p) => {
             {x.notas ? <Text style={s.small}>{x.notas}</Text> : null}
           </View>
         ))}
+
+        {/* Historia de longevidad (solo si hay evaluación) */}
+        {p.longevidad && p.longevidad.secciones.length > 0 ? (
+          <View>
+            <Text style={base.section}>Historia de longevidad · evaluación del {p.longevidad.fecha}</Text>
+            {p.longevidad.secciones.map((sec, i) => (
+              <View key={i} style={s.entry}>
+                <Text style={s.bold}>{sec.seccion}</Text>
+                {sec.lineas.map((l, j) => <Text key={j} style={s.small}>{l.label}: {l.valor}</Text>)}
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         {/* Consentimientos */}
         <Text style={base.section}>Consentimientos informados ({p.consentimientos.length})</Text>

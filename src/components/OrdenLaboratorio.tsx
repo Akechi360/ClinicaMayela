@@ -97,7 +97,7 @@ export const OrdenLaboratorioModal: React.FC<{ paciente: Paciente; doctor?: Doct
               <option value="Femenino">Femenino ({estudiosDePerfil('Femenino').length} estudios)</option>
               <option value="Masculino">Masculino ({estudiosDePerfil('Masculino').length} estudios)</option>
             </select>
-            {!sugerido && <p className="text-[10px] text-amber-600 mt-1">El paciente no tiene género registrado; elige el perfil o edítalo en su ficha.</p>}
+            {!sugerido && <p className="text-[10px] text-amber-600 mt-1">El género registrado no define un perfil; elige el que corresponda.</p>}
           </div>
           <div className="space-y-1.5">
             <p className="text-[8px] uppercase tracking-wider text-slate-medium font-bold">Estudios</p>

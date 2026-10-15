@@ -20,6 +20,7 @@ import type {
   OrdenLaboratorio,
   RecipePlantilla,
   RecipeVerificado,
+  HistoriaLongevidad,
 } from '../types/database.types';
 import type { FichaIngreso } from '../lib/fichaIngreso';
 import { fechasVaciasANull } from '../lib/saneo';
@@ -672,14 +673,19 @@ export const updateClinicSettings = dbClinicSettings.actualizar;
 
 export const dbFichas = {
   /** Crea un enlace de un solo uso (7 días). pacienteId null = paciente nuevo. */
-  crear: async (pacienteId: string | null = null): Promise<FichaIngreso> => {
+  crear: async (pacienteId: string | null = null, incluyeLongevidad = false): Promise<FichaIngreso> => {
     const { data, error } = await supabase
       .from('fichas_ingreso')
-      .insert({ paciente_id: pacienteId, token: 'pendiente' })
+      .insert({ paciente_id: pacienteId, token: 'pendiente', incluye_longevidad: incluyeLongevidad })
       .select()
       .single();
     if (error) throw new Error(error.message);
     return data as FichaIngreso;
+  },
+  /** Cambia (mientras esté pendiente) si la ficha pide también la historia de longevidad. */
+  definirLongevidad: async (id: string, incluye: boolean): Promise<void> => {
+    const { error } = await supabase.from('fichas_ingreso').update({ incluye_longevidad: incluye }).eq('id', id).eq('estado', 'pendiente');
+    if (error) throw new Error(error.message);
   },
   listarRecibidas: async (): Promise<FichaIngreso[]> => {
     const { data, error } = await supabase
@@ -716,7 +722,7 @@ export const dbFichas = {
   },
 };
 
-export interface FichaRespuestaPublica { ok: boolean; motivo?: string; nombre?: string | null }
+export interface FichaRespuestaPublica { ok: boolean; motivo?: string; nombre?: string | null; incluye_longevidad?: boolean }
 
 /** Pública (sin sesión): ¿el enlace de la ficha sirve? */
 export const fichaObtener = async (token: string): Promise<FichaRespuestaPublica> => {
@@ -730,4 +736,40 @@ export const fichaEnviar = async (token: string, datos: Record<string, unknown>)
   const { data, error } = await supabase.rpc('ficha_enviar', { p_token: token, p_datos: datos });
   if (error) throw new Error(error.message);
   return data as FichaRespuestaPublica;
+};
+
+// ─────────────────────────────────────────────
+// HISTORIA CLÍNICA DE LONGEVIDAD (una fila por evaluación con fecha)
+// ─────────────────────────────────────────────
+
+export const dbHistoriasLongevidad = {
+  listarPorPaciente: async (pacienteId: string): Promise<HistoriaLongevidad[]> => {
+    const { data, error } = await supabase
+      .from('historias_longevidad')
+      .select('*')
+      .eq('paciente_id', pacienteId)
+      .order('fecha', { ascending: false })
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as HistoriaLongevidad[];
+  },
+  insertar: async (h: { paciente_id: string; fecha?: string; origen?: 'consulta' | 'ficha'; datos: HistoriaLongevidad['datos'] }): Promise<HistoriaLongevidad> => {
+    const { data, error } = await supabase.from('historias_longevidad').insert(h).select().single();
+    if (error) throw new Error(error.message);
+    return data as HistoriaLongevidad;
+  },
+  actualizar: async (id: string, datos: HistoriaLongevidad['datos']): Promise<HistoriaLongevidad> => {
+    const { data, error } = await supabase
+      .from('historias_longevidad')
+      .update({ datos, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data as HistoriaLongevidad;
+  },
+  eliminar: async (id: string): Promise<void> => {
+    const { error } = await supabase.from('historias_longevidad').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  },
 };

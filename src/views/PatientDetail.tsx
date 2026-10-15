@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbRecipePlantillas, dbDoctor, dbConsentimientos, registrarAcceso, dbFichas, dbEventosAdversos, dbComposicionCorporal, dbOrdenesLab } from '../services/db';
+import { dbPacientes, dbHistoriales, dbCitas, dbTransacciones, dbExamenes, dbRecipes, dbRecipePlantillas, dbDoctor, dbConsentimientos, registrarAcceso, dbFichas, dbHistoriasLongevidad, dbEventosAdversos, dbComposicionCorporal, dbOrdenesLab } from '../services/db';
 import { recipeVerifyUrl, recipeQrDataUrl } from '../lib/recipeVerify';
 import { telefonoWa } from '../lib/whatsapp';
 import { textoAntecedentes } from '../lib/recipeAntecedentes';
 import { EnviarFichaModal } from '../components/EnviarFichaModal';
+import { LongevidadTab } from '../components/LongevidadTab';
+import { hayDatosLongevidad, resumenLongevidad } from '../data/longevidad';
 import { fusionarFicha, type FichaIngreso } from '../lib/fichaIngreso';
 import { estructurarDictado, useDictado } from '../lib/dictado';
 import { dbProtocolosPeptidos } from '../services/peptidesService';
@@ -51,7 +53,7 @@ import {
   Ban
 } from 'lucide-react';
 
-type ActiveTab = 'eventos' | 'historial' | 'mapa' | 'citas' | 'finanzas' | 'examenes' | 'recipes' | 'consentimientos' | 'composicion' | 'peptidos';
+type ActiveTab = 'eventos' | 'historial' | 'longevidad' | 'mapa' | 'citas' | 'finanzas' | 'examenes' | 'recipes' | 'consentimientos' | 'composicion' | 'peptidos';
 
 export const PatientDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -154,7 +156,13 @@ export const PatientDetail: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['pacientes'] });
       setShowEditPatientModal(false);
       if (fichaAplicar && id) {
-        try { await dbFichas.marcarAplicada(fichaAplicar.id, id); } catch { /* la ficha queda como recibida */ }
+        try {
+          await dbFichas.marcarAplicada(fichaAplicar.id, id);
+          if (hayDatosLongevidad(fichaAplicar.datos?.longevidad)) {
+            await dbHistoriasLongevidad.insertar({ paciente_id: id, origen: 'ficha', datos: fichaAplicar.datos!.longevidad! });
+            queryClient.invalidateQueries({ queryKey: ['historias-longevidad', id] });
+          }
+        } catch { /* la ficha queda como recibida */ }
         setFichaAplicar(null);
         queryClient.invalidateQueries({ queryKey: ['ficha-recibida', id] });
         queryClient.invalidateQueries({ queryKey: ['fichas-recibidas'] });
@@ -415,6 +423,8 @@ export const PatientDetail: React.FC = () => {
     setIsGeneratingPdf(true);
     try {
       const ordenes = await dbOrdenesLab.listarPorPaciente(paciente.id);
+      const historiasLongevidad = await dbHistoriasLongevidad.listarPorPaciente(paciente.id);
+      const ultimaLongevidad = historiasLongevidad[0];
       const { pdf } = await import("@react-pdf/renderer");
       const { HistoriaClinicaPDF } = await import("../components/HistoriaClinicaPDF");
       const larga = (f: string) => new Date(f.length === 10 ? f + "T00:00:00" : f).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
@@ -435,6 +445,7 @@ export const PatientDetail: React.FC = () => {
           examenes={examenes.map((x) => ({ fecha: larga(x.fecha), titulo: x.titulo, notas: x.notas }))}
           ordenes={ordenes.map((o) => ({ fecha: larga(o.fecha), perfil: o.perfil, estudios: o.estudios }))}
           consentimientos={consentimientos.map((c) => ({ fecha: c.fecha, tratamiento: c.tratamiento_nombre, firmadoEn: c.firmado_en ? fechaHoraCaracas(c.firmado_en) : null }))}
+          longevidad={ultimaLongevidad ? { fecha: larga(ultimaLongevidad.fecha), secciones: resumenLongevidad(ultimaLongevidad.datos) } : null}
           fechaEmision={larga(new Date().toISOString())}
           doctorNombre={doctor?.nombre ?? "Dra. Mayela González"}
           doctorEspecialidad={doctor?.especialidad}
@@ -611,6 +622,7 @@ export const PatientDetail: React.FC = () => {
 
   const TABS: { id: ActiveTab; label: string }[] = [
     { id: 'historial',       label: 'Historial Clínico' },
+    { id: 'longevidad',      label: 'Longevidad' },
     { id: 'eventos',         label: eventosActivos > 0 ? `Efectos Adversos (${eventosActivos})` : 'Efectos Adversos' },
     { id: 'composicion',     label: 'Composición Corporal' },
     { id: 'mapa',            label: 'Mapa Facial' },
@@ -860,6 +872,8 @@ export const PatientDetail: React.FC = () => {
         )}
 
         {/* Composición Corporal */}
+        {activeTab === 'longevidad' && id && <LongevidadTab pacienteId={id} />}
+
         {activeTab === 'composicion' && id && (
           <ComposicionCorporalTab pacienteId={id} estaturaCm={paciente.estatura_cm} pesoMetaKg={paciente.peso_meta_kg} />
         )}
@@ -1543,6 +1557,7 @@ export const PatientDetail: React.FC = () => {
                     <option value="">Sin especificar</option>
                     <option value="Femenino">Femenino</option>
                     <option value="Masculino">Masculino</option>
+                    <option value="Otro">Otro</option>
                   </select>
                 </div>
                 <div className="flex flex-col space-y-1">

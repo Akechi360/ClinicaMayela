@@ -150,6 +150,10 @@ export interface ClinicSettings {
   mensaje_bienvenida?: string;
   /** Token secreto del enlace de suscripción a Google Calendar */
   calendar_token?:     string | null;
+  /** ID del calendario de Google donde se escriben las citas (null = sincronización apagada) */
+  google_calendar_id?: string | null;
+  /** Token interno del disparador de sincronización */
+  google_sync_token?:  string | null;
   updated_at?:         string;
 }
 
@@ -269,4 +273,15 @@ export interface ComposicionCorporal {
   masa_magra_kg: number; // columna generada en Supabase
   notas?: string;
   created_at?: string;
+}
+
+/** Historia clínica de longevidad: una fila por evaluación (con fecha) de un paciente. */
+export interface HistoriaLongevidad {
+  id: string;
+  paciente_id: string;
+  fecha: string;
+  origen: 'consulta' | 'ficha';
+  datos: import('../data/longevidad').DatosLongevidad;
+  created_at?: string;
+  updated_at?: string;
 }

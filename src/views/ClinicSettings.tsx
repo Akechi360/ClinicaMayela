@@ -4,6 +4,7 @@ import { Save, Shield, MessageSquare, QrCode } from 'lucide-react';
 import { getClinicSettings, updateClinicSettings } from '../services/db';
 import { useToast } from '../components/Toast';
 import { CalendarioSuscripcion } from '../components/CalendarioSuscripcion';
+import { GoogleCalendarSync } from '../components/GoogleCalendarSync';
 
 export const ClinicSettings: React.FC = () => {
   const queryClient = useQueryClient();
@@ -145,6 +146,8 @@ export const ClinicSettings: React.FC = () => {
             </div>
           </div>
         </section>
+
+        {dbSettings?.id && <GoogleCalendarSync settingsId={dbSettings.id} calendarId={dbSettings.google_calendar_id} syncToken={dbSettings.google_sync_token} />}
 
         {dbSettings?.id && <CalendarioSuscripcion settingsId={dbSettings.id} token={dbSettings.calendar_token} />}
 

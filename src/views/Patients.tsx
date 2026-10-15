@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { dbPacientes, dbCitas, dbFichas } from '../services/db';
+import { dbPacientes, dbCitas, dbFichas, dbHistoriasLongevidad } from '../services/db';
 import { EnviarFichaModal } from '../components/EnviarFichaModal';
 import { fichaAPaciente, type FichaIngreso } from '../lib/fichaIngreso';
 import { etiquetaPatologia } from '../data/patologias';
+import { hayDatosLongevidad } from '../data/longevidad';
 import { Search, UserPlus, Phone, Mail, Award, Calendar, Eye, X, Pencil, Trash2, ClipboardList, Check } from 'lucide-react';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
@@ -24,6 +25,9 @@ export const Patients: React.FC = () => {
       if (!f.datos) throw new Error('La ficha no tiene datos.');
       const nuevo = await dbPacientes.insertar(fichaAPaciente(f.datos));
       await dbFichas.marcarAplicada(f.id, nuevo.id);
+      if (hayDatosLongevidad(f.datos.longevidad)) {
+        await dbHistoriasLongevidad.insertar({ paciente_id: nuevo.id, origen: 'ficha', datos: f.datos.longevidad! });
+      }
       return nuevo;
     },
     onSuccess: (nuevo) => {
@@ -222,6 +226,7 @@ export const Patients: React.FC = () => {
                 <p className="font-semibold text-slate-dark">{f.datos?.nombre} {f.datos?.apellido}</p>
                 <p className="text-[11px] text-slate-medium">
                   {f.paciente_id ? 'Actualiza un expediente existente' : 'Paciente nuevo'}
+                  {hayDatosLongevidad(f.datos?.longevidad) ? ' · incluye historia de longevidad' : ''}
                   {f.datos?.patologias?.length ? ` · ${f.datos.patologias.map(etiquetaPatologia).join(', ')}` : ' · Sin patologías declaradas'}
                 </p>
               </div>
@@ -483,6 +488,7 @@ export const Patients: React.FC = () => {
                     <option value="">Sin especificar</option>
                     <option value="Femenino">Femenino</option>
                     <option value="Masculino">Masculino</option>
+                    <option value="Otro">Otro</option>
                   </select>
                 </div>
                 {/* Fecha Nacimiento */}
@@ -573,6 +579,7 @@ export const Patients: React.FC = () => {
                     <option value="">Sin especificar</option>
                     <option value="Femenino">Femenino</option>
                     <option value="Masculino">Masculino</option>
+                    <option value="Otro">Otro</option>
                   </select>
                 </div>
                 <div className="flex flex-col space-y-1">
