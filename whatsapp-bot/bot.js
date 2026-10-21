@@ -1,5 +1,4 @@
-import makeWASocket, { useMultiFileAuthState, DisconnectReason } from '@whiskeysockets/baileys';
-import { applyAntibanMiddleware } from 'baileys-antiban';
+import makeWASocket, { useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } from 'baileys';
 import { createClient } from '@supabase/supabase-js';
 import { createServer } from 'http';
 import qrcode from 'qrcode-terminal';
@@ -7,6 +6,7 @@ import cron from 'node-cron';
 import pino from 'pino';
 import { handleIncomingMessage, identificar, esChatIgnorado, crearLimitador } from './handlers/messageHandler.js';
 import { crearRepo } from './handlers/repo.js';
+import { aplicarAntibloqueo } from './handlers/antibloqueo.js';
 import { PAUSA_HUMANO_HORAS } from './handlers/conversacion.js';
 import { sendDailyReminders } from './handlers/reminderJob.js';
 import { sendPendingFollowups } from './handlers/followupJob.js';
@@ -40,21 +40,22 @@ function getReconnectDelay() {
 async function startBot() {
   const { state, saveCreds } = await useMultiFileAuthState('./auth_session');
 
+  // Versión vigente del protocolo de WhatsApp (si no hay internet para consultarla se usa la incluida en la librería)
+  let version;
+  try { ({ version } = await fetchLatestBaileysVersion()); } catch { /* usa la incluida */ }
+
   let sock = makeWASocket({
     auth: state,
+    version,
     logger,
     printQRInTerminal: false,
     browser: ['Clinica Mayela', 'Chrome', '120.0.0'],
   });
 
-  applyAntibanMiddleware(sock);
-  // Registra el id de todo lo que envía el bot (respuestas, recordatorios, seguimientos) para distinguirlo de lo que escribe la doctora
-  const enviarOriginal = sock.sendMessage.bind(sock);
-  sock.sendMessage = async (...args) => {
-    const r = await enviarOriginal(...args);
-    if (r?.key?.id) { idsDelBot.add(r.key.id); if (idsDelBot.size > 500) idsDelBot.delete(idsDelBot.values().next().value); }
-    return r;
-  };
+  // Todo lo que envía el bot pasa por una cola con "escribiendo…" y pausas; se registran sus ids para distinguirlo de lo que escribe la doctora
+  aplicarAntibloqueo(sock, {
+    alEnviar: (id) => { idsDelBot.add(id); if (idsDelBot.size > 500) idsDelBot.delete(idsDelBot.values().next().value); },
+  });
   currentSock = sock;
 
   sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {

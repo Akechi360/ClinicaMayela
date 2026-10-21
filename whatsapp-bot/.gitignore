@@ -1,0 +1,4 @@
+# Sesión de WhatsApp (equivale a las llaves de la cuenta): NUNCA subir al repositorio
+auth_session/
+.env
+node_modules/

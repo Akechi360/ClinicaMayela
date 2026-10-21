@@ -10,7 +10,7 @@ real, envía recordatorios y los seguimientos post-tratamiento programados desde
   (Windows: Configuración → Sistema → Energía → "Suspender: nunca" con la corriente conectada).
 
 ## Instalación
-1. En esta carpeta (`whatsapp-bot`): `npm install`
+1. En esta carpeta (`whatsapp-bot`): `npm install`. Usa Baileys **7.0.0-rc14** (versión fija; el aviso de "allow-scripts" de npm es normal).
 2. Prueba sin WhatsApp (recomendado): `node simulador.js 04141234567` y conversa como si fueras un paciente.
    Lee la agenda real pero **no escribe nada** en la base de datos.
 3. Arranca el bot: `node bot.js`
@@ -45,8 +45,11 @@ Coloca un acceso directo de `iniciar_bot.bat` en la carpeta de inicio: `Win + R`
   Los teléfonos se normalizan (`0414…` → `58414…`).
 
 ## Notas importantes
+- **Sin paquetes "anti-ban" de terceros:** el espaciado de mensajes ("escribiendo…", pausa de 1 a 3 s entre mensajes, una sola cola) lo hace
+  `handlers/antibloqueo.js`. No se instala ningún paquete que tenga acceso a la sesión de WhatsApp.
 - **Riesgo de bloqueo:** es una conexión no oficial. Se reduce usando solo el número dedicado, sin envíos masivos y sin
   escribir a quien no sea paciente. Nunca uses el número personal de la doctora.
-- **No borres la carpeta `auth_session`:** guarda la sesión de WhatsApp. Haz una copia de seguridad periódica.
+- **No borres la carpeta `auth_session`:** guarda la sesión de WhatsApp. Haz una copia de seguridad periódica y **nunca** la subas a internet
+  (ya está excluida de git: da acceso total a la cuenta).
 - Si el bot se desconecta, se reconecta solo. El estado de las conversaciones se guarda en la base de datos, así que un reinicio no las pierde.
 - Pruebas: `npm test` (equivalente a `node --test handlers/*.test.js`).
