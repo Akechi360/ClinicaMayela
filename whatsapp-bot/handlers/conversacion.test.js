@@ -45,11 +45,14 @@ test('bot apagado: no responde nada', async () => {
   assert.equal(r.motivo, 'bot_inactivo');
 });
 
-test('saludo muestra el menú', async () => {
+test('el saludo no lleva menú; el menú sale al pedirlo', async () => {
   const repo = crearRepoFalso();
   const r = await decir(repo, 'Hola');
-  assert.match(junto(r), /Agendar una cita/);
-  assert.match(junto(r), /Hablar con la doctora/);
+  assert.match(junto(r), /Soy la IA de la Dra. Mayela/);
+  assert.doesNotMatch(junto(r), /Agendar una cita/); // el saludo no lleva menú
+  const m = await decir(repo, "menu");
+  assert.match(junto(m), /Agendar una cita/);
+  assert.match(junto(m), /Hablar con la doctora/);
 });
 
 test('paciente existente (teléfono en otro formato) agenda y queda confirmada', async () => {
@@ -169,7 +172,7 @@ test('hablar con la doctora: avisa en la app y el bot se calla en ese chat', asy
   const luego = new Date(AHORA.getTime() + 3.1 * 3_600_000);
   repo.sesiones[KEY].actualizado_en = luego.toISOString();
   r = await decir(repo, 'hola', { ahora: luego });
-  assert.match(junto(r), /Agendar una cita/);
+  assert.match(junto(r), /Bienvenido/);
 });
 
 test('la sesión vence a los 30 minutos y vuelve al menú', async () => {

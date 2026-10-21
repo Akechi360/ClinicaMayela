@@ -76,7 +76,7 @@ test('saludo según la hora y con el nombre del paciente conocido', async () => 
   assert.match(junto(r), /^Buenas tardes, Willian\./);
   r = await dec(repoFalso(), 'hola');
   assert.match(junto(r), /^Buenos días\. Bienvenido/);
-  assert.match(junto(r), /Agendar una cita/);
+  assert.doesNotMatch(junto(r), /Agendar una cita/); // sin menú en el saludo
 });
 
 test('"quiero una cita para el jueves" salta directo a los horarios de ese día', async () => {

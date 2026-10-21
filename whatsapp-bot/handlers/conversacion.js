@@ -10,7 +10,9 @@ import { detectarIntencion, opcionDeIntencion, diaMencionado } from './intencion
 export const EXPIRA_MIN = 30;
 export const PAUSA_HUMANO_HORAS = 3;
 
-const SALUDOS = new Set(['menu', 'inicio', 'hola', 'buenas', 'buenos dias', 'buenas tardes', 'buenas noches', 'ayuda', '0']);
+const SALUDOS = new Set(['inicio', 'hola', 'buenas', 'buenos dias', 'buenas tardes', 'buenas noches']);
+// Estas palabras sí muestran la lista de opciones
+const PIDE_MENU = new Set(['menu', 'ayuda', '0', 'opciones']);
 
 const MENU = [
   '1️⃣ Agendar una cita',
@@ -22,7 +24,9 @@ const MENU = [
   'Escriba el número de la opción deseada. Para volver a este menú en cualquier momento, escriba *menu*.',
 ].join('\n');
 
-const saludo = (aj) => `${(aj?.mensaje_bienvenida || 'Bienvenido(a) a la *Clínica Dra. Mayela González*. Soy el asistente virtual de la clínica, ¿en qué puedo ayudarle?').trim()}\n\n${MENU}`;
+// El saludo no lleva menú: el paciente escribe con sus palabras (ver intenciones.js). El menú se muestra al pedirlo o si no se le entiende.
+const saludo = (aj) => (aj?.mensaje_bienvenida || 'Bienvenido(a) a la *Clínica Dra. Mayela González*. Soy la IA de la Dra. Mayela y con gusto le atenderé. ¿En qué puedo ayudarle?').trim();
+const conMenu = `Con gusto. Estas son las opciones disponibles:\n\n${MENU}`;
 
 const esNumero = (t, max) => {
   if (!/^\d{1,2}$/.test(t)) return null;
@@ -79,7 +83,7 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
   // ── Pasos reutilizables ──────────────────────────────────────────────
   // Al terminar un trámite se limpian los datos, pero se conserva el teléfono si el paciente tuvo que escribirlo
   const limpiar = () => { datos = tel && !telefono ? { telefono: tel } : {}; };
-  const irMenu = () => { paso = 'opcion'; limpiar(); decir(saludo(aj)); };
+  const irMenu = () => { paso = 'opcion'; limpiar(); decir(conMenu); };
 
   /** Primer contacto o saludo: "Buenos días, Willian." + bienvenida + menú */
   async function irMenuConSaludo() {
@@ -302,6 +306,8 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
   // ── Máquina de estados ───────────────────────────────────────────────
   if (detectarUrgencia(t)) {
     await sintomasUrgentes();
+  } else if (PIDE_MENU.has(t)) {
+    irMenu();
   } else if (SALUDOS.has(t) && paso !== 'menu') {
     await irMenuConSaludo();
   } else {
