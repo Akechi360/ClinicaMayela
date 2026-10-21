@@ -7,11 +7,18 @@ import pino from 'pino';
 import { handleIncomingMessage, identificar, esChatIgnorado, crearLimitador } from './handlers/messageHandler.js';
 import { crearRepo } from './handlers/repo.js';
 import { aplicarAntibloqueo } from './handlers/antibloqueo.js';
+import { avisoDeLlave } from './handlers/llave.js';
 import { PAUSA_HUMANO_HORAS } from './handlers/conversacion.js';
 import { sendDailyReminders } from './handlers/reminderJob.js';
 import { sendPendingFollowups } from './handlers/followupJob.js';
 import { ahoraCaracas, correspondenRecordatorios } from './handlers/reminderSchedule.js';
 import 'dotenv/config';
+
+const avisoLlave = avisoDeLlave(process.env.SUPABASE_SERVICE_KEY);
+if (avisoLlave) {
+  console.error('⚠️ ' + avisoLlave);
+  process.exit(1);
+}
 
 const logger = pino({ level: 'silent' });
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);

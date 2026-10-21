@@ -7,6 +7,7 @@ import { createClient } from '@supabase/supabase-js';
 import { crearRepo } from './handlers/repo.js';
 import { procesar } from './handlers/conversacion.js';
 import { normalizarTelefono } from './handlers/telefono.js';
+import { avisoDeLlave } from './handlers/llave.js';
 
 const tel = normalizarTelefono(process.argv[2] ?? '');
 if (!tel) {
@@ -17,6 +18,13 @@ if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
   console.log('Faltan SUPABASE_URL y SUPABASE_SERVICE_KEY en el archivo .env');
   process.exit(1);
 }
+
+const avisoLlave = avisoDeLlave(process.env.SUPABASE_SERVICE_KEY);
+if (avisoLlave) {
+  console.log('⚠️ ' + avisoLlave);
+  process.exit(1);
+}
+console.log('✅ Llave service_role detectada.');
 
 const real = crearRepo(createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY), { appUrl: process.env.APP_URL });
 const sesiones = new Map();
