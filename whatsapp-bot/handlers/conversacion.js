@@ -25,7 +25,7 @@ const MENU = [
 ].join('\n');
 
 // El saludo no lleva menú: el paciente escribe con sus palabras (ver intenciones.js). El menú se muestra al pedirlo o si no se le entiende.
-const saludo = (aj) => (aj?.mensaje_bienvenida || 'Bienvenido(a) a la *Clínica Dra. Mayela González*. Soy la IA de la Dra. Mayela y con gusto le atenderé. ¿En qué puedo ayudarle?').trim();
+const saludo = (aj) => (aj?.mensaje_bienvenida || 'Bienvenido(a) a la *Clínica Dra. Mayela González*. Soy su asistente de inteligencia artificial y con gusto le atenderé. ¿En qué puedo ayudarle?').trim();
 const conMenu = `Con gusto. Estas son las opciones disponibles:\n\n${MENU}`;
 
 const esNumero = (t, max) => {

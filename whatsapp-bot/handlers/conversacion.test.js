@@ -48,7 +48,7 @@ test('bot apagado: no responde nada', async () => {
 test('el saludo no lleva menú; el menú sale al pedirlo', async () => {
   const repo = crearRepoFalso();
   const r = await decir(repo, 'Hola');
-  assert.match(junto(r), /Soy la IA de la Dra. Mayela/);
+  assert.match(junto(r), /asistente de inteligencia artificial/);
   assert.doesNotMatch(junto(r), /Agendar una cita/); // el saludo no lleva menú
   const m = await decir(repo, "menu");
   assert.match(junto(m), /Agendar una cita/);
