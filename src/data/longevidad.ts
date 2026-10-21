@@ -41,7 +41,7 @@ export const SECCIONES_LONGEVIDAD: SeccionLongevidad[] = [
   {
     id: 'familiares',
     titulo: 'Antecedentes familiares',
-    descripcion: 'Marca lo que haya en tu familia (padres, hermanos, abuelos).',
+    descripcion: 'Marque lo que haya en su familia (padres, hermanos, abuelos).',
     campos: [
       {
         id: 'cardiometabolico', label: 'Cardio-metabólicas', tipo: 'multi',
@@ -97,9 +97,9 @@ export const SECCIONES_LONGEVIDAD: SeccionLongevidad[] = [
       { id: 'zona2_horas', label: 'Entrenamiento aeróbico (zona 2)', tipo: 'numero', min: 0, max: 40, paso: 0.5, unidad: 'horas por semana' },
       { id: 'zona2_tipo', label: 'Tipo de ejercicio', tipo: 'texto', placeholder: 'Caminata, bicicleta, natación…' },
       { id: 'hiit_veces', label: 'Ejercicio de alta intensidad (VO2 máx.)', tipo: 'numero', min: 0, max: 14, paso: 1, unidad: 'veces por semana' },
-      { id: 'masa_muscular_kg', label: 'Masa muscular esquelética (si la conoces)', tipo: 'numero', min: 0, max: 150, paso: 0.1, unidad: 'kg' },
-      { id: 'grasa_pct', label: 'Porcentaje de grasa corporal (si lo conoces)', tipo: 'numero', min: 0, max: 80, paso: 0.1, unidad: '%' },
-      { id: 'grasa_visceral', label: 'Grasa visceral (si la conoces)', tipo: 'numero', min: 0, max: 60, paso: 1 },
+      { id: 'masa_muscular_kg', label: 'Masa muscular esquelética (si la conoce)', tipo: 'numero', min: 0, max: 150, paso: 0.1, unidad: 'kg' },
+      { id: 'grasa_pct', label: 'Porcentaje de grasa corporal (si lo conoce)', tipo: 'numero', min: 0, max: 80, paso: 0.1, unidad: '%' },
+      { id: 'grasa_visceral', label: 'Grasa visceral (si la conoce)', tipo: 'numero', min: 0, max: 60, paso: 1 },
     ],
   },
   {

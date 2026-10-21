@@ -14,9 +14,9 @@ type Estado =
   | { tipo: 'enviada' };
 
 const MOTIVOS: Record<string, string> = {
-  no_existe: 'Este enlace no es válido. Pide a la clínica que te envíe uno nuevo.',
+  no_existe: 'Este enlace no es válido. Solicite a la clínica que le envíe uno nuevo.',
   ya_enviada: 'Esta ficha ya fue enviada. ¡Gracias! No necesitas hacer nada más.',
-  vencida: 'Este enlace venció. Pide a la clínica que te envíe uno nuevo.',
+  vencida: 'Este enlace venció. Solicite a la clínica que le envíe uno nuevo.',
 };
 
 const campo = 'w-full rounded-xl border border-lilac-soft bg-white px-3.5 py-3 text-base text-ink placeholder:text-lilac-muted/60 focus:outline-none focus:ring-2 focus:ring-aurora-violet/50';
@@ -78,7 +78,7 @@ export const FichaIngresoPublica: React.FC = () => {
 
   const siguiente = () => {
     setError('');
-    if (paso === 0 && (!nombre.trim() || !apellido.trim())) { setError('Escribe tu nombre y apellido.'); return; }
+    if (paso === 0 && (!nombre.trim() || !apellido.trim())) { setError('Escriba su nombre y apellido.'); return; }
     setPaso((p) => Math.min(p + 1, totalPasos - 1));
     subir();
   };
@@ -88,7 +88,7 @@ export const FichaIngresoPublica: React.FC = () => {
     e.preventDefault();
     if (!esUltimo) { siguiente(); return; }
     setError('');
-    if (!nombre.trim() || !apellido.trim()) { setError('Escribe tu nombre y apellido.'); setPaso(0); return; }
+    if (!nombre.trim() || !apellido.trim()) { setError('Escriba su nombre y apellido.'); setPaso(0); return; }
     if (!veracidad || !privacidad) { setError('Debes aceptar las dos declaraciones para enviar la ficha.'); return; }
     setEnviando(true);
     try {
@@ -103,10 +103,10 @@ export const FichaIngresoPublica: React.FC = () => {
       if (conLongevidad) datos.longevidad = limpiarLongevidad(longevidad);
       const r = await fichaEnviar(codigo, datos);
       if (r.ok) { setEstado({ tipo: 'enviada' }); subir(); }
-      else if (r.motivo === 'falta_nombre' || r.motivo === 'falta_aceptacion') setError('Revisa los datos obligatorios e intenta de nuevo.');
+      else if (r.motivo === 'falta_nombre' || r.motivo === 'falta_aceptacion') setError('Revise los datos obligatorios e intente de nuevo.');
       else setEstado({ tipo: 'invalida', motivo: r.motivo ?? 'no_existe' });
     } catch {
-      setError('No se pudo enviar. Revisa tu conexión e intenta de nuevo.');
+      setError('No se pudo enviar. Revise su conexión e intente de nuevo.');
     } finally {
       setEnviando(false);
     }
@@ -129,7 +129,7 @@ export const FichaIngresoPublica: React.FC = () => {
 
         {estado.tipo === 'error' && (
           <div className="rounded-3xl border border-lilac-soft bg-white p-8 text-center text-sm text-lilac-muted">
-            No se pudo abrir la ficha. Revisa tu conexión e intenta de nuevo.
+            No se pudo abrir la ficha. Revise su conexión e intente de nuevo.
           </div>
         )}
 
@@ -144,7 +144,7 @@ export const FichaIngresoPublica: React.FC = () => {
           <div className="rounded-3xl border border-emerald-200 bg-white p-8 text-center">
             <CheckCircle2 className="mx-auto mb-3 text-emerald-600" size={44} />
             <h1 className="mb-2 font-fraunces text-2xl text-lilac-dark">¡Ficha enviada!</h1>
-            <p className="text-sm text-lilac-muted">La Dra. Mayela González revisará tu información antes de tu consulta. Ya puedes cerrar esta página.</p>
+            <p className="text-sm text-lilac-muted">La Dra. Mayela González revisará su información antes de su consulta. Ya puede cerrar esta página.</p>
           </div>
         )}
 
@@ -155,8 +155,8 @@ export const FichaIngresoPublica: React.FC = () => {
                 {estado.nombre ? `Hola ${estado.nombre},` : conLongevidad ? 'Historia clínica' : 'Ficha de ingreso'}
               </h1>
               <p className="mt-1 text-sm text-lilac-muted">
-                {estado.nombre ? 'completa tu ficha.' : 'Completa tus datos antes de tu consulta.'}{' '}
-                Solo la verá la Dra. Mayela González.{conLongevidad ? ' Puedes saltar lo que no sepas.' : ''}
+                {estado.nombre ? 'complete su ficha.' : 'Complete sus datos antes de su consulta.'}{' '}
+                Solo la verá la Dra. Mayela González.{conLongevidad ? ' Puede omitir lo que no sepa.' : ''}
               </p>
               {totalPasos > 1 && (
                 <div className="mt-3" aria-label={`Paso ${paso + 1} de ${totalPasos}`}>
@@ -171,7 +171,7 @@ export const FichaIngresoPublica: React.FC = () => {
             {paso === 0 && (
               <>
                 <section className="space-y-3 rounded-2xl border border-lilac-soft bg-white p-4">
-                  <h2 className="font-fraunces text-lg text-lilac-deep">Tus datos</h2>
+                  <h2 className="font-fraunces text-lg text-lilac-deep">Sus datos</h2>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div><label className={etiqueta}>Nombre *</label><input className={campo} value={nombre} onChange={(e) => setNombre(e.target.value)} autoComplete="given-name" /></div>
                     <div><label className={etiqueta}>Apellido *</label><input className={campo} value={apellido} onChange={(e) => setApellido(e.target.value)} autoComplete="family-name" /></div>
@@ -194,7 +194,7 @@ export const FichaIngresoPublica: React.FC = () => {
 
                 <section className="space-y-3 rounded-2xl border border-lilac-soft bg-white p-4">
                   <h2 className="font-fraunces text-lg text-lilac-deep">Antecedentes de salud</h2>
-                  <p className="text-xs text-lilac-muted">Marca todo lo que aplique o haya aplicado en tu vida. Si dudas, déjalo y coméntalo en la consulta.</p>
+                  <p className="text-xs text-lilac-muted">Marque todo lo que aplique o haya aplicado en su vida. Si tiene dudas, déjelo en blanco y coméntelo en la consulta.</p>
                   <PatologiasSelector value={patologias} onChange={setPatologias} />
                   <div><label className={etiqueta}>Alergias (medicamentos, alimentos, látex…)</label><input className={campo} value={alergias} onChange={(e) => setAlergias(e.target.value)} placeholder="Ninguna conocida" /></div>
                   <div><label className={etiqueta}>Medicamentos que tomas actualmente</label><textarea className={campo} rows={2} value={medicamentos} onChange={(e) => setMedicamentos(e.target.value)} placeholder="Nombre y dosis, si los recuerdas" /></div>

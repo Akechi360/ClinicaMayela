@@ -547,7 +547,7 @@ export const PatientDetail: React.FC = () => {
     avisarSinFirmaSello();
 
     const fecha = new Date(recipe.fecha + 'T00:00:00').toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
-    const msg = `Hola ${paciente.nombre}, le comparto su récipe médico del ${fecha}, emitido por ${recipe.doctor_nombre ?? 'la Dra. Mayela González'}. Puede presentarlo en la farmacia (impreso o desde su teléfono): el código QR del documento permite verificar su autenticidad.`;
+    const msg = `Estimado(a) ${paciente.nombre}, le comparto su récipe médico del ${fecha}, emitido por ${recipe.doctor_nombre ?? 'la Dra. Mayela González'}. Puede presentarlo en la farmacia (impreso o desde su teléfono): el código QR del documento permite verificar su autenticidad.`;
 
     // En celulares con "compartir archivos" se adjunta el PDF directamente. En computador: se descarga y se abre el chat.
     const puedeCompartir = typeof navigator.canShare === 'function'

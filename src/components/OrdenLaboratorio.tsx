@@ -42,7 +42,7 @@ async function descargarPdf(o: Pick<OrdenLaboratorio, 'fecha' | 'perfil' | 'estu
 }
 
 const mensajeWa = (paciente: Paciente, doctor: DoctorProfile | null | undefined, estudios: string[], notas?: string | null) =>
-  `Hola ${paciente.nombre}, le envío su orden de laboratorio indicada por ${doctor?.nombre ?? 'la Dra. Mayela González'}:\n\n` +
+  `Estimado(a) ${paciente.nombre}, le envío su orden de laboratorio indicada por ${doctor?.nombre ?? 'la Dra. Mayela González'}:\n\n` +
   estudios.map((e) => `• ${e}`).join('\n') +
   (notas ? `\n\n${notas}` : '') +
   '\n\nCuando tenga los resultados, puede enviármelos por este medio.';

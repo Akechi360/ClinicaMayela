@@ -87,7 +87,7 @@ export const VerifyRecipe: React.FC = () => {
 
         {estado.tipo === 'error' && (
           <div className="rounded-3xl border border-lilac-soft bg-white p-8 text-center text-sm text-lilac-muted">
-            No se pudo completar la verificación. Revisa tu conexión e intenta de nuevo.
+            No se pudo completar la verificación. Revise su conexión e intente de nuevo.
           </div>
         )}
 
@@ -95,7 +95,7 @@ export const VerifyRecipe: React.FC = () => {
           <div role="alert" className="rounded-3xl border-2 border-red-300 bg-white p-8 text-center">
             <ShieldX className="mx-auto mb-3 text-red-600" size={44} />
             <h1 className="mb-2 font-fraunces text-2xl text-red-700">Récipe inválido</h1>
-            <p className="text-sm text-lilac-muted">Este código no corresponde a un récipe emitido por la clínica, o el documento fue alterado. No lo despaches.</p>
+            <p className="text-sm text-lilac-muted">Este código no corresponde a un récipe emitido por la clínica, o el documento fue alterado. No lo despache.</p>
           </div>
         )}
 
@@ -104,7 +104,7 @@ export const VerifyRecipe: React.FC = () => {
             <ShieldX className="mx-auto mb-3 text-red-600" size={44} />
             <h1 className="mb-2 font-fraunces text-2xl text-red-700">Récipe anulado</h1>
             <p className="text-sm text-lilac-muted">
-              El documento es auténtico, pero {r?.doctor_nombre} lo anuló{r?.estado_at ? ` el ${fechaLarga(r.estado_at)}` : ''}. No lo despaches.
+              El documento es auténtico, pero {r?.doctor_nombre} lo anuló{r?.estado_at ? ` el ${fechaLarga(r.estado_at)}` : ''}. No lo despache.
             </p>
           </div>
         )}
@@ -130,7 +130,7 @@ export const VerifyRecipe: React.FC = () => {
             <div className="text-sm">
               <p className="font-semibold text-amber-900">Récipe auténtico · ya dispensado</p>
               <p className="mt-1 text-xs leading-relaxed text-amber-800">
-                Fue marcado como dispensado{r?.estado_at ? ` el ${fechaLarga(r.estado_at)}` : ''}. Confirma con el paciente antes de entregar de nuevo.
+                Fue marcado como dispensado{r?.estado_at ? ` el ${fechaLarga(r.estado_at)}` : ''}. Confirme con el paciente antes de entregar de nuevo.
               </p>
             </div>
           </div>
@@ -141,7 +141,7 @@ export const VerifyRecipe: React.FC = () => {
             <div className="border-l-4 border-aurora-deep pl-4">
               <h1 className="font-fraunces text-3xl leading-tight text-lilac-dark">Récipe médico verificado</h1>
               <p className="mt-1 text-sm text-lilac-muted">
-                Esta es la versión canónica registrada por la especialista emisora. Compárala con el papel impreso para confirmar que no fue alterado.
+                Esta es la versión canónica registrada por la especialista emisora. Compárela con el papel impreso para confirmar que no fue alterado.
               </p>
             </div>
 
@@ -169,7 +169,7 @@ export const VerifyRecipe: React.FC = () => {
                 <p className="mt-2 font-fraunces text-lg text-lilac-dark">{r.paciente}</p>
                 {r.paciente_cedula && <p className="mt-1 text-xs font-mono text-lilac-muted">{r.paciente_cedula}</p>}
                 <p className="mt-3 border-t border-lilac-soft pt-3 text-xs leading-relaxed text-lilac-muted">
-                  Confirma que el nombre y los últimos dígitos de la cédula coincidan con quien tienes delante antes de dispensar.
+                  Confirme que el nombre y los últimos dígitos de la cédula coincidan con quien tiene delante antes de dispensar.
                 </p>
               </section>
             </div>
@@ -214,7 +214,7 @@ export const VerifyRecipe: React.FC = () => {
             </section>
 
             <p className="rounded-xl bg-lilac-blush/60 px-4 py-3 text-xs leading-relaxed text-lilac-deep">
-              Si los medicamentos en el papel no coinciden con los listados arriba, no despaches y contacta a la médica emisora.
+              Si los medicamentos en el papel no coinciden con los listados arriba, no despache y comuníquese con la médica emisora.
             </p>
             <p className="flex items-center justify-center gap-1.5 pt-2 text-center text-[11px] text-lilac-muted">
               <ShieldCheck size={13} className="text-emerald-600" />

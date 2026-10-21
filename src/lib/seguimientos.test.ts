@@ -28,7 +28,7 @@ describe('planCuidados', () => {
     expect(r[1].fecha_programada).toBe('2026-10-08T15:00:00.000Z');
     expect(r[2].fecha_programada).toBe('2026-10-10T15:00:00.000Z');
     expect(r[3].fecha_programada).toBe('2026-10-22T14:00:00.000Z');
-    expect(r[0].mensaje).toContain('Hola Ana');
+    expect(r[0].mensaje).toContain('Estimado(a) Ana');
   });
   it('omite lo que no se pidió', () => {
     expect(planCuidados({ ...base, incluirCuidadosAhora: false, r72: false, controlDias: null }).map((x) => x.tipo)).toEqual(['recordatorio_24h']);

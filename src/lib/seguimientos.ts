@@ -79,12 +79,12 @@ export function planDosis(o: OpcionesDosis): SeguimientoNuevo[] {
     const fecha = sumarDias(o.inicio, d);
     const semana = Math.floor(d / 7) + 1;
     out.push({ ...base, tipo: 'dosis_peptido', fecha_programada: caracasAUtc(fecha, o.hora),
-      mensaje: `Hola ${primerNombre(o.nombre)} 💜 Hoy te toca tu aplicación de *${o.peptido}* (${dosisEnSemana(semana)}). Recuerda rotar el sitio de inyección y usar una jeringa nueva.` });
+      mensaje: `Estimado(a) ${primerNombre(o.nombre)}, hoy corresponde su aplicación de *${o.peptido}* (${dosisEnSemana(semana)}). Recuerde rotar el sitio de inyección y usar una jeringa nueva.` });
   }
   for (const e of escalado) {
     const fecha = sumarDias(o.inicio, (e.semana - 1) * 7);
     out.push({ ...base, tipo: 'escalado_dosis', fecha_programada: caracasAUtc(fecha, o.hora),
-      mensaje: `Hola ${primerNombre(o.nombre)} 💜 A partir de hoy (semana ${e.semana}) cambia tu dosis de *${o.peptido}* a *${e.dosis}*. Si tienes dudas antes de aplicarla, escríbenos.` });
+      mensaje: `Estimado(a) ${primerNombre(o.nombre)}, a partir de hoy (semana ${e.semana}) su dosis de *${o.peptido}* cambia a *${e.dosis}*. Si tiene dudas antes de aplicarla, escríbanos.` });
   }
   return out.sort((a, b) => a.fecha_programada.localeCompare(b.fecha_programada));
 }
