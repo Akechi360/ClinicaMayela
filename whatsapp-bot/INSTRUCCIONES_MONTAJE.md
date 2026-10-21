@@ -61,3 +61,10 @@ Coloca un acceso directo de `iniciar_bot.bat` en la carpeta de inicio: `Win + R`
   (ya está excluida de git: da acceso total a la cuenta).
 - Si el bot se desconecta, se reconecta solo. El estado de las conversaciones se guarda en la base de datos, así que un reinicio no las pierde.
 - Pruebas: `npm test` (equivalente a `node --test handlers/*.test.js`).
+
+## Hacer que el bot suene más natural (sin programar)
+- `handlers/frases.js`: las frases del bot (saludos por hora, gracias, despedidas, "no entendí"…). Agregue más variantes a cada lista y el bot elige una al azar.
+- `handlers/intenciones.js`: qué palabras significan agendar, cancelar, ver citas, horario/precio, hablar con la doctora, gracias, etc.
+  Agregue palabras (en minúscula, sin tildes) a la lista que corresponda. También reconoce "hoy", "mañana" o un día de la semana
+  ("quiero una cita para el jueves" muestra directamente los horarios del jueves).
+- Después de editar, reinicie el bot y corra `npm test` para comprobar que todo sigue bien.

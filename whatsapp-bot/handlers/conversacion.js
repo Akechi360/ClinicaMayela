@@ -4,6 +4,8 @@ import { ahoraCaracas, fechaHoraCaracas } from './reminderSchedule.js';
 import { configDesdeAjustes, diasDisponibles, intervalosOcupados, slotsDelDia } from './disponibilidad.js';
 import { hora12, norm, textoCita, textoDia, textoHorario } from './textos.js';
 import { formatoLocal, normalizarTelefono } from './telefono.js';
+import { FRASES, elegir, rellenar } from './frases.js';
+import { detectarIntencion, opcionDeIntencion, diaMencionado } from './intenciones.js';
 
 export const EXPIRA_MIN = 30;
 export const PAUSA_HUMANO_HORAS = 3;
@@ -54,7 +56,7 @@ export const detectarUrgencia = (t) => t.length > 3 && !/^\d+$/.test(t) && PATRO
  * Procesa un mensaje entrante y devuelve lo que hay que responder.
  * @returns {{ respuestas: string[], motivo?: string }}
  */
-export async function procesar(repo, { clave, telefono, texto, ahora = new Date() }) {
+export async function procesar(repo, { clave, telefono, texto, ahora = new Date(), azar = Math.random }) {
   const aj = await repo.ajustes();
   if (!aj?.bot_activo) return { respuestas: [], motivo: 'bot_inactivo' };
   const cfg = configDesdeAjustes(aj);
@@ -78,6 +80,30 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
   // Al terminar un trámite se limpian los datos, pero se conserva el teléfono si el paciente tuvo que escribirlo
   const limpiar = () => { datos = tel && !telefono ? { telefono: tel } : {}; };
   const irMenu = () => { paso = 'opcion'; limpiar(); decir(saludo(aj)); };
+
+  /** Primer contacto o saludo: "Buenos días, Willian." + bienvenida + menú */
+  async function irMenuConSaludo() {
+    const nombre = (await nombrePaciente())?.trim();
+    const h = ahoraCaracas(ahora).hora;
+    const momento = h < '12:00' ? 'saludoManana' : h < '19:00' ? 'saludoTarde' : 'saludoNoche';
+    const { conNombre, sinNombre } = FRASES[momento];
+    const encabezado = rellenar(elegir(nombre ? conNombre : sinNombre, azar), { nombre });
+    paso = 'opcion';
+    limpiar();
+    decir(`${encabezado} ${saludo(aj)}`);
+  }
+
+  /** Lo que el paciente quiso decir con palabras propias (ver intenciones.js) */
+  async function porIntencion(id) {
+    paso = 'opcion';
+    switch (id) {
+      case 'gracias': return decir(elegir(FRASES.gracias, azar));
+      case 'despedida': return decir(elegir(FRASES.despedida, azar));
+      case 'cambiar': decir(elegir(FRASES.cambiarCita, azar)); return ejecutarOpcion('3');
+      case 'agendar': datos.diaPref = diaMencionado(texto, hoy()); return ejecutarOpcion('1');
+      default: return ejecutarOpcion(opcionDeIntencion(id));
+    }
+  }
 
   async function mostrarTratamientos() {
     const trat = await repo.tratamientosReservables();
@@ -108,6 +134,13 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
       return;
     }
     datos.dias = dias.map((d) => d.dia);
+    const pref = datos.diaPref;
+    delete datos.diaPref;
+    if (pref) {
+      const libres = slotsDelDia({ dia: pref, config: cfg, ocupados: await ocupadosDelHorizonte(), duracionMin: dur, ahora });
+      if (libres.length) { decir(rellenar(elegir(FRASES.diaEntendido, azar), { dia: textoDia(pref) })); return mostrarHoras(pref); }
+      decir(elegir(FRASES.diaNoDisponible, azar));
+    }
     decir(`📅 ¿Qué día prefiere?\n\n${lista(dias.map((d) => `${textoDia(d.dia)} (${d.slots.length} horarios)`))}`);
     paso = 'dia';
   }
@@ -248,7 +281,7 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
         return;
       case '5': return hablarConDoctora();
       default:
-        decir(`No logré interpretar su mensaje. Por favor elija una de las opciones:\n\n${MENU}`);
+        decir(`${elegir(FRASES.noEntendi, azar)}\n\n${MENU}`);
     }
   }
 
@@ -270,15 +303,18 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
   if (detectarUrgencia(t)) {
     await sintomasUrgentes();
   } else if (SALUDOS.has(t) && paso !== 'menu') {
-    irMenu();
+    await irMenuConSaludo();
   } else {
     switch (paso) {
       case 'menu':
-        if (/^[1-5]$/.test(t)) { paso = 'opcion'; await ejecutarOpcion(t); } else if (/doctora|hablar con/.test(t)) { await hablarConDoctora(); } else irMenu();
+        if (/^[1-5]$/.test(t)) { paso = 'opcion'; await ejecutarOpcion(t); } else {
+          const id = detectarIntencion(texto);
+          if (id && id !== 'gracias' && id !== 'despedida') await porIntencion(id); else await irMenuConSaludo();
+        }
         break;
 
       case 'opcion':
-        if (/doctora|hablar con/.test(t)) await hablarConDoctora(); else await ejecutarOpcion(t);
+        { const id = detectarIntencion(texto); if (id) await porIntencion(id); else await ejecutarOpcion(t); }
         break;
 
       case 'pedir_telefono': {

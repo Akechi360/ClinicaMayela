@@ -197,7 +197,7 @@ test('opción inválida: no rompe el flujo', async () => {
   const repo = crearRepoFalso({ pacientes: [WILLIAN] });
   await decir(repo, 'hola');
   const r = await decir(repo, 'blabla');
-  assert.match(junto(r), /No logré interpretar/);
+  assert.match(junto(r), /(logré (entender|interpretar)|no estoy seguro)/i);
 });
 
 test('horario e información usa el horario configurado', async () => {
