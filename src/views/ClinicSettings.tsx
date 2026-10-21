@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Save, Shield, MessageSquare, QrCode } from 'lucide-react';
+import { Save, Shield, MessageSquare, QrCode, Bell } from 'lucide-react';
 import { getClinicSettings, updateClinicSettings } from '../services/db';
 import { useToast } from '../components/Toast';
 import { CalendarioSuscripcion } from '../components/CalendarioSuscripcion';
@@ -40,6 +40,14 @@ export const ClinicSettings: React.FC = () => {
   const [maxCitas, setMaxCitas] = useState(2);
   const [cancelarHoras, setCancelarHoras] = useState(12);
   const [info, setInfo] = useState('');
+  // Alertas a la doctora
+  const [alertaActiva, setAlertaActiva] = useState(true);
+  const [alertaTelefono, setAlertaTelefono] = useState('');
+  const [silencioDesde, setSilencioDesde] = useState('19:00');
+  const [silencioHasta, setSilencioHasta] = useState('07:00');
+  const [alertaCitas, setAlertaCitas] = useState(true);
+  const [alertaCancelaciones, setAlertaCancelaciones] = useState(true);
+  const [alertaFichas, setAlertaFichas] = useState(true);
 
   // Sincronizar estado local con DB
   useEffect(() => {
@@ -56,12 +64,24 @@ export const ClinicSettings: React.FC = () => {
       setMaxCitas(dbSettings.bot_max_citas_futuras ?? 2);
       setCancelarHoras(dbSettings.bot_cancelar_horas ?? 12);
       setInfo(dbSettings.bot_info || '');
+      setAlertaActiva(dbSettings.alerta_activa ?? true);
+      setAlertaTelefono(dbSettings.alerta_telefono ?? '');
+      setSilencioDesde((dbSettings.alerta_silencio_desde || '19:00').slice(0, 5));
+      setSilencioHasta((dbSettings.alerta_silencio_hasta || '07:00').slice(0, 5));
+      setAlertaCitas(dbSettings.alerta_citas ?? true);
+      setAlertaCancelaciones(dbSettings.alerta_cancelaciones ?? true);
+      setAlertaFichas(dbSettings.alerta_fichas ?? true);
     }
   }, [dbSettings]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!dbSettings?.id) return;
+    const digitos = alertaTelefono.replace(/\D/g, '');
+    if (alertaActiva && (digitos.length < 10 || digitos.length > 15)) {
+      toast.error('Revise su número de WhatsApp para las alertas (con código de área).');
+      return;
+    }
     updateSettingsMutation.mutate({
       id: dbSettings.id,
       bot_activo: botActivo,
@@ -75,7 +95,14 @@ export const ClinicSettings: React.FC = () => {
       bot_horizonte_dias: horizonte,
       bot_max_citas_futuras: maxCitas,
       bot_cancelar_horas: cancelarHoras,
-      bot_info: info.trim() || null
+      bot_info: info.trim() || null,
+      alerta_activa: alertaActiva,
+      alerta_telefono: alertaTelefono.trim() || null,
+      alerta_silencio_desde: silencioDesde,
+      alerta_silencio_hasta: silencioHasta,
+      alerta_citas: alertaCitas,
+      alerta_cancelaciones: alertaCancelaciones,
+      alerta_fichas: alertaFichas,
     });
   };
 
@@ -258,6 +285,61 @@ export const ClinicSettings: React.FC = () => {
               className="bg-pure-white/30 border border-satin-copper/15 rounded-lg p-3 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper resize-none leading-relaxed font-sans"
             />
             <p className="text-[10px] text-slate-light">Si lo dejas vacío, el bot responde con el horario de arriba.</p>
+          </div>
+        </section>
+
+        {/* Alertas a la doctora */}
+        <section className="glass-panel p-6 md:p-8 rounded-3xl border border-pure-white/40 shadow-luxury space-y-5">
+          <h3 className="text-base font-display font-medium text-slate-dark border-b border-satin-copper/10 pb-3 flex items-center gap-2">
+            <Bell size={16} className="text-satin-copper" /> Alertas a mi WhatsApp
+          </h3>
+          <p className="text-xs text-slate-medium leading-relaxed">
+            El bot le escribe a su número personal cuando hay algo que atender. Fuera de las horas de silencio recibe cada aviso al momento; durante el silencio solo llegan los síntomas urgentes, y el resto se junta en un resumen de buenos días con la agenda del día.
+          </p>
+
+          <div className="flex items-center justify-between p-3.5 bg-pure-white/40 rounded-xl border border-satin-copper/10">
+            <div>
+              <p className="text-xs font-semibold text-slate-dark">Enviarme alertas por WhatsApp</p>
+              <p className="text-[10px] text-slate-light">Requiere que el bot esté en línea.</p>
+            </div>
+            <input type="checkbox" checked={alertaActiva} onChange={(e) => setAlertaActiva(e.target.checked)} className="rounded text-satin-copper focus:ring-satin-copper border-rose-champagne w-5 h-5 cursor-pointer" />
+          </div>
+
+          <div className="flex flex-col space-y-1">
+            <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Mi número de WhatsApp (con código de área)</label>
+            <input
+              type="tel"
+              value={alertaTelefono}
+              onChange={(e) => setAlertaTelefono(e.target.value)}
+              placeholder="+58 424-5500042"
+              className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper w-full sm:w-64"
+            />
+          </div>
+
+          <div className="flex flex-col space-y-1">
+            <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Horas de silencio</label>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] text-slate-light">De</span>
+              <input type="time" value={silencioDesde} onChange={(e) => setSilencioDesde(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper" />
+              <span className="text-[10px] text-slate-light">a</span>
+              <input type="time" value={silencioHasta} onChange={(e) => setSilencioHasta(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper" />
+            </div>
+            <p className="text-[10px] text-slate-light">Los síntomas urgentes de un paciente siempre se avisan, también en silencio.</p>
+          </div>
+
+          <div className="flex flex-col space-y-2">
+            <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Avisarme de</label>
+            {([
+              ['Citas nuevas y solicitudes por confirmar', alertaCitas, setAlertaCitas],
+              ['Cancelaciones de citas', alertaCancelaciones, setAlertaCancelaciones],
+              ['Fichas de ingreso recibidas (en el resumen de la mañana)', alertaFichas, setAlertaFichas],
+            ] as const).map(([texto, valor, cambiar]) => (
+              <label key={texto} className="flex items-center gap-2 text-xs text-slate-dark cursor-pointer">
+                <input type="checkbox" checked={valor} onChange={(e) => cambiar(e.target.checked)} className="rounded text-satin-copper focus:ring-satin-copper border-rose-champagne w-4 h-4 cursor-pointer" />
+                {texto}
+              </label>
+            ))}
+            <p className="text-[10px] text-slate-light">Los pacientes que piden hablar con usted siempre se avisan.</p>
           </div>
         </section>
 

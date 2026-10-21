@@ -33,6 +33,23 @@ const fin = (t) => (t.endsWith('.') ? t : `${t}.`);
 const lista = (items) => items.map((x, i) => `${i + 1}️⃣ ${x}`).join('\n');
 const SEPARADOR_DIAS = 24 * 3_600_000;
 
+// Señales de posible complicación tras un tratamiento estético. Se evalúan sobre texto normalizado (minúsculas, sin tildes).
+// "urgente" a secas NO cuenta (p. ej. "necesito una cita urgente"): debe describir un síntoma.
+const PATRONES_URGENCIA = [
+  /(no puedo|dificultad(es)?( para| al)?|me cuesta|falta de) (respirar|tragar|aire)|me ahogo|ahogo/,
+  /dolor (muy |demasiado |super |bien |tan )?(fuerte|intenso|insoportable|severo|terrible)|insoportable|dolor (que )?(aumenta|va en aumento)/,
+  /(cara|labio|labios|lengua|garganta|ojo|ojos|parpado|parpados|cuello) (muy |demasiado |super )?(hinchad|inflamad)|(muy|demasiado|super) hinchad|se me hincho (mucho|la cara|el labio)/,
+  /fiebre|escalofrios/,
+  /sangr(a|ado|ando|e|an)\b|hemorragia/,
+  /(vision|veo) (borros|doble|nublad)|vision doble|perdi (la )?vision|no veo (bien|nada)/,
+  /(piel|zona|labio|labios|nariz|frente|mejilla|cara) (esta |se ve |se puso |se ha puesto |me quedo )?(morad|palid|blanquecin|negr|oscur|grisace|amoratad)|necrosis/,
+  /ampolla|\bpus\b|supura|secrecion|infeccion|infectad/,
+  /reaccion alergica|me dio alergia|ronchas|urticaria|anafilax/,
+  /desmay|mareo (muy )?fuerte|dolor (en el )?pecho|presion en el pecho/,
+  /emergencia|me siento muy mal|me siento fatal/,
+];
+export const detectarUrgencia = (t) => t.length > 3 && !/^\d+$/.test(t) && PATRONES_URGENCIA.some((p) => p.test(t));
+
 /**
  * Procesa un mensaje entrante y devuelve lo que hay que responder.
  * @returns {{ respuestas: string[], motivo?: string }}
@@ -160,7 +177,7 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
     await repo.notificar(
       aprob ? 'cita_por_aprobar_whatsapp' : 'cita_nueva_whatsapp',
       `${aprob ? 'Solicitud de cita' : 'Nueva cita'} por WhatsApp: ${datos.nombre} · ${datos.tratamiento.nombre} · ${textoCita(inicio)}`,
-      { telefono: formatoLocal(tel), paciente_id: pacienteId, fecha: inicio.toISOString() },
+      { telefono: formatoLocal(tel), paciente_id: pacienteId, fecha: inicio.toISOString(), nombre: datos.nombre, tratamiento: datos.tratamiento.nombre, cuando: textoCita(inicio) },
     );
     decir(
       aprob
@@ -208,7 +225,7 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
 
   async function hablarConDoctora() {
     const nombre = (await nombrePaciente()) ?? (datos.nombre || 'Un paciente');
-    await repo.notificar('chat_whatsapp', `${nombre} quiere hablar con la doctora por WhatsApp (${tel ? formatoLocal(tel) : clave}).`, { telefono: tel ?? clave });
+    await repo.notificar('chat_whatsapp', `${nombre} quiere hablar con la doctora por WhatsApp (${tel ? formatoLocal(tel) : clave}).`, { telefono: tel ? formatoLocal(tel) : clave, nombre });
     pausarHasta = new Date(ahora.getTime() + PAUSA_HUMANO_HORAS * 3_600_000);
     decir(`Hemos notificado a la doctora; le responderá por este medio tan pronto le sea posible. Nuestro horario de atención es ${fin(textoHorario(cfg))}`);
     paso = 'opcion';
@@ -235,8 +252,24 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
     }
   }
 
+  async function sintomasUrgentes() {
+    const nombre = (await nombrePaciente()) ?? (datos.nombre || 'Un paciente');
+    await repo.notificar('sintomas_urgentes', `${nombre} refiere posibles síntomas urgentes por WhatsApp (${tel ? formatoLocal(tel) : clave}).`, {
+      telefono: tel ? formatoLocal(tel) : clave, nombre, texto: String(texto).replace(/\s+/g, ' ').trim().slice(0, 300),
+    });
+    pausarHasta = new Date(ahora.getTime() + PAUSA_HUMANO_HORAS * 3_600_000);
+    decir(
+      'Lamentamos mucho lo que describe. Hemos avisado de inmediato a la doctora y se comunicará con usted tan pronto le sea posible.\n\n' +
+      '⚠️ Si presenta dificultad para respirar o tragar, dolor muy intenso, cambios en la visión o la piel pálida o morada, acuda ahora mismo al centro de salud más cercano.',
+    );
+    paso = 'opcion';
+    limpiar();
+  }
+
   // ── Máquina de estados ───────────────────────────────────────────────
-  if (SALUDOS.has(t) && paso !== 'menu') {
+  if (detectarUrgencia(t)) {
+    await sintomasUrgentes();
+  } else if (SALUDOS.has(t) && paso !== 'menu') {
     irMenu();
   } else {
     switch (paso) {
@@ -309,7 +342,7 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
         if (t === '1') {
           const c = datos.cancelar;
           await repo.cancelarCita(c.id);
-          await repo.notificar('cita_cancelada_whatsapp', `Cita cancelada por WhatsApp (${tel ? formatoLocal(tel) : clave}): ${textoCita(c.fecha_hora)}`, { cita_id: c.id, telefono: tel ?? clave });
+          await repo.notificar('cita_cancelada_whatsapp', `Cita cancelada por WhatsApp (${tel ? formatoLocal(tel) : clave}): ${textoCita(c.fecha_hora)}`, { cita_id: c.id, telefono: tel ? formatoLocal(tel) : clave, nombre: (await nombrePaciente()) ?? datos.nombre ?? undefined, cuando: textoCita(c.fecha_hora) });
           decir(`✅ Su cita del *${textoCita(c.fecha_hora)}* ha sido cancelada. Escriba *1* si desea agendar otra.`);
           paso = 'opcion';
           limpiar();

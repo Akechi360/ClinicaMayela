@@ -10,6 +10,7 @@ import { aplicarAntibloqueo } from './handlers/antibloqueo.js';
 import { avisoDeLlave } from './handlers/llave.js';
 import { PAUSA_HUMANO_HORAS } from './handlers/conversacion.js';
 import { sendDailyReminders } from './handlers/reminderJob.js';
+import { procesarAlertas } from './handlers/alertas.js';
 import { sendPendingFollowups } from './handlers/followupJob.js';
 import { ahoraCaracas, correspondenRecordatorios } from './handlers/reminderSchedule.js';
 import 'dotenv/config';
@@ -155,6 +156,19 @@ async function startBot() {
         }
       } catch (err) {
         console.error('Error sending reminders:', err);
+      }
+    });
+    // Alertas a la doctora (citas, cancelaciones, chats, síntomas urgentes) a su WhatsApp personal; de noche solo lo urgente
+    let alertando = false;
+    cron.schedule('* * * * *', async () => {
+      if (botStatus !== 'connected' || alertando) return;
+      alertando = true;
+      try {
+        await procesarAlertas({ repo, enviar: (jid, texto) => currentSock.sendMessage(jid, { text: texto }) });
+      } catch (err) {
+        console.error('Error en las alertas a la doctora:', err.message);
+      } finally {
+        alertando = false;
       }
     });
     // Cuidados post-tratamiento, chequeos 24/72 h, controles y dosis de péptidos: cada 5 minutos

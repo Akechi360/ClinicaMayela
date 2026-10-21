@@ -164,6 +164,15 @@ export interface ClinicSettings {
   bot_max_citas_futuras?:  number;
   bot_cancelar_horas?:     number;
   bot_info?:               string | null;
+  /** Alertas a la doctora por WhatsApp (el bot le escribe a su número) */
+  alerta_activa?:          boolean;
+  alerta_telefono?:        string | null;
+  alerta_silencio_desde?:  string;
+  alerta_silencio_hasta?:  string;
+  alerta_citas?:           boolean;
+  alerta_cancelaciones?:   boolean;
+  alerta_fichas?:          boolean;
+  alerta_ultimo_resumen?:  string | null;
   updated_at?:         string;
 }
 

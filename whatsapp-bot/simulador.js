@@ -8,6 +8,7 @@ import { crearRepo } from './handlers/repo.js';
 import { procesar } from './handlers/conversacion.js';
 import { normalizarTelefono } from './handlers/telefono.js';
 import { avisoDeLlave } from './handlers/llave.js';
+import { clasificar, configAlertas, textoAlerta } from './handlers/alertas.js';
 
 const tel = normalizarTelefono(process.argv[2] ?? '');
 if (!tel) {
@@ -38,7 +39,18 @@ const repo = {
   async crearPaciente(p) { nota('se registraría al paciente', p); return { id: '00000000-0000-0000-0000-000000000000' }; },
   async crearCita(c) { nota(`se crearía la cita ${c.inicio.toISOString()} · ${c.duracion} min · estado ${c.estado}`); return 'simulada'; },
   async cancelarCita(id) { nota('se cancelaría la cita', id); },
-  async notificar(tipo, mensaje) { nota(`notificación en la app (${tipo}): ${mensaje}`); },
+  async notificar(tipo, mensaje, metadata) {
+    nota(`notificación en la app (${tipo}): ${mensaje}`);
+    const n = { id: 'sim', tipo, mensaje, metadata, created_at: new Date().toISOString() };
+    const c = configAlertas(await real.ajustes());
+    const { modo, urgente } = clasificar(n, c);
+    const cuando = modo === 'ignorar' ? 'no se avisaría (desactivado en Ajustes)'
+      : urgente ? 'se enviaría AL INSTANTE (urgente, también de noche)'
+      : modo === 'inmediata' ? 'se enviaría al instante'
+      : 'esperaría al resumen de la mañana (siguiente a las ' + c.hasta + ')';
+    nota(`alerta a la doctora (${c.telefono || 'sin número'}): ${cuando}`);
+    if (modo !== 'ignorar') nota(`texto:\n${textoAlerta(n)}`);
+  },
   async crearFicha() { nota('se crearía el enlace de la ficha de ingreso'); return 'https://dra-mayela-gonzalez.vercel.app/f/EJEMPLO'; },
 };
 

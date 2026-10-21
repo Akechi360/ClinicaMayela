@@ -111,6 +111,49 @@ export function crearRepo(supabase, { appUrl = 'https://dra-mayela-gonzalez.verc
       if (error) console.error('No se pudo crear la notificación:', error.message);
     },
 
+    // ── Alertas a la doctora (ver alertas.js) ─────────────────────────────
+    async notificacionesSinAlertar(limite = 50) {
+      const { data, error } = await supabase
+        .from('notificaciones')
+        .select('id, tipo, mensaje, metadata, created_at, alerta_intentos')
+        .is('alertado_en', null)
+        .order('created_at', { ascending: true })
+        .limit(limite);
+      if (error) throw new Error(`No se pudieron leer las notificaciones: ${error.message}`);
+      return data ?? [];
+    },
+
+    async marcarAlertadas(ids) {
+      if (!ids.length) return;
+      const { error } = await supabase.from('notificaciones').update({ alertado_en: new Date().toISOString() }).in('id', ids);
+      if (error) throw new Error(`No se pudo marcar como alertada: ${error.message}`);
+    },
+
+    /** Un envío fallido suma un intento; al llegar al máximo se da por alertada para no insistir para siempre. */
+    async registrarFalloAlerta(id, max) {
+      const { data } = await supabase.from('notificaciones').select('alerta_intentos').eq('id', id).maybeSingle();
+      const intentos = (data?.alerta_intentos ?? 0) + 1;
+      await supabase.from('notificaciones').update({ alerta_intentos: intentos, ...(intentos >= max ? { alertado_en: new Date().toISOString() } : {}) }).eq('id', id);
+    },
+
+    /** Citas del día (hora de Caracas, UTC-4) sin canceladas ni completadas. */
+    async agendaDelDia(dia) {
+      const { data } = await supabase
+        .from('citas')
+        .select('fecha_hora, estado, paciente:pacientes(nombre, apellido), tratamiento:tratamientos(nombre)')
+        .not('estado', 'in', ESTADOS_LIBRES)
+        .gte('fecha_hora', `${dia}T04:00:00.000Z`)
+        .lt('fecha_hora', new Date(new Date(`${dia}T04:00:00.000Z`).getTime() + 24 * 3_600_000).toISOString())
+        .order('fecha_hora', { ascending: true });
+      return (data ?? []).map((c) => ({ ...c, paciente: unico(c.paciente), tratamiento: unico(c.tratamiento) }));
+    },
+
+    async marcarResumen(dia) {
+      const { error } = await supabase.from('clinic_settings').update({ alerta_ultimo_resumen: dia }).neq('id', '00000000-0000-0000-0000-000000000000');
+      if (error) throw new Error(`No se pudo registrar el resumen: ${error.message}`);
+      if (cacheAjustes.v) cacheAjustes = { t: cacheAjustes.t, v: { ...cacheAjustes.v, alerta_ultimo_resumen: dia } };
+    },
+
     /** Enlace de la ficha de ingreso para un paciente nuevo (un solo uso, 7 días). */
     async crearFicha(pacienteId) {
       const { data, error } = await supabase.from('fichas_ingreso').insert({ paciente_id: pacienteId, token: 'pendiente' }).select('token').single();
