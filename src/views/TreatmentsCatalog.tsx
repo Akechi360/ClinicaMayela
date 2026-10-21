@@ -17,6 +17,8 @@ export const TreatmentsCatalog: React.FC = () => {
   const [precio, setPrecio]         = useState('');
   const [duracion, setDuracion]     = useState('');
   const [categoria, setCategoria]   = useState('');
+  const [reservable, setReservable] = useState(false);
+  const [aprobacion, setAprobacion] = useState(false);
 
   const { data: tratamientos = [], isLoading } = useQuery<Tratamiento[]>({
     queryKey: ['tratamientos'],
@@ -45,7 +47,7 @@ export const TreatmentsCatalog: React.FC = () => {
 
   const openCreate = () => {
     setEditingId(null);
-    setNombre(''); setDescripcion(''); setPrecio(''); setDuracion(''); setCategoria('');
+    setNombre(''); setDescripcion(''); setPrecio(''); setDuracion(''); setCategoria(''); setReservable(false); setAprobacion(false);
     setShowModal(true);
   };
 
@@ -56,13 +58,15 @@ export const TreatmentsCatalog: React.FC = () => {
     setPrecio(String(t.precio));
     setDuracion(String(t.duracion_minutos ?? ''));
     setCategoria(t.categoria ?? '');
+    setReservable(!!t.reservable_whatsapp);
+    setAprobacion(!!t.aprobacion_whatsapp);
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
     setEditingId(null);
-    setNombre(''); setDescripcion(''); setPrecio(''); setDuracion(''); setCategoria('');
+    setNombre(''); setDescripcion(''); setPrecio(''); setDuracion(''); setCategoria(''); setReservable(false); setAprobacion(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -72,7 +76,9 @@ export const TreatmentsCatalog: React.FC = () => {
       descripcion,
       precio: parseFloat(precio),
       duracion_minutos: duracion ? parseInt(duracion) : undefined,
-      categoria: categoria || undefined
+      categoria: categoria || undefined,
+      reservable_whatsapp: reservable,
+      aprobacion_whatsapp: reservable && aprobacion
     };
     if (editingId) {
       actualizarMutation.mutate({ id: editingId, datos });
@@ -165,6 +171,24 @@ export const TreatmentsCatalog: React.FC = () => {
                     className="w-full bg-pure-white/60 border border-satin-copper/15 rounded-lg px-3 py-2 text-[11px] text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper font-semibold" />
                 </div>
               </div>
+              <div className="rounded-xl border border-satin-copper/15 bg-pure-white/30 p-3 space-y-2">
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" checked={reservable} onChange={e => setReservable(e.target.checked)} className="mt-0.5 w-4 h-4 accent-[#A891AA]" />
+                  <span className="text-[11px] text-slate-dark font-semibold leading-snug">
+                    Los pacientes pueden agendarlo por WhatsApp
+                    <span className="block text-[9px] font-normal text-slate-light">Se ofrecerá en el bot con la duración indicada arriba.</span>
+                  </span>
+                </label>
+                {reservable && (
+                  <label className="flex items-start gap-2 cursor-pointer pl-6">
+                    <input type="checkbox" checked={aprobacion} onChange={e => setAprobacion(e.target.checked)} className="mt-0.5 w-4 h-4 accent-[#A891AA]" />
+                    <span className="text-[11px] text-slate-dark font-semibold leading-snug">
+                      Requiere mi aprobación
+                      <span className="block text-[9px] font-normal text-slate-light">La cita queda como solicitud y tú la confirmas.</span>
+                    </span>
+                  </label>
+                )}
+              </div>
               <div>
                 <label className="block text-[8px] uppercase tracking-wider text-slate-medium mb-1 font-bold">Categoría</label>
                 <input type="text" value={categoria} onChange={e => setCategoria(e.target.value)} placeholder="ej. Bioestimulación, Rellenos..."
@@ -208,6 +232,11 @@ const TreatmentGrid: React.FC<{ title: string; items: Tratamiento[]; onEdit: (t:
               </p>
               {t.duracion_minutos && (
                 <p className="text-[9px] text-slate-light font-bold uppercase tracking-wider">{t.duracion_minutos} min</p>
+              )}
+              {t.reservable_whatsapp && (
+                <p className="text-[9px] font-bold uppercase tracking-wider text-emerald-600">
+                  WhatsApp{t.aprobacion_whatsapp ? ' · con aprobación' : ''}
+                </p>
               )}
             </div>
             <button

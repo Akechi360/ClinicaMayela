@@ -29,7 +29,7 @@ export async function sendDailyReminders(sock, supabase) {
 
     try {
       await sock.sendMessage(`${tel}@s.whatsapp.net`, {
-        text: `👋 Hola *${paciente.nombre}*,\n\nTe recordamos que mañana tienes una cita en *Clínica Dra. Mayela González* a las *${hora}*${tratamiento?.nombre ? ` para *${tratamiento.nombre}*` : ''}.\n\nSi necesitas cancelar o cambiar la hora, responde este mensaje. 😊`
+        text: `Estimado(a) *${paciente.nombre}*,\n\nLe recordamos que mañana tiene una cita en la *Clínica Dra. Mayela González* a las *${hora}*${tratamiento?.nombre ? ` para *${tratamiento.nombre}*` : ''}.\n\nSi necesita cancelarla o modificarla, puede responder a este mensaje.`
       });
     } catch (err) {
       console.error(`Error sending reminder to ${tel}:`, err.message);

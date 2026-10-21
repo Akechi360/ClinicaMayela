@@ -154,6 +154,16 @@ export interface ClinicSettings {
   google_calendar_id?: string | null;
   /** Token interno del disparador de sincronización */
   google_sync_token?:  string | null;
+  /** Agenda por WhatsApp (bot): horario, anticipación y límites */
+  bot_hora_apertura?:      string;
+  bot_hora_cierre?:        string;
+  bot_dias?:               number[];
+  bot_intervalo_min?:      number;
+  bot_anticipacion_horas?: number;
+  bot_horizonte_dias?:     number;
+  bot_max_citas_futuras?:  number;
+  bot_cancelar_horas?:     number;
+  bot_info?:               string | null;
   updated_at?:         string;
 }
 
@@ -165,6 +175,10 @@ export interface Tratamiento {
   duracion_minutos: number;
   creado_en: string;
   categoria?: string;
+  /** Los pacientes pueden agendarlo por WhatsApp */
+  reservable_whatsapp?: boolean;
+  /** Por WhatsApp queda como solicitud hasta que la doctora la confirme */
+  aprobacion_whatsapp?: boolean;
 }
 
 export interface CitaRelacional extends Cita {

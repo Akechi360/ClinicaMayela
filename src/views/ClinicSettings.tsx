@@ -30,6 +30,16 @@ export const ClinicSettings: React.FC = () => {
   const [botActivo, setBotActivo] = useState(false);
   const [horaRecordatorio, setHoraRecordatorio] = useState('09:00:00');
   const [mensajeBienvenida, setMensajeBienvenida] = useState('');
+  // Agenda por WhatsApp
+  const [apertura, setApertura] = useState('10:00');
+  const [cierre, setCierre] = useState('17:00');
+  const [dias, setDias] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [intervalo, setIntervalo] = useState(30);
+  const [anticipacion, setAnticipacion] = useState(3);
+  const [horizonte, setHorizonte] = useState(21);
+  const [maxCitas, setMaxCitas] = useState(2);
+  const [cancelarHoras, setCancelarHoras] = useState(12);
+  const [info, setInfo] = useState('');
 
   // Sincronizar estado local con DB
   useEffect(() => {
@@ -37,6 +47,15 @@ export const ClinicSettings: React.FC = () => {
       setBotActivo(dbSettings.bot_activo);
       setHoraRecordatorio(dbSettings.hora_recordatorio || '09:00:00');
       setMensajeBienvenida(dbSettings.mensaje_bienvenida || '');
+      setApertura((dbSettings.bot_hora_apertura || '10:00').slice(0, 5));
+      setCierre((dbSettings.bot_hora_cierre || '17:00').slice(0, 5));
+      setDias(dbSettings.bot_dias?.length ? dbSettings.bot_dias : [1, 2, 3, 4, 5]);
+      setIntervalo(dbSettings.bot_intervalo_min ?? 30);
+      setAnticipacion(dbSettings.bot_anticipacion_horas ?? 3);
+      setHorizonte(dbSettings.bot_horizonte_dias ?? 21);
+      setMaxCitas(dbSettings.bot_max_citas_futuras ?? 2);
+      setCancelarHoras(dbSettings.bot_cancelar_horas ?? 12);
+      setInfo(dbSettings.bot_info || '');
     }
   }, [dbSettings]);
 
@@ -47,7 +66,16 @@ export const ClinicSettings: React.FC = () => {
       id: dbSettings.id,
       bot_activo: botActivo,
       hora_recordatorio: horaRecordatorio,
-      mensaje_bienvenida: mensajeBienvenida
+      mensaje_bienvenida: mensajeBienvenida,
+      bot_hora_apertura: apertura,
+      bot_hora_cierre: cierre,
+      bot_dias: dias,
+      bot_intervalo_min: intervalo,
+      bot_anticipacion_horas: anticipacion,
+      bot_horizonte_dias: horizonte,
+      bot_max_citas_futuras: maxCitas,
+      bot_cancelar_horas: cancelarHoras,
+      bot_info: info.trim() || null
     });
   };
 
@@ -144,6 +172,92 @@ export const ClinicSettings: React.FC = () => {
                 className="bg-pure-white/30 border border-satin-copper/15 rounded-lg p-3 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper resize-none leading-relaxed font-sans"
               />
             </div>
+          </div>
+        </section>
+
+        {/* Agenda por WhatsApp */}
+        <section className="glass-panel p-6 md:p-8 rounded-3xl border border-pure-white/40 shadow-luxury space-y-5">
+          <h3 className="text-base font-display font-medium text-slate-dark border-b border-satin-copper/10 pb-3 flex items-center gap-2">
+            <MessageSquare size={16} className="text-satin-copper" /> Agenda por WhatsApp
+          </h3>
+          <p className="text-xs text-slate-medium leading-relaxed">
+            Los pacientes agendan, ven y cancelan sus citas por WhatsApp dentro de este horario. Los tratamientos que pueden pedir se eligen en el Catálogo de Tratamientos.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex flex-col space-y-1">
+              <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Abre</label>
+              <input type="time" value={apertura} onChange={(e) => setApertura(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper" />
+            </div>
+            <div className="flex flex-col space-y-1">
+              <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Cierra</label>
+              <input type="time" value={cierre} onChange={(e) => setCierre(e.target.value)} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper" />
+            </div>
+            <div className="flex flex-col space-y-1">
+              <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Horarios cada</label>
+              <select value={intervalo} onChange={(e) => setIntervalo(Number(e.target.value))} className="bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper">
+                {[15, 30, 45, 60].map((m) => <option key={m} value={m}>{m} min</option>)}
+              </select>
+            </div>
+            <div className="flex flex-col space-y-1">
+              <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Anticipación mínima</label>
+              <div className="flex items-center gap-2">
+                <input type="number" min={0} max={72} value={anticipacion} onChange={(e) => setAnticipacion(Number(e.target.value))} className="w-20 bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper" />
+                <span className="text-[10px] text-slate-light">horas</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col space-y-2">
+            <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Días de atención</label>
+            <div className="flex flex-wrap gap-2">
+              {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d, i) => {
+                const n = i + 1;
+                const activo = dias.includes(n);
+                return (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setDias((prev) => (activo ? prev.filter((x) => x !== n) : [...prev, n].sort()))}
+                    className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-[11px] font-bold ${activo ? 'border-satin-copper bg-satin-copper/15 text-satin-copper' : 'border-satin-copper/20 text-slate-medium'}`}
+                  >
+                    {d}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="flex flex-col space-y-1">
+              <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Ventana de agenda</label>
+              <div className="flex items-center gap-2">
+                <input type="number" min={1} max={90} value={horizonte} onChange={(e) => setHorizonte(Number(e.target.value))} className="w-20 bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper" />
+                <span className="text-[10px] text-slate-light">días hacia adelante</span>
+              </div>
+            </div>
+            <div className="flex flex-col space-y-1">
+              <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Máx. citas próximas por paciente</label>
+              <input type="number" min={1} max={10} value={maxCitas} onChange={(e) => setMaxCitas(Number(e.target.value))} className="w-20 bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper" />
+            </div>
+            <div className="flex flex-col space-y-1">
+              <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Cancelar hasta</label>
+              <div className="flex items-center gap-2">
+                <input type="number" min={0} max={168} value={cancelarHoras} onChange={(e) => setCancelarHoras(Number(e.target.value))} className="w-20 bg-pure-white/30 border border-satin-copper/15 rounded-lg px-3 py-2 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper" />
+                <span className="text-[10px] text-slate-light">horas antes</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col space-y-1">
+            <label className="text-[9px] uppercase tracking-wider text-slate-medium font-bold">Texto de "Horario e información" (opcional)</label>
+            <textarea
+              value={info}
+              onChange={(e) => setInfo(e.target.value)}
+              rows={3}
+              placeholder="Ej. Atendemos de lunes a viernes de 10:00 a. m. a 5:00 p. m. Estamos en … (dirección)."
+              className="bg-pure-white/30 border border-satin-copper/15 rounded-lg p-3 text-xs text-slate-dark focus:outline-none focus:ring-1 focus:ring-satin-copper resize-none leading-relaxed font-sans"
+            />
+            <p className="text-[10px] text-slate-light">Si lo dejas vacío, el bot responde con el horario de arriba.</p>
           </div>
         </section>
 

@@ -56,14 +56,14 @@ test('paciente existente (teléfono en otro formato) agenda y queda confirmada',
   const repo = crearRepoFalso({ pacientes: [WILLIAN] });
   await decir(repo, 'hola');
   let r = await decir(repo, '1');
-  assert.match(junto(r), /Hola, Willian/);
-  assert.match(junto(r), /Qué día prefieres/); // un solo servicio: se salta la elección
+  assert.match(junto(r), /gusto saludarle, Willian/);
+  assert.match(junto(r), /Qué día prefiere/); // un solo servicio: se salta la elección
   r = await decir(repo, '1'); // primer día disponible (hoy a partir de las 12:00)
-  assert.match(junto(r), /Horarios libres/);
+  assert.match(junto(r), /Horarios disponibles/);
   r = await decir(repo, '1');
   assert.match(junto(r), /Confirmar/);
   r = await decir(repo, '1');
-  assert.match(junto(r), /Cita confirmada/);
+  assert.match(junto(r), /cita ha sido confirmada/);
   assert.equal(repo.log.citasCreadas.length, 1);
   assert.equal(repo.log.citasCreadas[0].estado, 'confirmado');
   assert.equal(repo.log.citasCreadas[0].pacienteId, 'p1');
@@ -116,7 +116,7 @@ test('tratamiento que requiere aprobación queda como solicitud', async () => {
   let r = await decir(repo, '1'); // resumen
   assert.match(junto(r), /solicitud/i);
   r = await decir(repo, '1');
-  assert.match(junto(r), /Solicitud recibida/);
+  assert.match(junto(r), /solicitud ha sido recibida/);
   assert.equal(repo.log.citasCreadas[0].estado, 'pendiente');
   assert.equal(repo.log.notificaciones[0].tipo, 'cita_por_aprobar_whatsapp');
 });
@@ -124,19 +124,19 @@ test('tratamiento que requiere aprobación queda como solicitud', async () => {
 test('varios servicios: el paciente elige uno', async () => {
   const repo = crearRepoFalso({ pacientes: [WILLIAN], tratamientos: [CONSULTA, { id: 't2', nombre: 'Control', duracion_minutos: 30, aprobacion_whatsapp: false }] });
   const r = await decir(repo, '1');
-  assert.match(junto(r), /Qué quieres agendar/);
+  assert.match(junto(r), /Qué servicio desea agendar/);
   assert.match(junto(r), /Control/);
   const r2 = await decir(repo, '2');
-  assert.match(junto(r2), /Qué día prefieres/);
+  assert.match(junto(r2), /Qué día prefiere/);
 });
 
 test('cancelar: una cita lejana se cancela con confirmación', async () => {
   const cita = { id: 'c9', paciente_id: 'p1', fecha_hora: '2026-10-23T15:00:00Z', estado: 'confirmado', duracion_minutos: 30, tratamiento: { nombre: 'Consulta' } };
   const repo = crearRepoFalso({ pacientes: [WILLIAN], citas: [cita] });
   let r = await decir(repo, '3');
-  assert.match(junto(r), /Seguro que quieres cancelar/);
+  assert.match(junto(r), /Confirma que desea cancelar/);
   r = await decir(repo, '1');
-  assert.match(junto(r), /fue cancelada/);
+  assert.match(junto(r), /ha sido cancelada/);
   assert.deepEqual(repo.log.canceladas, ['c9']);
   assert.equal(repo.log.notificaciones[0].tipo, 'cita_cancelada_whatsapp');
 });
@@ -160,7 +160,7 @@ test('ver mis citas', async () => {
 test('hablar con la doctora: avisa en la app y el bot se calla en ese chat', async () => {
   const repo = crearRepoFalso({ pacientes: [WILLIAN] });
   let r = await decir(repo, '5');
-  assert.match(junto(r), /Avisé a la doctora/);
+  assert.match(junto(r), /notificado a la doctora/);
   assert.equal(repo.log.notificaciones[0].tipo, 'chat_whatsapp');
   r = await decir(repo, 'hola, puedes verme hoy?');
   assert.deepEqual(r.respuestas, []);
@@ -177,7 +177,7 @@ test('la sesión vence a los 30 minutos y vuelve al menú', async () => {
   await decir(repo, '1'); // queda esperando el día
   const tarde = new Date(AHORA.getTime() + 31 * 60_000);
   const r = await decir(repo, '1', { ahora: tarde }); // un "1" tras 31 min NO elige el día 1: reinicia el trámite
-  assert.match(junto(r), /Hola, Willian/);
+  assert.match(junto(r), /gusto saludarle, Willian/);
 });
 
 test('sin teléfono en el identificador (@lid): lo pide y continúa', async () => {
@@ -188,16 +188,16 @@ test('sin teléfono en el identificador (@lid): lo pide y continúa', async () =
   let r = await dec('1');
   assert.match(junto(r), /número de teléfono/);
   r = await dec('abc');
-  assert.match(junto(r), /No pude leer/);
+  assert.match(junto(r), /No pude interpretar/);
   r = await dec('0414 433 4584');
-  assert.match(junto(r), /Hola, Willian/); // reconoce al paciente por el número que escribió
+  assert.match(junto(r), /gusto saludarle, Willian/); // reconoce al paciente por el número que escribió
 });
 
 test('opción inválida: no rompe el flujo', async () => {
   const repo = crearRepoFalso({ pacientes: [WILLIAN] });
   await decir(repo, 'hola');
   const r = await decir(repo, 'blabla');
-  assert.match(junto(r), /No entendí/);
+  assert.match(junto(r), /No logré interpretar/);
 });
 
 test('horario e información usa el horario configurado', async () => {

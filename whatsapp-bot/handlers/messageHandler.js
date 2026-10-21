@@ -53,7 +53,7 @@ export async function handleIncomingMessage(sock, msg, repo, limitador, pausaMs 
     ({ respuestas } = await procesar(repo, { clave, telefono, texto }));
   } catch (err) {
     console.error(`Error atendiendo a ${clave}:`, err);
-    respuestas = ['❌ Ocurrió un error procesando tu solicitud. Intenta de nuevo en un momento o escribe *menu*.'];
+    respuestas = ['Ocurrió un inconveniente al procesar su solicitud. Por favor intente nuevamente en unos minutos o escriba *menu*.'];
     try { await repo.guardarSesion(clave, { paso: 'menu', datos: {} }); } catch { /* sin sesión */ }
   }
   for (const r of respuestas) {
