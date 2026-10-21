@@ -28,6 +28,8 @@ const esNumero = (t, max) => {
   return n >= 1 && n <= max ? n : null;
 };
 
+// textoHorario ya termina en "p. m.": evita el doble punto final
+const fin = (t) => (t.endsWith('.') ? t : `${t}.`);
 const lista = (items) => items.map((x, i) => `${i + 1}️⃣ ${x}`).join('\n');
 const SEPARADOR_DIAS = 24 * 3_600_000;
 
@@ -208,7 +210,7 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
     const nombre = (await nombrePaciente()) ?? (datos.nombre || 'Un paciente');
     await repo.notificar('chat_whatsapp', `${nombre} quiere hablar con la doctora por WhatsApp (${tel ? formatoLocal(tel) : clave}).`, { telefono: tel ?? clave });
     pausarHasta = new Date(ahora.getTime() + PAUSA_HUMANO_HORAS * 3_600_000);
-    decir(`Listo 🙌 Avisé a la doctora; te responderá por aquí en cuanto pueda. Atendemos ${textoHorario(cfg)}.`);
+    decir(`Listo 🙌 Avisé a la doctora; te responderá por aquí en cuanto pueda. Atendemos ${fin(textoHorario(cfg))}`);
     paso = 'opcion';
     limpiar();
   }
@@ -225,7 +227,7 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
       case '2': return misCitas();
       case '3': return iniciarCancelar();
       case '4':
-        decir(aj.bot_info?.trim() || `🕘 Atendemos ${textoHorario(cfg)}.\n\nPara más información escribe *5* y la doctora te responderá.`);
+        decir(aj.bot_info?.trim() || `🕘 Atendemos ${fin(textoHorario(cfg))}\n\nPara más información escribe *5* y la doctora te responderá.`);
         return;
       case '5': return hablarConDoctora();
       default:

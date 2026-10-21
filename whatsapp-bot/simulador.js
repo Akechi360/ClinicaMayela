@@ -2,7 +2,7 @@
 // Lee la agenda y los tratamientos reales; las citas, pacientes y notificaciones solo se muestran en pantalla.
 //   Uso:  node simulador.js 04141234567        (escribe como si fueras ese número; "salir" para terminar)
 import 'dotenv/config';
-import readline from 'node:readline/promises';
+import readline from 'node:readline';
 import { createClient } from '@supabase/supabase-js';
 import { crearRepo } from './handlers/repo.js';
 import { procesar } from './handlers/conversacion.js';
@@ -42,17 +42,24 @@ const repo = {
   async crearFicha() { nota('se crearía el enlace de la ficha de ingreso'); return 'https://dra-mayela-gonzalez.vercel.app/f/EJEMPLO'; },
 };
 
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-console.log(`Simulando al paciente ${tel}. Escribe "salir" para terminar.\n`);
-for (;;) {
-  const texto = (await rl.question('Paciente > ')).trim();
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: false });
+console.log(`Simulando al paciente ${tel}. Escribe "salir" para terminar.
+`);
+process.stdout.write('Paciente > ');
+for await (const linea of rl) {
+  const texto = linea.trim();
   if (texto.toLowerCase() === 'salir') break;
+  console.log(`   (escribiste: ${texto})`);
   try {
     const { respuestas, motivo } = await procesar(repo, { clave: tel, telefono: tel, texto });
     if (!respuestas.length) console.log(`   (el bot no responde: ${motivo})`);
-    for (const r of respuestas) console.log(`\nBot >\n${r}\n`);
+    for (const r of respuestas) console.log(`
+Bot >
+${r}
+`);
   } catch (e) {
     console.log('   Error:', e.message);
   }
+  process.stdout.write('Paciente > ');
 }
 rl.close();
