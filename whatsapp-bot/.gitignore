@@ -2,3 +2,6 @@
 auth_session/
 .env
 node_modules/
+
+# Registro del bot en segundo plano
+bot.log

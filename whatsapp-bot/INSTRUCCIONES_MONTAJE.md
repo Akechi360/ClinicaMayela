@@ -68,3 +68,9 @@ Coloca un acceso directo de `iniciar_bot.bat` en la carpeta de inicio: `Win + R`
   Agregue palabras (en minúscula, sin tildes) a la lista que corresponda. También reconoce "hoy", "mañana" o un día de la semana
   ("quiero una cita para el jueves" muestra directamente los horarios del jueves).
 - Después de editar, reinicie el bot y corra `npm test` para comprobar que todo sigue bien.
+
+## Correr el bot en segundo plano (sin ventana)
+- `bot_oculto.vbs`: doble clic y el bot arranca sin ventana; lo que escribe queda en `bot.log`. Si ya estaba corriendo, no lo duplica.
+- Para que arranque solo al encender la PC: `Win + R` → `shell:startup` y pegue ahí un **acceso directo** de `bot_oculto.vbs`.
+- `detener_bot.bat`: lo detiene. Úselo antes de actualizar el bot (`git pull`) y luego vuelva a abrir `bot_oculto.vbs`.
+- Para saber si está vivo: Ajustes de la app muestra "BOT EN LÍNEA" o "BOT DESCONECTADO".
