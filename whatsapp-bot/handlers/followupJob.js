@@ -1,3 +1,6 @@
+import { normalizarTelefono } from './telefono.js';
+export { normalizarTelefono };
+
 // Envía los mensajes pendientes de la cola `seguimientos_tratamiento`: cuidados post-tratamiento, chequeos a las
 // 24 h y 72 h, recordatorios de control y de dosis de péptidos. El texto ya viene armado desde la aplicación.
 
@@ -12,16 +15,6 @@ let enCurso = false;
 export function enVentanaHoraria(fecha = new Date(), { desde, hasta } = VENTANA) {
   const h = Number(new Intl.DateTimeFormat('en-GB', { timeZone: 'America/Caracas', hour: '2-digit', hour12: false }).format(fecha));
   return h >= desde && h < hasta;
-}
-
-/** 0414-433.4584 / +58 414… / 414… → 584144334584 */
-export function normalizarTelefono(tel) {
-  let d = String(tel ?? '').replace(/\D/g, '');
-  if (!d) return '';
-  if (d.startsWith('00')) d = d.slice(2);
-  if (d.startsWith('0')) d = '58' + d.slice(1);
-  else if (d.length === 10 && d.startsWith('4')) d = '58' + d;
-  return d;
 }
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));

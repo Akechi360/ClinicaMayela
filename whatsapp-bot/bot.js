@@ -5,7 +5,9 @@ import { createServer } from 'http';
 import qrcode from 'qrcode-terminal';
 import cron from 'node-cron';
 import pino from 'pino';
-import { handleIncomingMessage } from './handlers/messageHandler.js';
+import { handleIncomingMessage, identificar, esChatIgnorado, crearLimitador } from './handlers/messageHandler.js';
+import { crearRepo } from './handlers/repo.js';
+import { PAUSA_HUMANO_HORAS } from './handlers/conversacion.js';
 import { sendDailyReminders } from './handlers/reminderJob.js';
 import { sendPendingFollowups } from './handlers/followupJob.js';
 import { ahoraCaracas, correspondenRecordatorios } from './handlers/reminderSchedule.js';
@@ -13,6 +15,10 @@ import 'dotenv/config';
 
 const logger = pino({ level: 'silent' });
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+const repo = crearRepo(supabase, { appUrl: process.env.APP_URL });
+const limitador = crearLimitador();
+// Ids de los mensajes que envía el propio bot: los demás mensajes "propios" los escribió una persona desde el teléfono
+const idsDelBot = new Set();
 
 let reconnectAttempts = 0;
 const MAX_RECONNECT_DELAY = 60000;
@@ -42,6 +48,13 @@ async function startBot() {
   });
 
   applyAntibanMiddleware(sock);
+  // Registra el id de todo lo que envía el bot (respuestas, recordatorios, seguimientos) para distinguirlo de lo que escribe la doctora
+  const enviarOriginal = sock.sendMessage.bind(sock);
+  sock.sendMessage = async (...args) => {
+    const r = await enviarOriginal(...args);
+    if (r?.key?.id) { idsDelBot.add(r.key.id); if (idsDelBot.size > 500) idsDelBot.delete(idsDelBot.values().next().value); }
+    return r;
+  };
   currentSock = sock;
 
   sock.ev.on('connection.update', async ({ connection, lastDisconnect, qr }) => {
@@ -85,14 +98,28 @@ async function startBot() {
 
   sock.ev.on('creds.update', saveCreds);
 
-  sock.ev.on('messages.upsert', async ({ messages }) => {
+  sock.ev.on('messages.upsert', async ({ messages, type }) => {
     for (const msg of messages) {
-      if (!msg.key.fromMe && msg.message) {
-        try {
-          await handleIncomingMessage(sock, msg, supabase);
-        } catch (err) {
-          console.error('Error processing message:', err);
-        }
+      if (!msg.message) continue;
+      // Mensajes viejos (historial o pendientes de cuando el bot estuvo apagado): no se responden ni se tratan como en vivo
+      const ts = Number(msg.messageTimestamp?.low ?? msg.messageTimestamp ?? 0);
+      if (ts && Date.now() / 1000 - ts > 300) continue;
+      if (type !== 'notify' && !msg.key.fromMe) continue;
+      if (msg.key.fromMe) {
+        // Si la doctora escribe desde el teléfono, el bot se calla en ese chat un rato (toma de control humana)
+        const { jid, clave } = identificar(msg);
+        if (esChatIgnorado(jid) || !clave) continue;
+        const id = msg.key.id;
+        setTimeout(() => {
+          if (idsDelBot.has(id)) return;
+          repo.pausar(clave, new Date(Date.now() + PAUSA_HUMANO_HORAS * 3_600_000)).catch((e) => console.error('No se pudo pausar el chat:', e.message));
+        }, 2500);
+        continue;
+      }
+      try {
+        await handleIncomingMessage(sock, msg, repo, limitador);
+      } catch (err) {
+        console.error('Error processing message:', err);
       }
     }
   });
