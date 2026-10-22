@@ -271,31 +271,9 @@ export const Login: React.FC = () => {
                 {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
               </button>
 
-              <div className="flex items-center gap-3 text-[8px] text-[#3A4254] uppercase tracking-[0.12em] my-4 font-sans font-medium select-none">
-                <div className="h-px flex-grow" style={{ background: 'rgba(255,255,255,0.06)' }} />
-                <span>o continúa con</span>
-                <div className="h-px flex-grow" style={{ background: 'rgba(255,255,255,0.06)' }} />
-              </div>
-
-              <div className="w-full py-2.5 border border-white/[0.06] rounded-xl text-[10px] font-medium uppercase tracking-wider text-[#5A6374] bg-white/[0.02] backdrop-blur-sm flex items-center justify-center gap-2 cursor-not-allowed select-none relative font-sans">
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M23.7 12.3c0-.8-.1-1.7-.2-2.5H12v4.8h6.6c-.3 1.5-1.1 2.8-2.4 3.7v3.1h3.9c2.3-2.1 3.6-5.2 3.6-9.1z" />
-                  <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3.1c-1.1.7-2.5 1.2-4.1 1.2-3.2 0-5.8-2.1-6.8-5H1.2v3.2C3.2 21.8 7.3 24 12 24z" />
-                  <path fill="#FBBC05" d="M5.2 14.2c-.3-.7-.4-1.5-.4-2.2s.1-1.5.4-2.2V6.6H1.2C.4 8.2 0 10 0 12s.4 3.8 1.2 5.4l4-3.2z" />
-                  <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4C17.9 1.2 15.1 0 12 0 7.3 0 3.2 2.2 1.2 6.6l4 3.2c1-2.9 3.6-5 6.8-5z" />
-                </svg>
-                Continuar con Google
-                <span className="absolute -top-2 -right-1.5 bg-rosa-petalo/[0.12] border border-rosa-petalo/25 text-rosa-petalo font-sans text-[6px] font-medium px-1.5 py-0.5 rounded-md uppercase tracking-wider">
-                  Próximamente
-                </span>
-              </div>
-
-              <div className="text-center text-[10px] text-[#4A5264] mt-6 select-none font-sans font-medium">
-                ¿No tienes una cuenta?{' '}
-                <span className="text-rosa-petalo hover:text-rosa-petalo-hover transition-colors cursor-pointer ml-1">
-                  Contáctanos
-                </span>
-              </div>
+              <p className="text-center text-[10px] text-[#4A5264] mt-6 select-none font-sans font-medium">
+                Acceso exclusivo del personal autorizado de la clínica.
+              </p>
             </form>
           </div>
         </div>
