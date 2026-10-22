@@ -49,7 +49,18 @@ export const AvisoLegal: React.FC = () => (
       <p>Este sitio enlaza con servicios externos, como WhatsApp para solicitar citas. Su uso se rige por los términos y políticas de privacidad de cada proveedor, sobre los que la clínica no tiene control.</p>
     </Seccion>
 
-    <Seccion titulo="9. Legislación aplicable y cambios">
+    <Seccion titulo="9. Asistente automatizado de WhatsApp (inteligencia artificial)">
+      <p>La clínica atiende por WhatsApp con un <b>asistente automatizado de inteligencia artificial</b>, que es un programa y no una persona. Su alcance es limitado:</p>
+      <Lista items={[
+        'Agenda, consulta y cancela citas y da información general (horario y ubicación). No emite diagnósticos, indicaciones médicas ni recetas, y no sustituye la consulta con la doctora.',
+        'No es un servicio de emergencias. Ante dificultad para respirar, dolor intenso, cambios en la visión u otra urgencia, acude de inmediato al centro de salud más cercano.',
+        'Si pides hablar con la doctora o describes síntomas, el asistente le avisa a la Dra. Mayela González con tu nombre, teléfono y mensaje para que pueda comunicarse contigo. Ese aviso no garantiza una respuesta inmediata.',
+        'Las respuestas del asistente son orientativas; la información y las citas confirmadas por la doctora o su consultorio prevalecen ante cualquier diferencia.',
+      ]} />
+      <p>Los datos que se registran en esta vía y tus derechos se explican en la página de <a href="/privacidad" className="text-aurora-deep underline">privacidad</a>.</p>
+    </Seccion>
+
+    <Seccion titulo="10. Legislación aplicable y cambios">
       <p>Este aviso se rige por las leyes de la República Bolivariana de Venezuela. Podemos actualizarlo; la fecha de la última revisión figura al inicio de la página.</p>
     </Seccion>
   </LegalLayout>
@@ -72,6 +83,7 @@ export const Privacidad: React.FC = () => (
         'Datos de salud: antecedentes, alergias, historial clínico, tratamientos y productos aplicados (con lote), laboratorios, composición corporal, protocolos de péptidos.',
         'Imágenes: fotografías antes/después y mapa facial, solo con tu autorización.',
         'Documentos: consentimientos informados con tu firma, récipes y citas.',
+        'Conversaciones con el asistente de WhatsApp: tu número de teléfono, el nombre que indiques y las citas que solicites, cambies o canceles (ver sección 4).',
       ]} />
       <p><b>Si solo visitas este sitio:</b> no te pedimos datos ni usamos analítica o publicidad. Consulta la página de <a href="/cookies" className="text-aurora-deep underline">cookies</a> para el detalle técnico.</p>
     </Seccion>
@@ -79,28 +91,40 @@ export const Privacidad: React.FC = () => (
     <Seccion titulo="3. Para qué los usamos">
       <Lista items={[
         'Prestar la atención médica y mantener tu historia clínica.',
-        'Gestionar citas y enviarte recordatorios y cuidados por WhatsApp, solo si lo aceptas.',
+        'Gestionar citas, de forma manual o mediante el asistente de WhatsApp, y enviarte recordatorios y cuidados por WhatsApp, solo si lo aceptas.',
         'Emitir récipes y consentimientos con validez verificable.',
         'Cumplir obligaciones legales y éticas de la profesión médica.',
       ]} />
       <p><b>No vendemos tus datos ni los usamos para publicidad de terceros.</b> Tus datos de salud no se usan en marketing ni se publican (por ejemplo, tus fotos) sin tu autorización expresa.</p>
     </Seccion>
 
-    <Seccion titulo="4. Secreto médico y quién tiene acceso">
+    <Seccion titulo="4. Asistente de WhatsApp con inteligencia artificial">
+      <p>Para atenderte con rapidez, la clínica cuenta con un <b>asistente automatizado (inteligencia artificial)</b> en su número de WhatsApp. Es un programa, no una persona. Al escribirle, ten en cuenta que:</p>
+      <Lista items={[
+        'Sirve para agendar, consultar y cancelar citas, y para darte información general de la clínica (horario y ubicación). No da diagnósticos, indicaciones médicas ni reemplaza una consulta.',
+        'Guarda tu número de teléfono, el nombre que le indiques para registrarte, el estado de la conversación mientras se completa el trámite y las citas que gestiones. Si eres paciente nuevo, te envía un enlace para completar tu ficha de ingreso.',
+        'Cuando pides hablar con la doctora, o describes síntomas o molestias, el asistente <b>avisa a la Dra. Mayela González</b> con tu nombre, tu teléfono y, en el caso de síntomas, el texto de tu mensaje, para que pueda comunicarse contigo. Mientras tanto, el asistente deja de responder en ese chat.',
+        'Los mensajes viajan por WhatsApp (Meta), un proveedor externo sobre el que la clínica no tiene control; su tratamiento se rige por las políticas de WhatsApp.',
+        'El asistente no es un servicio de emergencias. Si tienes dificultad para respirar, dolor intenso, cambios en la visión u otra urgencia, acude de inmediato al centro de salud más cercano.',
+      ]} />
+      <p>Puedes dejar de usar el asistente cuando quieras y pedir hablar directamente con la doctora o con el consultorio, y solicitar la supresión de los datos que el asistente haya registrado (ver sección 7).</p>
+    </Seccion>
+
+    <Seccion titulo="5. Secreto médico y quién tiene acceso">
       <p>La información clínica está protegida por el <b>secreto profesional</b> que establece el Código de Deontología Médica. Hoy el acceso a la plataforma clínica está limitado a la Dra. Mayela González. Si en el futuro se incorpora personal de apoyo, tendrá acceso restringido y quedará obligado a la misma confidencialidad.</p>
     </Seccion>
 
-    <Seccion titulo="5. Cuánto tiempo los conservamos">
+    <Seccion titulo="6. Cuánto tiempo los conservamos">
       <p>La historia clínica se conserva el tiempo que exigen el criterio médico y las normas aplicables. Los datos no clínicos (por ejemplo, de contacto) se conservan mientras mantengamos la relación asistencial o hasta que solicites su supresión, cuando sea procedente.</p>
     </Seccion>
 
-    <Seccion titulo="6. Tus derechos">
+    <Seccion titulo="7. Tus derechos">
       <p>La Constitución de la República Bolivariana de Venezuela reconoce el derecho de toda persona a conocer los datos que sobre ella constan en registros, a rectificarlos o a solicitar su destrucción cuando sean inexactos o lesivos (art. 28), y a la protección de su honor, vida privada, intimidad, propia imagen, confidencialidad y reputación (art. 60). En la clínica puedes:</p>
       <Lista items={[
         'Acceder a la información de tu ficha y pedir una copia.',
         'Solicitar la corrección de datos inexactos.',
         'Pedir la supresión de datos o fotografías cuando la ley y la ética médica lo permitan.',
-        'Retirar tu autorización para recibir mensajes de WhatsApp.',
+        'Retirar tu autorización para recibir mensajes de WhatsApp y dejar de ser atendido por el asistente automatizado.',
       ]} />
       <p>Escríbenos por <Contacto /> o solicítalo en consulta. Venezuela no cuenta con una ley integral de protección de datos personales; aplicamos estos principios de forma voluntaria como buena práctica.</p>
     </Seccion>

@@ -1,4 +1,4 @@
-export const ACTUALIZADO = '6 de octubre de 2026';
+export const ACTUALIZADO = '22 de octubre de 2026';
 
 export const PAGINAS_LEGALES = [
   { to: '/aviso-legal', label: 'Aviso legal' },
