@@ -111,6 +111,12 @@ export function crearRepo(supabase, { appUrl = 'https://dra-mayela-gonzalez.verc
       if (error) console.error('No se pudo crear la notificación:', error.message);
     },
 
+    /** Nombre y dirección del consultorio (se cargan en la app: Perfil de la doctora). */
+    async consultorio() {
+      const { data } = await supabase.from('doctor_profile').select('consultorio_nombre, consultorio_direccion').limit(1).maybeSingle();
+      return { nombre: data?.consultorio_nombre ?? null, direccion: data?.consultorio_direccion ?? null };
+    },
+
     // ── Alertas a la doctora (ver alertas.js) ─────────────────────────────
     async notificacionesSinAlertar(limite = 50) {
       const { data, error } = await supabase

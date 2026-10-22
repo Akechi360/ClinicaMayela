@@ -83,14 +83,14 @@ test('"quiero una cita para el jueves" salta directo a los horarios de ese día'
   const repo = repoFalso({ pacientes: [WILLIAN] });
   const r = await dec(repo, 'Quiero una cita para el jueves');
   assert.match(junto(r), /horarios del \*jueves 22 de octubre\*|horarios para el \*jueves 22 de octubre\*/);
-  assert.match(junto(r), /Horarios disponibles/);
+  assert.match(junto(r), /tengo estos horarios disponibles/);
 });
 
 test('día sin disponibilidad: lo dice y ofrece los días libres', async () => {
   const repo = repoFalso({ pacientes: [WILLIAN] });
   const r = await dec(repo, 'quiero una cita para el sábado');
   assert.match(junto(r), /(no tengo horarios|no hay horarios)/i);
-  assert.match(junto(r), /Qué día prefiere/);
+  assert.match(junto(r), /Tengo disponibilidad estos días/);
 });
 
 test('texto libre: cancelar, gracias y no entendido', async () => {

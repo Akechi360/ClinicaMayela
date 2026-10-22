@@ -60,13 +60,14 @@ test('paciente existente (teléfono en otro formato) agenda y queda confirmada',
   await decir(repo, 'hola');
   let r = await decir(repo, '1');
   assert.match(junto(r), /gusto saludarle, Willian/);
-  assert.match(junto(r), /Qué día prefiere/); // un solo servicio: se salta la elección
-  r = await decir(repo, '1'); // primer día disponible (hoy a partir de las 12:00)
-  assert.match(junto(r), /Horarios disponibles/);
-  r = await decir(repo, '1');
-  assert.match(junto(r), /Confirmar/);
-  r = await decir(repo, '1');
+  assert.match(junto(r), /Tengo disponibilidad estos días/); // un solo servicio: se salta la elección
+  r = await decir(repo, 'hoy'); // hoy hay horarios a partir de las 12:00
+  assert.match(junto(r), /tengo estos horarios disponibles/);
+  r = await decir(repo, 'a las 2 pm');
+  assert.match(junto(r), /confirmarla/);
+  r = await decir(repo, 'sí');
   assert.match(junto(r), /cita ha sido confirmada/);
+  assert.equal(repo.log.citasCreadas[0].inicio.toISOString(), '2026-10-19T18:00:00.000Z'); // 2:00 p. m. de Caracas
   assert.equal(repo.log.citasCreadas.length, 1);
   assert.equal(repo.log.citasCreadas[0].estado, 'confirmado');
   assert.equal(repo.log.citasCreadas[0].pacienteId, 'p1');
@@ -84,10 +85,10 @@ test('paciente nuevo: pide nombre y apellido, lo registra solo al confirmar y en
   assert.match(junto(r), /nombre y apellido/); // una sola palabra no basta
   assert.equal(repo.log.pacientesCreados.length, 0);
   await decir(repo, 'María Pérez');
-  await decir(repo, '1');
-  await decir(repo, '1');
+  await decir(repo, 'hoy');
+  await decir(repo, '2 pm');
   assert.equal(repo.log.pacientesCreados.length, 0); // aún no confirmó
-  r = await decir(repo, '1');
+  r = await decir(repo, 'sí');
   assert.equal(repo.log.pacientesCreados.length, 1);
   assert.equal(repo.log.pacientesCreados[0].telefono, '04144334584');
   assert.match(junto(r), /ficha de ingreso/);
@@ -98,7 +99,7 @@ test('no ofrece horarios ocupados', async () => {
   // Martes 20, cita de 10:00 a 11:00 (Caracas)
   const repo = crearRepoFalso({ pacientes: [WILLIAN], citas: [{ id: 'x', paciente_id: 'otro', fecha_hora: '2026-10-20T14:00:00Z', duracion_minutos: 60, estado: 'confirmado' }] });
   await decir(repo, '1'); // agendar: muestra los días
-  const r = await decir(repo, '2'); // segundo día = martes 20
+  const r = await decir(repo, 'el martes');
   assert.match(junto(r), /martes 20 de octubre/);
   assert.doesNotMatch(junto(r), /10:00 a\. m\./);
   assert.match(junto(r), /11:00 a\. m\./);
@@ -115,10 +116,10 @@ test('límite de citas próximas por paciente', async () => {
 test('tratamiento que requiere aprobación queda como solicitud', async () => {
   const repo = crearRepoFalso({ pacientes: [WILLIAN], tratamientos: [{ ...CONSULTA, aprobacion_whatsapp: true }] });
   await decir(repo, '1'); // días
-  await decir(repo, '1'); // horas
-  let r = await decir(repo, '1'); // resumen
+  await decir(repo, 'hoy'); // horas
+  let r = await decir(repo, '2 pm'); // resumen
   assert.match(junto(r), /solicitud/i);
-  r = await decir(repo, '1');
+  r = await decir(repo, 'sí');
   assert.match(junto(r), /solicitud ha sido recibida/);
   assert.equal(repo.log.citasCreadas[0].estado, 'pendiente');
   assert.equal(repo.log.notificaciones[0].tipo, 'cita_por_aprobar_whatsapp');
@@ -129,8 +130,8 @@ test('varios servicios: el paciente elige uno', async () => {
   const r = await decir(repo, '1');
   assert.match(junto(r), /Qué servicio desea agendar/);
   assert.match(junto(r), /Control/);
-  const r2 = await decir(repo, '2');
-  assert.match(junto(r2), /Qué día prefiere/);
+  const r2 = await decir(repo, 'el control');
+  assert.match(junto(r2), /Tengo disponibilidad estos días/);
 });
 
 test('cancelar: una cita lejana se cancela con confirmación', async () => {
@@ -138,7 +139,7 @@ test('cancelar: una cita lejana se cancela con confirmación', async () => {
   const repo = crearRepoFalso({ pacientes: [WILLIAN], citas: [cita] });
   let r = await decir(repo, '3');
   assert.match(junto(r), /Confirma que desea cancelar/);
-  r = await decir(repo, '1');
+  r = await decir(repo, 'sí, por favor');
   assert.match(junto(r), /ha sido cancelada/);
   assert.deepEqual(repo.log.canceladas, ['c9']);
   assert.equal(repo.log.notificaciones[0].tipo, 'cita_cancelada_whatsapp');

@@ -6,6 +6,7 @@ import { hora12, norm, textoCita, textoDia, textoHorario } from './textos.js';
 import { formatoLocal, normalizarTelefono } from './telefono.js';
 import { FRASES, elegir, rellenar } from './frases.js';
 import { detectarIntencion, opcionDeIntencion, diaMencionado } from './intenciones.js';
+import { diaDelMes, elegirPorTexto, esNo, esSi, horaMencionada, horasCercanas } from './entendimiento.js';
 
 export const EXPIRA_MIN = 30;
 export const PAUSA_HUMANO_HORAS = 3;
@@ -28,15 +29,8 @@ const MENU = [
 const saludo = (aj) => (aj?.mensaje_bienvenida || 'Bienvenido(a) a la *Clínica Dra. Mayela González*. Soy su asistente de inteligencia artificial y con gusto le atenderé. ¿En qué puedo ayudarle?').trim();
 const conMenu = `Con gusto. Estas son las opciones disponibles:\n\n${MENU}`;
 
-const esNumero = (t, max) => {
-  if (!/^\d{1,2}$/.test(t)) return null;
-  const n = Number(t);
-  return n >= 1 && n <= max ? n : null;
-};
-
 // textoHorario ya termina en "p. m.": evita el doble punto final
 const fin = (t) => (t.endsWith('.') ? t : `${t}.`);
-const lista = (items) => items.map((x, i) => `${i + 1}️⃣ ${x}`).join('\n');
 const SEPARADOR_DIAS = 24 * 3_600_000;
 
 // Señales de posible complicación tras un tratamiento estético. Se evalúan sobre texto normalizado (minúsculas, sin tildes).
@@ -104,7 +98,12 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
       case 'gracias': return decir(elegir(FRASES.gracias, azar));
       case 'despedida': return decir(elegir(FRASES.despedida, azar));
       case 'cambiar': decir(elegir(FRASES.cambiarCita, azar)); return ejecutarOpcion('3');
-      case 'agendar': datos.diaPref = diaMencionado(texto, hoy()); return ejecutarOpcion('1');
+      case 'agendar': {
+        datos.diaPref = diaMencionado(texto, hoy());
+        const h = horaMencionada(texto);
+        if (datos.diaPref && h?.explicita) datos.horaPref = h.candidatas;
+        return ejecutarOpcion('1');
+      }
       default: return ejecutarOpcion(opcionDeIntencion(id));
     }
   }
@@ -112,14 +111,14 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
   async function mostrarTratamientos() {
     const trat = await repo.tratamientosReservables();
     if (!trat.length) {
-      decir('Por el momento no hay servicios disponibles para agendar por este medio. Escriba *5* para comunicarse con la doctora.');
+      decir('Por el momento no hay servicios disponibles para agendar por este medio. Si lo desea, puedo comunicarle con la doctora.');
       paso = 'opcion';
       return;
     }
     if (trat.length === 1) { datos.tratamiento = trat[0]; return mostrarDias(); }
     const visibles = trat.slice(0, 15);
     datos.tratamientos = visibles;
-    decir(`¿Qué servicio desea agendar?\n\n${lista(visibles.map((x) => x.nombre))}`);
+    decir(`¿Qué servicio desea agendar? Contamos con:\n\n${visibles.map((x) => `• ${x.nombre}`).join('\n')}\n\nPuede escribirme el nombre del servicio.`);
     paso = 'tratamiento';
   }
 
@@ -133,19 +132,26 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
     const dur = datos.tratamiento.duracion_minutos || 30;
     const dias = diasDisponibles({ desde: hoy(), config: cfg, ocupados: await ocupadosDelHorizonte(), duracionMin: dur, ahora, max: 6 });
     if (!dias.length) {
-      decir(`No hay horarios disponibles en los próximos ${cfg.horizonteDias} días. Escriba *5* para comunicarse con la doctora.`);
+      decir(`No hay horarios disponibles en los próximos ${cfg.horizonteDias} días. Si lo desea, puedo comunicarle con la doctora.`);
       paso = 'opcion';
       return;
     }
     datos.dias = dias.map((d) => d.dia);
     const pref = datos.diaPref;
+    const horaPref = datos.horaPref;
     delete datos.diaPref;
+    delete datos.horaPref;
     if (pref) {
       const libres = slotsDelDia({ dia: pref, config: cfg, ocupados: await ocupadosDelHorizonte(), duracionMin: dur, ahora });
-      if (libres.length) { decir(rellenar(elegir(FRASES.diaEntendido, azar), { dia: textoDia(pref) })); return mostrarHoras(pref); }
+      if (libres.length) {
+        const hp = horaPref?.find((c) => libres.some((x) => x.hora === c));
+        if (hp) { datos.dia = pref; datos.hora = hp; return resumenCita(); }
+        decir(rellenar(elegir(FRASES.diaEntendido, azar), { dia: textoDia(pref) }));
+        return mostrarHoras(pref);
+      }
       decir(elegir(FRASES.diaNoDisponible, azar));
     }
-    decir(`📅 ¿Qué día prefiere?\n\n${lista(dias.map((d) => `${textoDia(d.dia)} (${d.slots.length} horarios)`))}`);
+    decir(`📅 Tengo disponibilidad estos días:\n\n${dias.map((d) => `• ${textoDia(d.dia)}`).join('\n')}\n\n¿Cuál le conviene? Puede decirme, por ejemplo, "el jueves" o "mañana".`);
     paso = 'dia';
   }
 
@@ -158,7 +164,7 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
     }
     datos.dia = dia;
     datos.horas = slots.map((s) => s.hora);
-    decir(`🕐 Horarios disponibles el *${textoDia(dia)}*:\n\n${lista(slots.map((s) => hora12(s.hora)))}`);
+    decir(`🕐 El *${textoDia(dia)}* tengo estos horarios disponibles:\n\n${slots.map((x) => hora12(x.hora)).join(' · ')}\n\n¿A qué hora le conviene? Puede escribirme, por ejemplo, "10" o "3:30 pm".`);
     paso = 'hora';
   }
 
@@ -167,7 +173,7 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
     const aprob = datos.tratamiento.aprobacion_whatsapp;
     decir(
       `Estos son los datos de su cita:\n\n📅 *${textoCita(inicio)}*\n💆 ${datos.tratamiento.nombre}\n👤 ${datos.nombre}\n` +
-      `${aprob ? '\nNota: quedará como *solicitud* y la doctora la confirmará a la brevedad.\n' : ''}\n1️⃣ Confirmar\n2️⃣ Elegir otro horario`,
+      `${aprob ? '\nNota: quedará como *solicitud* y la doctora la confirmará a la brevedad.\n' : ''}\n¿Desea confirmarla? Responda *sí* para confirmar, o dígame otro día u hora.`,
     );
     paso = 'confirmar';
   }
@@ -177,7 +183,7 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
     if (paciente) {
       const futuras = await repo.citasFuturas(paciente.id);
       if (futuras.length >= cfg.maxCitasFuturas) {
-        decir(`Usted ya tiene ${futuras.length} citas próximas (el máximo por este medio es ${cfg.maxCitasFuturas}). Escriba *2* para verlas, *3* para cancelar alguna o *5* para comunicarse con la doctora.`);
+        decir(`Usted ya tiene ${futuras.length} citas próximas (el máximo por este medio es ${cfg.maxCitasFuturas}). Puede pedirme ver sus citas, cancelar alguna o hablar con la doctora.`);
         paso = 'opcion';
         return;
       }
@@ -219,7 +225,7 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
     decir(
       aprob
         ? `✅ Su solicitud ha sido recibida.\n📅 *${textoCita(inicio)}*\n\nLa doctora la revisará y le confirmaremos por este medio. Gracias por su confianza.`
-        : `✅ Su cita ha sido confirmada.\n📅 *${textoCita(inicio)}*\n💆 ${datos.tratamiento.nombre}\n\nLe enviaremos un recordatorio el día anterior. Si necesita modificarla, escriba *menu*.`,
+        : `✅ Su cita ha sido confirmada.\n📅 *${textoCita(inicio)}*\n💆 ${datos.tratamiento.nombre}\n\nLe enviaremos un recordatorio el día anterior. Si necesita modificarla, solo dígamelo.`,
     );
     if (nuevo) {
       const enlace = await repo.crearFicha(pacienteId);
@@ -231,9 +237,9 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
 
   async function misCitas() {
     const paciente = await repo.pacientePorTelefono(tel);
-    if (!paciente) { decir('No encontramos su número registrado. Puede agendar su primera cita con la opción *1*.'); return; }
+    if (!paciente) { decir('No encontramos su número registrado. Con gusto le agendo su primera cita: dígame qué día le conviene.'); return; }
     const futuras = await repo.citasFuturas(paciente.id);
-    if (!futuras.length) { decir('No tiene citas próximas. Escriba *1* para agendar una.'); return; }
+    if (!futuras.length) { decir('No tiene citas próximas. Si desea agendar una, dígame qué día le conviene.'); return; }
     decir(`📋 Sus próximas citas:\n\n${futuras.slice(0, 5).map((c) => `• *${textoCita(c.fecha_hora)}* — ${c.tratamiento?.nombre || 'Consulta'} (${c.estado === 'confirmado' ? 'confirmada' : 'por confirmar'})`).join('\n')}`);
   }
 
@@ -244,19 +250,19 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
     if (!futuras.length) { decir('No tiene citas próximas para cancelar.'); return; }
     datos.citas = futuras.slice(0, 5).map((c) => ({ id: c.id, fecha_hora: c.fecha_hora, nombre: c.tratamiento?.nombre || 'Consulta' }));
     if (datos.citas.length === 1) return pedirConfirmarCancelacion(datos.citas[0]);
-    decir(`¿Cuál cita desea cancelar?\n\n${lista(datos.citas.map((c) => `${textoCita(c.fecha_hora)} — ${c.nombre}`))}`);
+    decir(`¿Cuál cita desea cancelar?\n\n${datos.citas.map((c) => `• ${textoCita(c.fecha_hora)} — ${c.nombre}`).join('\n')}\n\nPuede decirme el día, o "la primera", "la segunda"…`);
     paso = 'cancelar_elegir';
   }
 
   function pedirConfirmarCancelacion(cita) {
     const horas = (new Date(cita.fecha_hora).getTime() - ahora.getTime()) / 3_600_000;
     if (horas < cfg.cancelarHoras) {
-      decir(`Su cita del *${textoCita(cita.fecha_hora)}* es en menos de ${cfg.cancelarHoras} horas, por lo que no es posible cancelarla por este medio. Escriba *5* para comunicarse con la doctora.`);
+      decir(`Su cita del *${textoCita(cita.fecha_hora)}* es en menos de ${cfg.cancelarHoras} horas, por lo que no es posible cancelarla por este medio. Si lo desea, puedo comunicarle con la doctora.`);
       paso = 'opcion';
       return;
     }
     datos.cancelar = cita;
-    decir(`¿Confirma que desea cancelar su cita del *${textoCita(cita.fecha_hora)}*?\n\n1️⃣ Sí, cancelarla\n2️⃣ No, mantenerla`);
+    decir(`¿Confirma que desea cancelar su cita del *${textoCita(cita.fecha_hora)}*? Responda *sí* o *no*.`);
     paso = 'cancelar_confirmar';
   }
 
@@ -280,9 +286,13 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
       case '1': return iniciarAgendar();
       case '2': return misCitas();
       case '3': return iniciarCancelar();
-      case '4':
-        decir(aj.bot_info?.trim() || `🕘 Nuestro horario de atención es ${fin(textoHorario(cfg))}\n\nPara más información, escriba *5* y la doctora le responderá.`);
+      case '4': {
+        const c = await repo.consultorio?.();
+        const base = aj.bot_info?.trim() || `🕘 Nuestro horario de atención es ${fin(textoHorario(cfg))}`;
+        const direccion = c?.direccion && !base.includes(c.direccion) ? `\n📍 ${c.direccion}` : '';
+        decir(`${base}${direccion}${aj.bot_info?.trim() ? '' : '\n\nSi necesita más información, puedo comunicarle con la doctora.'}`);
         return;
+      }
       case '5': return hablarConDoctora();
       default:
         decir(`${elegir(FRASES.noEntendi, azar)}\n\n${MENU}`);
@@ -344,55 +354,79 @@ export async function procesar(repo, { clave, telefono, texto, ahora = new Date(
       }
 
       case 'tratamiento': {
-        const n = esNumero(t, datos.tratamientos?.length ?? 0);
-        if (!n) { decir(`Por favor elija una opción escribiendo su número.\n\n${lista((datos.tratamientos ?? []).map((x) => x.nombre))}`); break; }
-        datos.tratamiento = datos.tratamientos[n - 1];
+        const x = elegirPorTexto(texto, datos.tratamientos ?? [], (i) => i.nombre);
+        if (!x) { decir(`No logré identificar el servicio. Puede escribirme su nombre, por ejemplo: "${datos.tratamientos?.[0]?.nombre ?? 'consulta'}".`); break; }
+        datos.tratamiento = x;
         delete datos.tratamientos;
         await mostrarDias();
         break;
       }
 
       case 'dia': {
-        const n = esNumero(t, datos.dias?.length ?? 0);
-        if (!n) { decir('Por favor elija un día escribiendo su número, o escriba *menu* para volver.'); break; }
-        await mostrarHoras(datos.dias[n - 1]);
+        const dias = datos.dias ?? [];
+        const dur = datos.tratamiento.duracion_minutos || 30;
+        const mencionado = diaMencionado(texto, hoy());
+        if (mencionado) {
+          const libres = slotsDelDia({ dia: mencionado, config: cfg, ocupados: await ocupadosDelHorizonte(), duracionMin: dur, ahora });
+          if (libres.length) { await mostrarHoras(mencionado); break; }
+          decir(`${elegir(FRASES.diaNoDisponible, azar)}\n\n${dias.map((d) => `• ${textoDia(d)}`).join('\n')}`);
+          break;
+        }
+        const elegido = diaDelMes(texto, dias);
+        if (!elegido) { decir('No logré identificar el día. Puede decirme, por ejemplo, "el jueves", "mañana" o "el 22".'); break; }
+        await mostrarHoras(elegido);
         break;
       }
 
       case 'hora': {
-        const n = esNumero(t, datos.horas?.length ?? 0);
-        if (!n) { decir('Por favor elija un horario escribiendo su número, o escriba *menu* para volver.'); break; }
-        datos.hora = datos.horas[n - 1];
+        const horas = datos.horas ?? [];
+        const otroDia = diaMencionado(texto, hoy());
+        if (otroDia && otroDia !== datos.dia) { await mostrarHoras(otroDia); break; }
+        const h = horaMencionada(texto, horas);
+        if (!h) { decir('No logré entender la hora. Puede escribirme, por ejemplo, "10" o "3:30 pm".'); break; }
+        if (!h.valida) {
+          decir(`Ese horario no está disponible. Los más cercanos son ${horasCercanas(h.hora, horas).map(hora12).join(' y ')}. ¿Cuál prefiere?`);
+          break;
+        }
+        datos.hora = h.hora;
         resumenCita();
         break;
       }
 
-      case 'confirmar':
-        if (t === '1') await crear();
-        else if (t === '2') await mostrarHoras(datos.dia);
-        else decir('Escriba *1* para confirmar o *2* para elegir otro horario.');
+      case 'confirmar': {
+        if (esSi(texto)) { await crear(); break; }
+        if (esNo(texto)) { await mostrarHoras(datos.dia); break; }
+        const nuevoDia = diaMencionado(texto, hoy());
+        const libres = slotsDelDia({ dia: datos.dia, config: cfg, ocupados: await ocupadosDelHorizonte(), duracionMin: datos.tratamiento.duracion_minutos || 30, ahora }).map((x) => x.hora);
+        const h = horaMencionada(texto, libres);
+        if (nuevoDia && nuevoDia !== datos.dia) await mostrarHoras(nuevoDia);
+        else if (h?.valida && h.explicita) { datos.hora = h.hora; resumenCita(); }
+        else decir('¿Desea confirmar su cita? Responda *sí* para confirmar, o dígame otro día u hora.');
         break;
+      }
 
       case 'cancelar_elegir': {
-        const n = esNumero(t, datos.citas?.length ?? 0);
-        if (!n) { decir('Por favor elija la cita escribiendo su número, o escriba *menu* para volver.'); break; }
-        pedirConfirmarCancelacion(datos.citas[n - 1]);
+        const citas = datos.citas ?? [];
+        const dia = diaMencionado(texto, hoy());
+        const c = (dia && citas.find((x) => ahoraCaracas(new Date(x.fecha_hora)).dia === dia)) || elegirPorTexto(texto, citas, (x) => `${textoCita(x.fecha_hora)} ${x.nombre}`);
+        if (!c) { decir('No logré identificar cuál cita. Puede decirme el día, o "la primera", "la segunda"…'); break; }
+        pedirConfirmarCancelacion(c);
         break;
       }
 
       case 'cancelar_confirmar':
-        if (t === '1') {
+        if (esSi(texto)) {
           const c = datos.cancelar;
           await repo.cancelarCita(c.id);
           await repo.notificar('cita_cancelada_whatsapp', `Cita cancelada por WhatsApp (${tel ? formatoLocal(tel) : clave}): ${textoCita(c.fecha_hora)}`, { cita_id: c.id, telefono: tel ? formatoLocal(tel) : clave, nombre: (await nombrePaciente()) ?? datos.nombre ?? undefined, cuando: textoCita(c.fecha_hora) });
-          decir(`✅ Su cita del *${textoCita(c.fecha_hora)}* ha sido cancelada. Escriba *1* si desea agendar otra.`);
+          decir(`✅ Su cita del *${textoCita(c.fecha_hora)}* ha sido cancelada. Si desea agendar otra, solo dígamelo.`);
           paso = 'opcion';
           limpiar();
-        } else if (t === '2') {
+        } else if (esNo(texto)) {
           decir('Entendido, su cita se mantiene.');
           paso = 'opcion';
           limpiar();
-        } else decir('Escriba *1* para cancelar la cita o *2* para mantenerla.');
+        } else decir('¿Desea cancelar la cita? Responda *sí* para cancelarla o *no* para mantenerla.');
         break;
 
       default:
