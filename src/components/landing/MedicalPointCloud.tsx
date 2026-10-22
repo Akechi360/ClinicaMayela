@@ -15,7 +15,7 @@ interface Props {
 // punta de la nariz ≈ (0, 0.38, 0.92); labios ≈ y -0.05; mentón ≈ y -0.29).
 const MOUTH_CENTER = new THREE.Vector3(0.0, -0.08, 0.79);
 // Alto del busto en unidades de escena (el modelo es más alto que ancho; así la cabeza ocupa lo mismo que el busto anterior)
-const TAMANO = 2.8;
+const TAMANO = 2.3;
 
 function buildHeadPointCloud(scene: THREE.Object3D, normalTex: THREE.Texture, pointCount: number) {
   let mesh: THREE.Mesh | null = null;
