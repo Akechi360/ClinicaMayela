@@ -39,6 +39,7 @@ export const AvisoLegal: React.FC = () => (
 
     <Seccion titulo="6. Propiedad intelectual y marcas de terceros">
       <p>Los textos, el diseño y las imágenes propias de la clínica no pueden reproducirse sin autorización. Las marcas y fotografías de productos de terceros (por ejemplo, los laboratorios fabricantes) pertenecen a sus titulares y se muestran con fines informativos.</p>
+      <p><b>Créditos:</b> el busto 3D de la página principal se basa en el modelo de cabeza «Lee Perry-Smith», de Infinite Realities, publicado bajo la licencia <a href="https://creativecommons.org/licenses/by/3.0/deed.es" target="_blank" rel="noopener noreferrer" className="text-aurora-deep underline">Creative Commons Atribución 3.0</a>, y se muestra como una nube de partículas.</p>
     </Seccion>
 
     <Seccion titulo="7. Portal del personal médico">
