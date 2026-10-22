@@ -178,8 +178,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <img src={logoSimbolo} alt="Clínica Dra. Mayela González" className={collapsed ? 'h-9 w-auto' : 'h-14 w-auto'} />
           {!collapsed && (
             <>
-              <h1 className="text-sm font-display font-medium text-slate-dark tracking-[0.15em] uppercase mt-3 transition-colors group-hover:text-rosa-petalo duration-500">Rejuvenece</h1>
-              <div className="w-6 h-[1px] bg-gradient-to-r from-transparent via-rosa-petalo/30 to-transparent my-2" />
+              <div className="w-6 h-[1px] bg-gradient-to-r from-transparent via-rosa-petalo/30 to-transparent my-2.5" />
               <p className="text-[8px] uppercase tracking-[0.15em] text-rosa-petalo font-medium truncate max-w-full">
                 {doctor?.nombre || 'Dra. Mayela González'}
               </p>

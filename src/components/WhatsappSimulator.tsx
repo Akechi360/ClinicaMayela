@@ -15,7 +15,7 @@ export const WhatsappSimulator: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(1);
   const [mensajes, setMensajes] = useState<Mensaje[]>([
-    { sender: 'bot', text: 'Hola, soy el asistente virtual de Rejuvenece. ¿En qué puedo ayudarte hoy?', time: '17:40' }
+    { sender: 'bot', text: 'Hola, soy el asistente virtual de la Clínica Dra. Mayela González. ¿En qué puedo ayudarle?', time: '17:40' }
   ]);
   const [inputText, setInputText] = useState('');
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -206,7 +206,7 @@ export const WhatsappSimulator: React.FC = () => {
                 W
               </div>
               <div>
-                <p className="text-sm font-semibold">WhatsApp Bot Rejuvenece</p>
+                <p className="text-sm font-semibold">Asistente de la Clínica</p>
                 <p className="text-[9px] opacity-75">Asistente Virtual Clínico</p>
               </div>
             </div>
