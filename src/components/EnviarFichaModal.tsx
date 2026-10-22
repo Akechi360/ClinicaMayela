@@ -22,7 +22,7 @@ export const EnviarFichaModal: React.FC<Props> = ({ pacienteId = null, nombre, t
   const [error, setError] = useState('');
   const [tel, setTel] = useState(telefono ?? '');
   const [fichaId, setFichaId] = useState('');
-  const [longevidad, setLongevidad] = useState(false);
+  const [longevidad, setLongevidad] = useState(true); // la ficha incluye la historia de longevidad por defecto
   const creada = useRef(false);
 
   useEffect(() => {

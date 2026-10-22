@@ -23,6 +23,9 @@ const campo = 'w-full rounded-xl border border-lilac-soft bg-white px-3.5 py-3 t
 const etiqueta = 'mb-1 block text-[11px] font-bold uppercase tracking-wider text-lilac-muted';
 
 /** Página pública (sin sesión): el paciente llena su ficha de ingreso desde el teléfono. */
+// Se piden en la primera pantalla ("Antecedentes de salud") y se copian a la historia al enviar: no se repiten
+const YA_PREGUNTADOS = new Set(['patologicos.cirugias', 'patologicos.medicamentos']);
+
 export const FichaIngresoPublica: React.FC = () => {
   const { codigo = '' } = useParams<{ codigo: string }>();
   const [estado, setEstado] = useState<Estado>({ tipo: 'cargando' });
@@ -89,7 +92,7 @@ export const FichaIngresoPublica: React.FC = () => {
     if (!esUltimo) { siguiente(); return; }
     setError('');
     if (!nombre.trim() || !apellido.trim()) { setError('Escriba su nombre y apellido.'); setPaso(0); return; }
-    if (!veracidad || !privacidad) { setError('Debes aceptar las dos declaraciones para enviar la ficha.'); return; }
+    if (!veracidad || !privacidad) { setError('Debe aceptar las dos declaraciones para enviar la ficha.'); return; }
     setEnviando(true);
     try {
       const datos: Record<string, unknown> = {
@@ -100,7 +103,10 @@ export const FichaIngresoPublica: React.FC = () => {
         patologias, alergias, medicamentos, antecedentes, motivo,
         veracidad: String(veracidad), privacidad: String(privacidad),
       };
-      if (conLongevidad) datos.longevidad = limpiarLongevidad(longevidad);
+      if (conLongevidad) {
+        const pat = { ...longevidad.patologicos, ...(antecedentes.trim() ? { cirugias: antecedentes } : {}), ...(medicamentos.trim() ? { medicamentos } : {}) };
+        datos.longevidad = limpiarLongevidad({ ...longevidad, patologicos: pat });
+      }
       const r = await fichaEnviar(codigo, datos);
       if (r.ok) { setEstado({ tipo: 'enviada' }); subir(); }
       else if (r.motivo === 'falta_nombre' || r.motivo === 'falta_aceptacion') setError('Revise los datos obligatorios e intente de nuevo.');
@@ -197,9 +203,9 @@ export const FichaIngresoPublica: React.FC = () => {
                   <p className="text-xs text-lilac-muted">Marque todo lo que aplique o haya aplicado en su vida. Si tiene dudas, déjelo en blanco y coméntelo en la consulta.</p>
                   <PatologiasSelector value={patologias} onChange={setPatologias} />
                   <div><label className={etiqueta}>Alergias (medicamentos, alimentos, látex…)</label><input className={campo} value={alergias} onChange={(e) => setAlergias(e.target.value)} placeholder="Ninguna conocida" /></div>
-                  <div><label className={etiqueta}>Medicamentos que tomas actualmente</label><textarea className={campo} rows={2} value={medicamentos} onChange={(e) => setMedicamentos(e.target.value)} placeholder="Nombre y dosis, si los recuerdas" /></div>
+                  <div><label className={etiqueta}>Medicamentos que toma actualmente</label><textarea className={campo} rows={2} value={medicamentos} onChange={(e) => setMedicamentos(e.target.value)} placeholder="Nombre y dosis, si los recuerda" /></div>
                   <div><label className={etiqueta}>Cirugías o enfermedades importantes</label><textarea className={campo} rows={2} value={antecedentes} onChange={(e) => setAntecedentes(e.target.value)} /></div>
-                  <div><label className={etiqueta}>¿Qué te gustaría tratar o mejorar?</label><textarea className={campo} rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>
+                  <div><label className={etiqueta}>¿Qué le gustaría tratar o mejorar?</label><textarea className={campo} rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>
                 </section>
               </>
             )}
@@ -208,7 +214,7 @@ export const FichaIngresoPublica: React.FC = () => {
               <section className="space-y-3 rounded-2xl border border-lilac-soft bg-white p-4">
                 <h2 className="font-fraunces text-lg text-lilac-deep">{seccionActual.titulo}</h2>
                 <LongevidadSeccion
-                  seccion={seccionActual}
+                  seccion={{ ...seccionActual, campos: seccionActual.campos.filter((c) => !YA_PREGUNTADOS.has(`${seccionActual.id}.${c.id}`)) }}
                   valor={longevidad[seccionActual.id]}
                   onChange={(parche) => setLongevidad((prev) => ({ ...prev, [seccionActual.id]: { ...prev[seccionActual.id], ...parche } }))}
                 />

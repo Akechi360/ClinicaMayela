@@ -673,7 +673,7 @@ export const updateClinicSettings = dbClinicSettings.actualizar;
 
 export const dbFichas = {
   /** Crea un enlace de un solo uso (7 días). pacienteId null = paciente nuevo. */
-  crear: async (pacienteId: string | null = null, incluyeLongevidad = false): Promise<FichaIngreso> => {
+  crear: async (pacienteId: string | null = null, incluyeLongevidad = true): Promise<FichaIngreso> => {
     const { data, error } = await supabase
       .from('fichas_ingreso')
       .insert({ paciente_id: pacienteId, token: 'pendiente', incluye_longevidad: incluyeLongevidad })

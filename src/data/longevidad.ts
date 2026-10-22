@@ -143,7 +143,7 @@ export const SECCIONES_LONGEVIDAD: SeccionLongevidad[] = [
         id: 'sintomas', label: 'Síntomas actuales', tipo: 'multi',
         opciones: op(['cefalea', 'Dolores de cabeza'], ['cansancio', 'Cansancio'], ['debilidad', 'Debilidad generalizada'], ['nube_mental', 'Nube mental']),
       },
-      { id: 'medicamentos', label: 'Medicamentos de prescripción actuales', tipo: 'textarea', placeholder: 'Nombre y dosis, si los recuerdas' },
+      { id: 'medicamentos', label: 'Medicamentos de prescripción actuales', tipo: 'textarea', placeholder: 'Nombre y dosis, si los recuerda' },
       { id: 'suplementos', label: 'Suplementos, nutracéuticos o terapias hormonales', tipo: 'textarea' },
     ],
   },
