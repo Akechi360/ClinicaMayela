@@ -10,9 +10,12 @@ interface Props {
   quality?: number;
 }
 
-// Boca/mentón en el espacio normalizado del modelo (medido sobre LeePerrySmith.glb:
-// punta de la nariz ≈ (-0.03, 0.39, 0.91); labios ≈ y 0.0; mentón ≈ y -0.25).
-const MOUTH_CENTER = new THREE.Vector3(0.0, -0.08, 0.78);
+// Busto femenino de 3D Scan Store (malla base exportada desde Blender, sin materiales; crédito en el Aviso Legal).
+// Boca/mentón en el espacio normalizado del modelo (medido sobre busto.glb ya escalado:
+// punta de la nariz ≈ (0, 0.38, 0.92); labios ≈ y -0.05; mentón ≈ y -0.29).
+const MOUTH_CENTER = new THREE.Vector3(0.0, -0.08, 0.79);
+// Alto del busto en unidades de escena (el modelo es más alto que ancho; así la cabeza ocupa lo mismo que el busto anterior)
+const TAMANO = 2.8;
 
 function buildHeadPointCloud(scene: THREE.Object3D, normalTex: THREE.Texture, pointCount: number) {
   let mesh: THREE.Mesh | null = null;
@@ -34,7 +37,7 @@ function buildHeadPointCloud(scene: THREE.Object3D, normalTex: THREE.Texture, po
     geom.computeBoundingBox();
     const size = new THREE.Vector3();
     geom.boundingBox!.getSize(size);
-    const k = 3.0 / Math.max(size.x, size.y, size.z);
+    const k = TAMANO / Math.max(size.x, size.y, size.z);
     geom.scale(k, k, k);
 
     // Mapa de normales → bytes RGBA, para perturbar la normal de cada partícula
@@ -158,8 +161,8 @@ function buildHeadPointCloud(scene: THREE.Object3D, normalTex: THREE.Texture, po
 export const MedicalPointCloud: React.FC<Props> = ({ pointCount = 320000, quality = 1 }) => {
   const groupRef = useRef<THREE.Group>(null);
   const pointsRef = useRef<THREE.Points>(null);
-  const modelUrl = `${import.meta.env.BASE_URL || '/'}models/LeePerrySmith.glb`.replace(/\/+/g, '/');
-  const normalMapUrl = `${import.meta.env.BASE_URL || '/'}models/LeePerrySmith_normal.jpg`.replace(/\/+/g, '/');
+  const modelUrl = `${import.meta.env.BASE_URL || '/'}models/busto.glb`.replace(/\/+/g, '/');
+  const normalMapUrl = `${import.meta.env.BASE_URL || '/'}models/busto_normal.jpg`.replace(/\/+/g, '/');
   const obj = useLoader(GLTFLoader, modelUrl);
   const normalTex = useLoader(THREE.TextureLoader, normalMapUrl);
 
