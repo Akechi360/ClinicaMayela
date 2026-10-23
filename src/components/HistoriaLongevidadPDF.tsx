@@ -46,7 +46,6 @@ const ORDEN: { id: string; titulo: string }[] = [
   { id: 'sueno_estres', titulo: '3. C. Cronobiología, sueño y estrés' },
   { id: 'exposoma', titulo: '3. D. Exposoma y tóxicos' },
   { id: 'patologicos', titulo: '4. Antecedentes personales patológicos' },
-  { id: 'tratamientos_previos', titulo: '5. Tratamientos anteriores' },
 ];
 
 const Seccion: React.FC<{ titulo: string; def: SeccionLongevidad | undefined; datos: DatosLongevidad[string] | undefined; extra?: React.ReactNode }> = ({ titulo, def, datos, extra }) => {

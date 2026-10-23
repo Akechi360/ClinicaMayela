@@ -29,7 +29,7 @@ const op = (...pares: [string, string][]): OpcionCampo[] => pares.map(([valor, l
 export const SECCIONES_LONGEVIDAD: SeccionLongevidad[] = [
   {
     id: 'perfil',
-    titulo: 'Perfil y estilo de vida',
+    titulo: '1. Datos generales · Ocupación y estilo de vida',
     campos: [
       { id: 'ocupacion', label: 'Ocupación', tipo: 'texto', placeholder: 'Ej. Abogada, ingeniero, docente…' },
       {
@@ -40,45 +40,45 @@ export const SECCIONES_LONGEVIDAD: SeccionLongevidad[] = [
   },
   {
     id: 'familiares',
-    titulo: 'Antecedentes familiares',
+    titulo: '2. Antecedentes heredofamiliares',
     descripcion: 'Marque lo que haya en su familia (padres, hermanos, abuelos).',
     campos: [
       {
-        id: 'cardiometabolico', label: 'Cardio-metabólicas', tipo: 'multi',
+        id: 'cardiometabolico', label: 'Enfermedades cardio-metabólicas', tipo: 'multi',
         opciones: op(['diabetes', 'Diabetes mellitus'], ['hipertension', 'Hipertensión arterial'], ['dislipidemia', 'Dislipidemia'],
-          ['sindrome_metabolico', 'Síndrome metabólico'], ['infarto_acv', 'Infarto o ACV antes de los 60 años (familiar de primer grado)']),
+          ['sindrome_metabolico', 'Síndrome metabólico'], ['infarto_acv', 'Infarto agudo al miocardio o ACV antes de los 60 años (familiar de primer grado)']),
       },
       {
-        id: 'neurodegenerativo', label: 'Neurodegenerativas', tipo: 'multi',
-        opciones: op(['demencia', 'Demencia'], ['alzheimer', 'Alzheimer'], ['parkinson', 'Parkinson'], ['deterioro_cognitivo', 'Deterioro cognitivo']),
+        id: 'neurodegenerativo', label: 'Enfermedades neurodegenerativas', tipo: 'multi',
+        opciones: op(['demencia', 'Demencia'], ['alzheimer', 'Enfermedad de Alzheimer'], ['parkinson', 'Parkinson'], ['deterioro_cognitivo', 'Deterioro cognitivo']),
       },
       {
-        id: 'oncologico', label: 'Oncológicas', tipo: 'multi',
+        id: 'oncologico', label: 'Oncología', tipo: 'multi',
         opciones: op(['colon', 'Cáncer de colon'], ['mama', 'Cáncer de mama'], ['prostata', 'Cáncer de próstata'], ['otros_tumores', 'Otros tumores']),
       },
       {
-        id: 'autoinmune', label: 'Autoinmunes e inflamatorias', tipo: 'multi',
+        id: 'autoinmune', label: 'Trastornos autoinmunes e inflamatorios', tipo: 'multi',
         opciones: op(['fibromialgia', 'Fibromialgia'], ['lupus', 'Lupus'], ['artritis_reumatoide', 'Artritis reumatoide'], ['hashimoto', 'Tiroiditis de Hashimoto']),
       },
-      { id: 'longevidad_familiar', label: 'Familiares centenarios o de edad avanzada libres de enfermedad', tipo: 'sino' },
+      { id: 'longevidad_familiar', label: 'Longevidad familiar: familiares centenarios o de edad avanzada libres de enfermedad', tipo: 'sino' },
       { id: 'quien', label: '¿Quién? (madre, padre, hermanos…)', tipo: 'texto', placeholder: 'Opcional' },
     ],
   },
   {
     id: 'nutricion',
-    titulo: 'Nutrición y salud digestiva',
+    titulo: '3A. Nutrición y salud digestiva',
     campos: [
       {
         id: 'patron', label: 'Patrón de alimentación', tipo: 'opcion',
-        opciones: op(['normal', 'Normal'], ['mediterranea', 'Mediterránea'], ['cetogenica', 'Cetogénica'], ['baja_carbohidratos', 'Baja en carbohidratos'], ['antiinflamatoria', 'Antiinflamatoria']),
+        opciones: op(['mediterranea', 'Mediterránea'], ['cetogenica', 'Cetogénica'], ['baja_carbohidratos', 'Baja en carbohidratos'], ['antiinflamatoria', 'Antiinflamatoria'], ['normal', 'Normal']),
       },
       {
         id: 'ayuno', label: 'Ayuno o restricción calórica', tipo: 'opcion',
         opciones: op(['no', 'No practico'], ['intermitente', 'Ayuno intermitente'], ['restriccion', 'Restricción calórica']),
       },
       { id: 'ventana', label: 'Ventana de alimentación (horarios)', tipo: 'texto', placeholder: 'Ej. 12:00 a 20:00' },
-      { id: 'agua_litros', label: 'Agua al día', tipo: 'numero', min: 0, max: 10, paso: 0.5, unidad: 'litros' },
-      { id: 'vegetales', label: 'Porciones de vegetales y verduras al día', tipo: 'numero', min: 0, max: 20, paso: 1, unidad: 'porciones' },
+      { id: 'agua_litros', label: 'Ingesta de agua al día', tipo: 'numero', min: 0, max: 10, paso: 0.5, unidad: 'litros' },
+      { id: 'vegetales', label: 'Fibra: porciones de vegetales y verduras al día', tipo: 'numero', min: 0, max: 20, paso: 1, unidad: 'porciones' },
       {
         id: 'digestivos', label: 'Síntomas digestivos', tipo: 'multi',
         opciones: op(['hinchazon', 'Hinchazón'], ['reflujo', 'Reflujo'], ['permeabilidad', 'Sospecha de permeabilidad intestinal'],
@@ -90,7 +90,7 @@ export const SECCIONES_LONGEVIDAD: SeccionLongevidad[] = [
   },
   {
     id: 'actividad',
-    titulo: 'Actividad física y masa corporal',
+    titulo: '3B. Actividad física y masa corporal',
     campos: [
       { id: 'fuerza_dias', label: 'Entrenamiento de fuerza', tipo: 'numero', min: 0, max: 7, paso: 1, unidad: 'días por semana' },
       { id: 'fuerza_detalle', label: 'Frecuencia o carga', tipo: 'texto', placeholder: 'Opcional' },
@@ -104,7 +104,7 @@ export const SECCIONES_LONGEVIDAD: SeccionLongevidad[] = [
   },
   {
     id: 'sueno_estres',
-    titulo: 'Sueño, ritmo circadiano y estrés',
+    titulo: '3C. Cronobiología, sueño y estrés',
     campos: [
       { id: 'sueno_horas', label: 'Horas de sueño por noche', tipo: 'numero', min: 0, max: 14, paso: 0.5, unidad: 'horas' },
       { id: 'sueno_calidad', label: 'Calidad del sueño', tipo: 'opcion', opciones: op(['profundo', 'Profundo'], ['liviano', 'Liviano'], ['no_duermo', 'No duermo']) },
@@ -119,7 +119,7 @@ export const SECCIONES_LONGEVIDAD: SeccionLongevidad[] = [
   },
   {
     id: 'exposoma',
-    titulo: 'Exposoma y tóxicos',
+    titulo: '3D. Exposoma y tóxicos',
     campos: [
       {
         id: 'tabaco', label: 'Tabaquismo / vapeo', tipo: 'opcion',
@@ -135,23 +135,17 @@ export const SECCIONES_LONGEVIDAD: SeccionLongevidad[] = [
   },
   {
     id: 'patologicos',
-    titulo: 'Antecedentes personales y síntomas',
-    descripcion: 'Las patologías se marcan en la sección anterior de la ficha. Aquí va lo demás.',
+    titulo: '4. Antecedentes personales patológicos',
+    descripcion: 'Las patologías, las alergias y los demás antecedentes del expediente se muestran junto a esta sección.',
     campos: [
       { id: 'cirugias', label: 'Cirugías y hospitalizaciones (fecha y motivo)', tipo: 'textarea', placeholder: 'Ej. 2019 — apendicectomía' },
       {
         id: 'sintomas', label: 'Síntomas actuales', tipo: 'multi',
-        opciones: op(['cefalea', 'Dolores de cabeza'], ['cansancio', 'Cansancio'], ['debilidad', 'Debilidad generalizada'], ['nube_mental', 'Nube mental']),
+        opciones: op(['cefalea', 'Dolores de cabeza'], ['cansancio', 'Cansancio'], ['debilidad', 'Debilidad generalizada'], ['nube_mental', 'Niebla mental']),
       },
-      { id: 'medicamentos', label: 'Medicamentos de prescripción actuales', tipo: 'textarea', placeholder: 'Nombre y dosis, si los recuerda' },
-      { id: 'suplementos', label: 'Suplementos, nutracéuticos o terapias hormonales', tipo: 'textarea' },
-    ],
-  },
-  {
-    id: 'tratamientos_previos',
-    titulo: 'Tratamientos anteriores',
-    campos: [
-      { id: 'peptidos_previos', label: 'He recibido terapia peptídica', tipo: 'sino' },
+      { id: 'medicamentos', label: 'Medicamentos actuales: fármacos de prescripción', tipo: 'textarea', placeholder: 'Nombre y dosis, si los recuerda' },
+      { id: 'suplementos', label: 'Suplementación actual: nutracéuticos, péptidos o terapias hormonales', tipo: 'textarea' },
+      { id: 'peptidos_previos', label: 'He recibido terapia peptídica o terapias hormonales previas', tipo: 'sino' },
       { id: 'peptidos_detalle', label: 'Cuál, por cuánto tiempo y a qué dosis', tipo: 'textarea', placeholder: 'Ej. Semaglutida 0.5 mg semanal por 3 meses' },
       { id: 'otros_tratamientos', label: 'Otros tratamientos estéticos o médicos previos', tipo: 'textarea' },
     ],

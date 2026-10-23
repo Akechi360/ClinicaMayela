@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { CheckCircle2, ShieldX, Loader2, Lock, ArrowLeft, ArrowRight } from 'lucide-react';
 import { fichaObtener, fichaEnviar } from '../services/db';
-import { PatologiasSelector } from '../components/PatologiasUi';
 import { LongevidadSeccion } from '../components/LongevidadForm';
-import { SECCIONES_LONGEVIDAD, limpiarLongevidad, type DatosLongevidad } from '../data/longevidad';
+import { SECCIONES_LONGEVIDAD, limpiarLongevidad, type DatosLongevidad, type SeccionLongevidad } from '../data/longevidad';
+import { PATOLOGIAS } from '../data/patologias';
 
 type Estado =
   | { tipo: 'cargando' }
@@ -15,17 +15,50 @@ type Estado =
 
 const MOTIVOS: Record<string, string> = {
   no_existe: 'Este enlace no es válido. Solicite a la clínica que le envíe uno nuevo.',
-  ya_enviada: 'Esta ficha ya fue enviada. ¡Gracias! No necesitas hacer nada más.',
+  ya_enviada: 'Esta ficha ya fue enviada. ¡Gracias! No necesita hacer nada más.',
   vencida: 'Este enlace venció. Solicite a la clínica que le envíe uno nuevo.',
 };
 
 const campo = 'w-full rounded-xl border border-lilac-soft bg-white px-3.5 py-3 text-base text-ink placeholder:text-lilac-muted/60 focus:outline-none focus:ring-2 focus:ring-aurora-violet/50';
 const etiqueta = 'mb-1 block text-[11px] font-bold uppercase tracking-wider text-lilac-muted';
 
-/** Página pública (sin sesión): el paciente llena su ficha de ingreso desde el teléfono. */
-// Se piden en la primera pantalla ("Antecedentes de salud") y se copian a la historia al enviar: no se repiten
-const YA_PREGUNTADOS = new Set(['patologicos.cirugias', 'patologicos.medicamentos']);
+// La ficha sigue el modelo de historia clínica de la Dra.: 1 datos generales · 2 heredofamiliares ·
+// 3 (A–D) no patológicos · 4 patológicos. Sin historia de longevidad, solo se piden los pasos 1 y 4.
+const OBJETIVOS = [
+  'Optimización de la salud metabólica',
+  'Prevención del envejecimiento celular',
+  'Mejora del rendimiento físico y cognitivo',
+  'Extensión de la etapa de salud activa (healthspan)',
+];
+const CARDIOMETABOLICO = ['higado_graso', 'resistencia_insulina', 'prediabetes', 'gota'];
+const ENDOCRINOPATIAS = ['hipotiroidismo', 'hipertiroidismo', 'deficiencia_hormonal', 'sop'];
+const OTRAS_CONDICIONES = PATOLOGIAS.map((p) => p.codigo).filter((c) => !CARDIOMETABOLICO.includes(c) && !ENDOCRINOPATIAS.includes(c));
+const NO_PATOLOGICOS = new Set(['nutricion', 'actividad', 'sueno_estres', 'exposoma']);
 
+const seccion = (id: string) => SECCIONES_LONGEVIDAD.find((s) => s.id === id)!;
+const soloCampos = (s: SeccionLongevidad, ids: string[], excluir = false): SeccionLongevidad => ({
+  ...s,
+  descripcion: undefined,
+  campos: s.campos.filter((c) => ids.includes(c.id) !== excluir),
+});
+
+const Casillas: React.FC<{ codigos: string[]; valor: string[]; onChange: (v: string[]) => void; etiquetas?: Record<string, string> }> = ({ codigos, valor, onChange, etiquetas }) => (
+  <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+    {codigos.map((c) => (
+      <label key={c} className="flex cursor-pointer items-start gap-2.5 rounded-lg px-1 py-1.5 text-sm text-ink">
+        <input
+          type="checkbox"
+          checked={valor.includes(c)}
+          onChange={() => onChange(valor.includes(c) ? valor.filter((x) => x !== c) : [...valor, c])}
+          className="mt-0.5 h-5 w-5 shrink-0 accent-[#A891AA]"
+        />
+        <span>{etiquetas?.[c] ?? PATOLOGIAS.find((p) => p.codigo === c)?.label ?? c}</span>
+      </label>
+    ))}
+  </div>
+);
+
+/** Página pública (sin sesión): el paciente llena su ficha de ingreso desde el teléfono. */
 export const FichaIngresoPublica: React.FC = () => {
   const { codigo = '' } = useParams<{ codigo: string }>();
   const [estado, setEstado] = useState<Estado>({ tipo: 'cargando' });
@@ -45,7 +78,8 @@ export const FichaIngresoPublica: React.FC = () => {
   const [alergias, setAlergias] = useState('');
   const [medicamentos, setMedicamentos] = useState('');
   const [antecedentes, setAntecedentes] = useState('');
-  const [motivo, setMotivo] = useState('');
+  const [objetivos, setObjetivos] = useState<string[]>([]);
+  const [motivoOtro, setMotivoOtro] = useState('');
   const [longevidad, setLongevidad] = useState<DatosLongevidad>({});
   const [veracidad, setVeracidad] = useState(false);
   const [privacidad, setPrivacidad] = useState(false);
@@ -72,10 +106,17 @@ export const FichaIngresoPublica: React.FC = () => {
   }, [codigo]);
 
   const conLongevidad = estado.tipo === 'formulario' && estado.longevidad;
-  // Paso 0: datos y antecedentes · pasos siguientes: una sección de longevidad cada uno
-  const totalPasos = useMemo(() => 1 + (conLongevidad ? SECCIONES_LONGEVIDAD.length : 0), [conLongevidad]);
+  const pasos = useMemo(
+    () => (conLongevidad ? ['generales', 'familiares', 'nutricion', 'actividad', 'sueno_estres', 'exposoma', 'patologicos'] : ['generales', 'patologicos']),
+    [conLongevidad],
+  );
+  const totalPasos = pasos.length;
+  const pasoId = pasos[paso];
   const esUltimo = paso === totalPasos - 1;
-  const seccionActual = conLongevidad && paso > 0 ? SECCIONES_LONGEVIDAD[paso - 1] : null;
+
+  const valorSeccion = (id: string) => longevidad[id];
+  const cambiarSeccion = (id: string) => (parche: Record<string, unknown>) =>
+    setLongevidad((prev) => ({ ...prev, [id]: { ...prev[id], ...(parche as DatosLongevidad[string]) } }));
 
   const subir = () => window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -95,6 +136,7 @@ export const FichaIngresoPublica: React.FC = () => {
     if (!veracidad || !privacidad) { setError('Debe aceptar las dos declaraciones para enviar la ficha.'); return; }
     setEnviando(true);
     try {
+      const motivo = [...objetivos, motivoOtro.trim()].filter(Boolean).join('; ');
       const datos: Record<string, unknown> = {
         nombre, apellido, cedula, telefono, email,
         fecha_nacimiento: fechaNac || null,
@@ -104,6 +146,7 @@ export const FichaIngresoPublica: React.FC = () => {
         veracidad: String(veracidad), privacidad: String(privacidad),
       };
       if (conLongevidad) {
+        // Cirugías y medicamentos se piden una sola vez (datos del expediente) y se copian a la historia
         const pat = { ...longevidad.patologicos, ...(antecedentes.trim() ? { cirugias: antecedentes } : {}), ...(medicamentos.trim() ? { medicamentos } : {}) };
         datos.longevidad = limpiarLongevidad({ ...longevidad, patologicos: pat });
       }
@@ -117,6 +160,10 @@ export const FichaIngresoPublica: React.FC = () => {
       setEnviando(false);
     }
   };
+
+  const tarjeta = 'space-y-4 rounded-2xl border border-lilac-soft bg-white p-4';
+  const titulo = 'font-fraunces text-lg text-lilac-deep';
+  const subtitulo = 'font-fraunces text-base text-lilac-deep';
 
   return (
     <div className="min-h-screen bg-lilac-pearl text-ink">
@@ -164,60 +211,119 @@ export const FichaIngresoPublica: React.FC = () => {
                 {estado.nombre ? 'complete su ficha.' : 'Complete sus datos antes de su consulta.'}{' '}
                 Solo la verá la Dra. Mayela González.{conLongevidad ? ' Puede omitir lo que no sepa.' : ''}
               </p>
-              {totalPasos > 1 && (
-                <div className="mt-3" aria-label={`Paso ${paso + 1} de ${totalPasos}`}>
-                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-lilac-soft">
-                    <div className="h-full rounded-full bg-lilac-deep transition-all" style={{ width: `${((paso + 1) / totalPasos) * 100}%` }} />
-                  </div>
-                  <p className="mt-1 text-[11px] text-lilac-muted">Paso {paso + 1} de {totalPasos}</p>
+              <div className="mt-3" aria-label={`Paso ${paso + 1} de ${totalPasos}`}>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-lilac-soft">
+                  <div className="h-full rounded-full bg-lilac-deep transition-all" style={{ width: `${((paso + 1) / totalPasos) * 100}%` }} />
                 </div>
-              )}
+                <p className="mt-1 text-[11px] text-lilac-muted">Paso {paso + 1} de {totalPasos}</p>
+              </div>
             </div>
 
-            {paso === 0 && (
-              <>
-                <section className="space-y-3 rounded-2xl border border-lilac-soft bg-white p-4">
-                  <h2 className="font-fraunces text-lg text-lilac-deep">Sus datos</h2>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div><label className={etiqueta}>Nombre *</label><input className={campo} value={nombre} onChange={(e) => setNombre(e.target.value)} autoComplete="given-name" /></div>
-                    <div><label className={etiqueta}>Apellido *</label><input className={campo} value={apellido} onChange={(e) => setApellido(e.target.value)} autoComplete="family-name" /></div>
-                    <div><label className={etiqueta}>Cédula</label><input className={campo} value={cedula} onChange={(e) => setCedula(e.target.value)} placeholder="V-12345678" /></div>
-                    <div><label className={etiqueta}>Teléfono</label><input className={campo} value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="0414-0000000" type="tel" autoComplete="tel" /></div>
-                    <div className="sm:col-span-2"><label className={etiqueta}>Correo electrónico</label><input className={campo} value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" /></div>
-                    <div><label className={etiqueta}>Fecha de nacimiento</label><input className={campo} value={fechaNac} onChange={(e) => setFechaNac(e.target.value)} type="date" /></div>
-                    <div>
-                      <label className={etiqueta}>Sexo</label>
-                      <select className={campo} value={genero} onChange={(e) => setGenero(e.target.value)}>
-                        <option value="">Prefiero no indicar</option>
-                        <option value="Femenino">Femenino</option>
-                        <option value="Masculino">Masculino</option>
-                        <option value="Otro">Otro</option>
-                      </select>
-                    </div>
-                    <div><label className={etiqueta}>Estatura (cm)</label><input className={campo} value={estatura} onChange={(e) => setEstatura(e.target.value)} type="number" inputMode="decimal" min={50} max={250} step="0.5" placeholder="165" /></div>
+            {/* 1. Datos generales */}
+            {pasoId === 'generales' && (
+              <section className={tarjeta}>
+                <h2 className={titulo}>1. Datos generales del paciente</h2>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div><label className={etiqueta}>Nombre *</label><input className={campo} value={nombre} onChange={(e) => setNombre(e.target.value)} autoComplete="given-name" /></div>
+                  <div><label className={etiqueta}>Apellidos *</label><input className={campo} value={apellido} onChange={(e) => setApellido(e.target.value)} autoComplete="family-name" /></div>
+                  <div><label className={etiqueta}>Fecha de nacimiento</label><input className={campo} value={fechaNac} onChange={(e) => setFechaNac(e.target.value)} type="date" /></div>
+                  <div>
+                    <label className={etiqueta}>Sexo</label>
+                    <select className={campo} value={genero} onChange={(e) => setGenero(e.target.value)}>
+                      <option value="">Prefiero no indicar</option>
+                      <option value="Masculino">Masculino</option>
+                      <option value="Femenino">Femenino</option>
+                      <option value="Otro">Otro</option>
+                    </select>
                   </div>
-                </section>
+                </div>
 
-                <section className="space-y-3 rounded-2xl border border-lilac-soft bg-white p-4">
-                  <h2 className="font-fraunces text-lg text-lilac-deep">Antecedentes de salud</h2>
-                  <p className="text-xs text-lilac-muted">Marque todo lo que aplique o haya aplicado en su vida. Si tiene dudas, déjelo en blanco y coméntelo en la consulta.</p>
-                  <PatologiasSelector value={patologias} onChange={setPatologias} />
-                  <div><label className={etiqueta}>Alergias (medicamentos, alimentos, látex…)</label><input className={campo} value={alergias} onChange={(e) => setAlergias(e.target.value)} placeholder="Ninguna conocida" /></div>
-                  <div><label className={etiqueta}>Medicamentos que toma actualmente</label><textarea className={campo} rows={2} value={medicamentos} onChange={(e) => setMedicamentos(e.target.value)} placeholder="Nombre y dosis, si los recuerda" /></div>
-                  <div><label className={etiqueta}>Cirugías o enfermedades importantes</label><textarea className={campo} rows={2} value={antecedentes} onChange={(e) => setAntecedentes(e.target.value)} /></div>
-                  <div><label className={etiqueta}>¿Qué le gustaría tratar o mejorar?</label><textarea className={campo} rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} /></div>
-                </section>
-              </>
+                {conLongevidad && (
+                  <>
+                    <LongevidadSeccion seccion={soloCampos(seccion('perfil'), ['ocupacion', 'estilo_vida'])} valor={valorSeccion('perfil')} onChange={cambiarSeccion('perfil')} />
+                    <LongevidadSeccion
+                      seccion={{ id: 'sueno_estres', titulo: '', campos: seccion('sueno_estres').campos.filter((c) => c.id === 'estres').map((c) => ({ ...c, label: 'Nivel de estrés percibido (1 = nada, 10 = máximo)' })) }}
+                      valor={valorSeccion('sueno_estres')}
+                      onChange={cambiarSeccion('sueno_estres')}
+                    />
+                  </>
+                )}
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div><label className={etiqueta}>Teléfono</label><input className={campo} value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="0414-0000000" type="tel" autoComplete="tel" /></div>
+                  <div><label className={etiqueta}>Correo</label><input className={campo} value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="email" /></div>
+                  <div><label className={etiqueta}>Cédula</label><input className={campo} value={cedula} onChange={(e) => setCedula(e.target.value)} placeholder="V-12345678" /></div>
+                  <div><label className={etiqueta}>Estatura (cm)</label><input className={campo} value={estatura} onChange={(e) => setEstatura(e.target.value)} type="number" inputMode="decimal" min={50} max={250} step="0.5" placeholder="165" /></div>
+                </div>
+
+                <div>
+                  <label className={etiqueta}>Motivo de consulta</label>
+                  <Casillas codigos={OBJETIVOS} valor={objetivos} onChange={setObjetivos} etiquetas={Object.fromEntries(OBJETIVOS.map((o) => [o, o]))} />
+                  <textarea className={`${campo} mt-2`} rows={2} value={motivoOtro} onChange={(e) => setMotivoOtro(e.target.value)} placeholder="Otro motivo o lo que le gustaría tratar o mejorar" />
+                </div>
+              </section>
             )}
 
-            {seccionActual && (
-              <section className="space-y-3 rounded-2xl border border-lilac-soft bg-white p-4">
-                <h2 className="font-fraunces text-lg text-lilac-deep">{seccionActual.titulo}</h2>
+            {/* 2. Heredofamiliares */}
+            {pasoId === 'familiares' && (
+              <section className={tarjeta}>
+                <h2 className={titulo}>2. Antecedentes heredofamiliares</h2>
+                <LongevidadSeccion seccion={seccion('familiares')} valor={valorSeccion('familiares')} onChange={cambiarSeccion('familiares')} />
+              </section>
+            )}
+
+            {/* 3. No patológicos (A–D), un paso por apartado */}
+            {NO_PATOLOGICOS.has(pasoId) && (
+              <section className={tarjeta}>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-lilac-muted">3. Antecedentes personales no patológicos · estilo de vida y hábitos de longevidad</p>
+                <h2 className={titulo}>{seccion(pasoId).titulo.replace(/^3([A-D])\. /, '$1. ')}</h2>
                 <LongevidadSeccion
-                  seccion={{ ...seccionActual, campos: seccionActual.campos.filter((c) => !YA_PREGUNTADOS.has(`${seccionActual.id}.${c.id}`)) }}
-                  valor={longevidad[seccionActual.id]}
-                  onChange={(parche) => setLongevidad((prev) => ({ ...prev, [seccionActual.id]: { ...prev[seccionActual.id], ...parche } }))}
+                  seccion={pasoId === 'sueno_estres' ? soloCampos(seccion(pasoId), ['estres'], true) : seccion(pasoId)}
+                  valor={valorSeccion(pasoId)}
+                  onChange={cambiarSeccion(pasoId)}
                 />
+              </section>
+            )}
+
+            {/* 4. Patológicos */}
+            {pasoId === 'patologicos' && (
+              <section className={tarjeta}>
+                <h2 className={titulo}>4. Antecedentes personales patológicos</h2>
+                <p className="text-xs text-lilac-muted">Marque todo lo que aplique o haya aplicado en su vida. Si tiene dudas, déjelo en blanco y coméntelo en la consulta.</p>
+
+                <div>
+                  <h3 className={subtitulo}>Historial cardio-metabólico</h3>
+                  <Casillas codigos={CARDIOMETABOLICO} valor={patologias} onChange={setPatologias} />
+                </div>
+                <div>
+                  <h3 className={subtitulo}>Endocrinopatías</h3>
+                  <Casillas codigos={ENDOCRINOPATIAS} valor={patologias} onChange={setPatologias} etiquetas={{ hipotiroidismo: 'Disfunción tiroidea: hipotiroidismo', hipertiroidismo: 'Disfunción tiroidea: hipertiroidismo' }} />
+                </div>
+
+                <div><label className={etiqueta}>Cirugías y hospitalizaciones (fecha y motivo)</label><textarea className={campo} rows={2} value={antecedentes} onChange={(e) => setAntecedentes(e.target.value)} placeholder="Ej. 2019 — apendicectomía" /></div>
+                <div><label className={etiqueta}>Alergias / sensibilidades alimentarias (alimentos, fármacos o sustancias)</label><input className={campo} value={alergias} onChange={(e) => setAlergias(e.target.value)} placeholder="Ninguna conocida" /></div>
+
+                {conLongevidad && (
+                  <LongevidadSeccion seccion={soloCampos(seccion('patologicos'), ['sintomas'])} valor={valorSeccion('patologicos')} onChange={cambiarSeccion('patologicos')} />
+                )}
+
+                <div>
+                  <h3 className={subtitulo}>Medicamentos y suplementación actual</h3>
+                  <label className={`${etiqueta} mt-2`}>Fármacos de prescripción</label>
+                  <textarea className={campo} rows={2} value={medicamentos} onChange={(e) => setMedicamentos(e.target.value)} placeholder="Nombre y dosis, si los recuerda" />
+                </div>
+                {conLongevidad && (
+                  <LongevidadSeccion
+                    seccion={soloCampos(seccion('patologicos'), ['suplementos', 'peptidos_previos', 'peptidos_detalle', 'otros_tratamientos'])}
+                    valor={valorSeccion('patologicos')}
+                    onChange={cambiarSeccion('patologicos')}
+                  />
+                )}
+
+                <div>
+                  <h3 className={subtitulo}>Otras condiciones importantes para su tratamiento</h3>
+                  <Casillas codigos={OTRAS_CONDICIONES} valor={patologias} onChange={setPatologias} />
+                </div>
               </section>
             )}
 
